@@ -1,0 +1,9 @@
+# This is a template to create config.yml
+
+aws_account_id: 
+aws_access_key: 
+aws_secret_access_key: 
+private_key_file: 
+cert_file: 
+bucket_name: 
+bundle_file_prefix: 

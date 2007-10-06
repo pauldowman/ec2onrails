@@ -1,0 +1,1 @@
+05,15,25,35,45,55 * * * *     app   /usr/local/ec2onrails/bin/backup_app_db.rb

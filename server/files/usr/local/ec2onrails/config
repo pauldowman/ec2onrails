@@ -1,0 +1,16 @@
+############################################################
+# This script is sourced by .profile and by /usr/local/ec2onrails/rebundle.sh
+# You shouldn't need to change anything in here
+
+if [ -r /mnt/aws-config/config ] ; then
+  . /mnt/aws-config/config
+fi
+
+export EC2_PRIVATE_KEY="/mnt/aws-config/$KEY_FILE_NAME"
+export EC2_CERT="/mnt/aws-config/$CERT_FILE_NAME"
+
+export EC2_HOME=/usr/local/ec2-api-tools
+export PATH="$PATH:/var/lib/gems/1.8/bin:$EC2_HOME/bin:/usr/local/ec2onrails/bin"
+
+export JAVA_HOME="/usr/lib/jvm/java-6-sun"
+export RUBYLIB=/usr/lib/ruby/1.8:/usr/local/lib/1.8/i486-linux:/usr/lib/site_ruby
