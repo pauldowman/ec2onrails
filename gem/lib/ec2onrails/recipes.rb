@@ -124,11 +124,11 @@ Capistrano::Configuration.instance.load do
       DESC
       task :load_config, :roles => :db do
         db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)['production']
-        set :production_db_name, db_config['database']
-        set :production_db_user, db_config['username']
-        set :production_db_password, db_config['password']
+        cfg[:production_db_name] = db_config['database']
+        cfg[:production_db_user] = db_config['username']
+        cfg[:production_db_password] = db_config['password']
         
-        [production_db_name, production_db_user, production_db_password].each do |s|
+        [cfg[:production_db_name], cfg[:production_db_user], cfg[:production_db_password]].each do |s|
           if s.match(/['"]/)
             raise "ERROR: database config string '#{s}' contains quotes."
           end
@@ -282,7 +282,7 @@ Capistrano::Configuration.instance.load do
             file = '/tmp/config_files.tgz'
             run_local "tar zcf #{file} -C '#{cfg[:server_config_files_root]}' ."
             put File.read(file), file
-            sudo "tar zxvf #{file} -C /"
+            sudo "tar zxvf #{file} -o -C /"
           ensure
             rm_rf file
             sudo "rm -f #{file}"
