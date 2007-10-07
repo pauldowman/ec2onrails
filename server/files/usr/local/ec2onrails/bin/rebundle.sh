@@ -20,7 +20,7 @@
 
 
 cleanup() {
-  rm /ec2onrails-first-boot	
+  rm -f /ec2onrails-first-boot	
 }
 
 fail() {
