@@ -29,8 +29,6 @@ make_dir /tmp
 
 make_dir /mnt/app app:app
 
-make_dir /mnt/backup app:app
-
 make_dir /mnt/log
 make_dir /mnt/log/apache2 www-data:www-data
 make_dir /mnt/log/fsck
