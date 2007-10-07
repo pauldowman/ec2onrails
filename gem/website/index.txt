@@ -19,7 +19,9 @@ h2. Demonstration of usage
 
 h2. Forum
 
-"http://groups.google.com/group/ec2-on-rails":http://groups.google.com/group/ec2-on-rails
+"Announcements":http://groups.google.com/group/ec2-on-rails-announce
+
+"Discussion":http://groups.google.com/group/ec2-on-rails-discuss
 
 
 h2. How to submit patches
