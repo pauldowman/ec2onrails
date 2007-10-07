@@ -21,7 +21,8 @@ module Ec2onrails #:nodoc:
     MAJOR = 0
     MINOR = 9
     TINY  = 3
-
     STRING = [MAJOR, MINOR, TINY].join('.')
+    
+    AMI_ID = 'ami-abf91cc2'
   end
 end
