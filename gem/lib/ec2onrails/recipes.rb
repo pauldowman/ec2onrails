@@ -1,5 +1,5 @@
 #    This file is part of EC2 on Rails.
-#    http://code.google.com/p/EC2 on Rails/
+#    http://rubyforge.org/projects/ec2onrails/
 #
 #    Copyright 2007 Paul Dowman, http://pauldowman.com/
 #
@@ -16,288 +16,313 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'fileutils'
+include FileUtils
+
+require 'ec2onrails/version'
+require 'ec2onrails/capistrano_utils'
+include Ec2onrails::CapistranoUtils
 
 Capistrano::Configuration.instance.load do
 
-  set :image_id, "ami-0cf61365"
+  set :image_id, Ec2onrails::VERSION::AMI_ID
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
+  set :user, "app"
+
+  make_admin_role_for(:web, :web_admin)
+  make_admin_role_for(:app, :app_admin)
+  make_admin_role_for(:db, :db_admin)
   
-  # If the HOST environment variable is set use it to override the 
-  # value of host
-  set :host, ENV['HOST'] || host
+  roles[:web_admin].to_s
+  roles[:app_admin].to_s
+  roles[:db_admin].to_s
   
-  role :web, "app@#{host}"
-  role :app, "app@#{host}"
-  role :db,  "app@#{host}", :primary => true
-  
-  role :web_admin, "admin@#{host}", :no_release => true
-  role :app_admin, "admin@#{host}", :no_release => true
-  role :db_admin,  "admin@#{host}", :no_release => true, :primary => true
+#  task :xx do
+#    # test...
+#  end
 
   # override default start/stop/restart tasks
   namespace :deploy do
     desc <<-DESC
       Overrides the default Capistrano deploy:start, directly calls \
-      /usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper
+      /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper
     DESC
     task :start, :except => { :no_release => true } do
-      run "/usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper start"
+      run "/usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper start"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:stop, directly calls \
-      /usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper
+      /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper
     DESC
     task :stop, :except => { :no_release => true } do
-      run "/usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper stop"
+      run "/usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper stop"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:restart, directly calls \
-      /usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper
+      /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper
     DESC
     task :restart, :except => { :no_release => true } do
-      run "/usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper restart"
+      run "/usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper restart"
     end
   end
   
   namespace :ec2onrails do
-    desc <<-DESC
-      Start an instance, using the AMI of the correct version to match this gem.
-    DESC
-    task :start_instance, :roles => [:web, :db, :app] do
-      # TODO
-#      ec2 = EC2::Base.new(:access_key_id => access_key_id, :secret_access_key => secret_access_key)
-#      ec2.run_instances(:image_id => image_id, :key_name => key_name, :group_id => group_id)
-      # wait until image is booted
-    end
     
     desc <<-DESC
       Start a new server instance and prepare it for a cold deploy.
     DESC
-    task :bootstrap, :roles => [:web, :db, :app] do
-      start_instance
-      set_timezone
-      upgrade_and_install_all
-      deploy_files
-      restart_services
+    task :setup, :roles => [:web, :db, :app] do
+      ec2.start_instance
+      server.set_timezone
+      server.upgrade_and_install_all
+      server.deploy_files
+      server.restart_services
       deploy.setup
-      create_db
-    end
-    
-    desc <<-DESC
-      Bootstrap and cold deploy.
-    DESC
-    task :launch, :roles => [:web, :db, :app] do
-      bootstrap
-      deploy.cold
-      # migrations?
+      db.create
     end
     
     desc <<-DESC
       Deploy and restore database from S3
     DESC
     task :restore_db_and_deploy, :roles => [:web, :db, :app] do
-      ec2onrails.recreate_db
+      db.recreate
       deploy.update_code
       deploy.symlink
       # don't need to migrate because we're restoring the db
-      ec2onrails.restore_db
+      db.restore
       deploy.restart
     end
-
-    desc <<-DESC
-      Load configuration info for the production database from \
-      config/database.yml.
-    DESC
-    task :load_db_config, :roles => :db do
-      db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)['production']
-      set :production_db_name, db_config['database']
-      set :production_db_user, db_config['username']
-      set :production_db_password, db_config['password']
+    
+    namespace :ec2 do
+      desc <<-DESC
+        Start an instance, using the AMI of the correct version to match this gem.
+      DESC
+      task :start_instance, :roles => [:web, :db, :app] do
+        # TODO
+        # ec2 = EC2::Base.new(:access_key_id => access_key_id, :secret_access_key => secret_access_key)
+        # ec2.run_instances(:image_id => image_id, :key_name => key_name, :group_id => group_id)
+        # wait until image is booted
+      end
       
-      [production_db_name, production_db_user, production_db_password].each do |s|
-        if s.match(/['"]/)
-          raise "ERROR: database config string '#{s}' contains quotes."
-        end
+      desc <<-DESC
+        Set default firewall rules.
+      DESC
+      task :configure_firewall do
+        # TODO
       end
     end
     
-    desc <<-DESC
-      Create the MySQL production database. Assumes there is no MySQL root \
-      password. To create a MySQL root password create a task that's run \
-      after this task using an after hook.
-    DESC
-    task :create_db, :roles => :db do
-      on_rollback { drop_db }
-      load_db_config
-      run "echo 'create database #{production_db_name};' | mysql -u root"
-      run "echo \"grant all on #{production_db_name}.* to '#{production_db_user}'@'localhost' identified by '#{production_db_password}';\" | mysql -u root"
-    end
-    
-    desc <<-DESC
-      Drop the MySQL production database. Assumes there is no MySQL root \
-      password. If there is a MySQL root password, create a task that removes \
-      it and run that task before this one using a before hook.
-    DESC
-    task :drop_db, :roles => :db do
-      load_db_config
-      run "echo 'drop database if exists #{production_db_name};' | mysql -u root"
-    end
-    
-    desc <<-DESC
-      drop_db and create_db.
-    DESC
-    task :recreate_db, :roles => :db do
-      drop_db
-      create_db
-    end
-    
-    desc <<-DESC
-      Dump the MySQL database to the S3 bucket specified by a variable named \
-      "backup_to_bucket".
-    DESC
-    task :archive_db, :roles => [:db] do
-      run "/usr/local/aws/bin/backup_app_db.rb #{backup_to_bucket}"
-    end
-    
-    desc <<-DESC
-      Restore the MySQL database from the S3 bucket specified by a variable named \
-      "restore_from_bucket".
-    DESC
-    task :restore_db, :roles => [:db] do
-      run "/usr/local/aws/bin/restore_app_db.rb #{restore_from_bucket}"
-    end
-    
-    desc <<-DESC
-      Upgrade to the newest versions of all Ubuntu packages.
-    DESC
-    task :upgrade_packages, :roles => [:web_admin, :db_admin, :app_admin] do
-      sudo "aptitude -q update"
-      run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y dist-upgrade"
-    end
-    
-    desc <<-DESC
-      Upgrade to the newest versions of all rubygems.
-    DESC
-    task :upgrade_gems, :roles => [:web_admin, :db_admin, :app_admin] do
-      sudo "gem update -y"
-    end
-    
-    desc <<-DESC
-      Install extra Ubuntu packages. Set a variable named :packages with an \
-      array of strings:
-      set :packages, %w(libmagick logwatch)
-      NOTE: the package installation will be non-interactive, if the packages \
-      require configuration either log in as 'admin' and run \
-      'dpkg-reconfigure packagename' or replace the package's config files \
-      using the 'ec2onrails:deploy_config_files' task.
-    DESC
-    task :install_packages, :roles => [:web_admin, :db_admin, :app_admin] do
-      if defined? packages && packages && packages.any?
-        run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{packages.join(' ')}"
-      end
-    end
-    
-    desc <<-DESC
-      Install extra rubygems. Set a variable named :rubygems with an array \
-      of strings: \
-      set :rubygems, %w(hpricot rmagick)
-    DESC
-    task :install_gems, :roles => [:web_admin, :db_admin, :app_admin] do
-      if defined? rubygems && rubygems && rubygems.any?
-        sudo "gem install #{rubygems.join(' ')} -y" do |ch, str, data|
-          ch[:data] ||= ""
-          ch[:data] << data
-          if data =~ />\s*$/
-            puts "The gem command is asking for a number:"
-            choice = STDIN.gets
-            ch.send_data(choice)
-          else
-            puts data
+    namespace :db do
+      desc <<-DESC
+        Load configuration info for the production database from \
+        config/database.yml.
+      DESC
+      task :load_config, :roles => :db do
+        db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)['production']
+        set :production_db_name, db_config['database']
+        set :production_db_user, db_config['username']
+        set :production_db_password, db_config['password']
+        
+        [production_db_name, production_db_user, production_db_password].each do |s|
+          if s.match(/['"]/)
+            raise "ERROR: database config string '#{s}' contains quotes."
           end
         end
       end
-    end
-    
-    desc <<-DESC
-      A convenience task to upgrade existing packages and gems and install \
-      specified new ones.
-    DESC
-    task :upgrade_and_install_all, :roles => [:web_admin, :db_admin, :app_admin] do
-      upgrade_packages
-      upgrade_gems
-      install_packages
-      install_gems
-    end
-    
-    desc <<-DESC
-      Set the timezone using the value of the variable named timezone. \
-      Valid options for timezone can be determined by the contents of \
-      /usr/share/zoneinfo, which can be seen here: \
-      http://packages.ubuntu.com/cgi-bin/search_contents.pl?searchmode=filelist&word=tzdata&version=feisty&arch=all&page=1&number=all \
-      Remove 'usr/share/zoneinfo/' from the filename, and use the last \
-      directory and file as the value. For example 'Africa/Abidjan' or \
-      'posix/GMT' or 'Canada/Eastern'.
-    DESC
-    task :set_timezone, :roles => [:web_admin, :db_admin, :app_admin] do
-      if defined? timezone && timezone
-        sudo "bash -c 'echo #{timezone} > /etc/timezone'"
-        sudo "cp /usr/share/zoneinfo/#{timezone} /etc/localtime"
+      
+      desc <<-DESC
+        Create the MySQL production database. Assumes there is no MySQL root \
+        password. To create a MySQL root password create a task that's run \
+        after this task using an after hook.
+      DESC
+      task :create, :roles => :db do
+        on_rollback { drop }
+        load_config
+        run "echo 'create database #{production_db_name};' | mysql -u root"
+        run "echo \"grant all on #{production_db_name}.* to '#{production_db_user}'@'localhost' identified by '#{production_db_password}';\" | mysql -u root"
       end
-    end
-    
-    desc <<-DESC
-      Deploy a set of config files to the server, the files will be owned by \
-      root. This doesn't delete any files from the server.
-    DESC
-    task :deploy_files, :roles => [:web_admin, :db_admin, :app_admin] do
-      if defined? server_config_files_root && server_config_files_root
-        # temporary hack:
-        system "rsync -rlvzcC --rsh='ssh -l root -i #{ssh_options[:keys][0]}' #{server_config_files_root}/ '#{host}:/'"
+      
+      desc <<-DESC
+        Drop the MySQL production database. Assumes there is no MySQL root \
+        password. If there is a MySQL root password, create a task that removes \
+        it and run that task before this one using a before hook.
+      DESC
+      task :drop, :roles => :db do
+        load_config
+        run "echo 'drop database if exists #{production_db_name};' | mysql -u root"
       end
-    end
-    
-    desc <<-DESC
-    DESC
-    task :restart_services, :roles => [:web_admin, :db_admin, :app_admin] do
-      if defined? services_to_restart && services_to_restart && services_to_restart.any?
-        services_to_restart.each do |service|
-          sudo "/etc/init.d/#{service} restart"
+      
+      desc <<-DESC
+        db:drop and db:create.
+      DESC
+      task :recreate, :roles => :db do
+        drop
+        create
+      end
+      
+      desc <<-DESC
+        Set a root password for MySQL, using the variable mysql_root_password \
+        if it is set. If this is done db:drop won't work.
+      DESC
+      task :set_root_password, :roles => :db do
+        if defined? mysql_root_password && mysql_root_password
+          run "echo 'set password for root@localhost=password('#{mysql_root_password}');' | mysql -u root"
         end
       end
+      
+      desc <<-DESC
+        Dump the MySQL database to the S3 bucket specified by a variable named \
+        "archive_to_bucket" The filename will be "app-<timestamp>.sql.gz".
+      DESC
+      task :archive, :roles => [:db] do
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb #{archive_to_bucket} app-#{Time.new.strftime('%y-%m-%d--%H-%M-%S')}.sql.gz"
+      end
+      
+      desc <<-DESC
+        Restore the MySQL database from the S3 bucket specified by a variable named \
+        "restore_from_bucket". The archive filename is expected to be the default, \
+        "app.sql.gz".
+      DESC
+      task :restore, :roles => [:db] do
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb #{restore_from_bucket}"
+      end
     end
     
-    desc <<-DESC
-    DESC
-    task :enable_mail_server, :roles => [:web_admin, :db_admin, :app_admin] do
-      # TODO
+    namespace :server do
+      desc <<-DESC
+        Upgrade to the newest versions of all Ubuntu packages.
+      DESC
+      task :upgrade_packages, :roles => [:web_admin, :db_admin, :app_admin] do
+        sudo "aptitude -q update"
+        run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y dist-upgrade"
+      end
+      
+      desc <<-DESC
+        Upgrade to the newest versions of all rubygems.
+      DESC
+      task :upgrade_gems, :roles => [:web_admin, :db_admin, :app_admin] do
+        sudo "gem update -y"
+      end
+      
+      desc <<-DESC
+        Install extra Ubuntu packages. Set a variable named :packages with an \
+        array of strings:
+        set :packages, %w(libmagick logwatch)
+        NOTE: the package installation will be non-interactive, if the packages \
+        require configuration either log in as 'admin' and run \
+        'dpkg-reconfigure packagename' or replace the package's config files \
+        using the 'ec2onrails:deploy_config_files' task.
+      DESC
+      task :install_packages, :roles => [:web_admin, :db_admin, :app_admin] do
+        if defined? packages && packages && packages.any?
+          run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{packages.join(' ')}"
+        end
+      end
+      
+      desc <<-DESC
+        Install extra rubygems. Set a variable named :rubygems with an array \
+        of strings: \
+        set :rubygems, %w(hpricot rmagick)
+      DESC
+      task :install_gems, :roles => [:web_admin, :db_admin, :app_admin] do
+        if defined? rubygems && rubygems && rubygems.any?
+          sudo "gem install #{rubygems.join(' ')} -y" do |ch, str, data|
+            ch[:data] ||= ""
+            ch[:data] << data
+            if data =~ />\s*$/
+              puts "The gem command is asking for a number:"
+              choice = STDIN.gets
+              ch.send_data(choice)
+            else
+              puts data
+            end
+          end
+        end
+      end
+      
+      desc <<-DESC
+        A convenience task to upgrade existing packages and gems and install \
+        specified new ones.
+      DESC
+      task :upgrade_and_install_all, :roles => [:web_admin, :db_admin, :app_admin] do
+        upgrade_packages
+        upgrade_gems
+        install_packages
+        install_gems
+      end
+      
+      desc <<-DESC
+        Set the timezone using the value of the variable named timezone. \
+        Valid options for timezone can be determined by the contents of \
+        /usr/share/zoneinfo, which can be seen here: \
+        http://packages.ubuntu.com/cgi-bin/search_contents.pl?searchmode=filelist&word=tzdata&version=feisty&arch=all&page=1&number=all \
+        Remove 'usr/share/zoneinfo/' from the filename, and use the last \
+        directory and file as the value. For example 'Africa/Abidjan' or \
+        'posix/GMT' or 'Canada/Eastern'.
+      DESC
+      task :set_timezone, :roles => [:web_admin, :db_admin, :app_admin] do
+        if defined? timezone && timezone
+          sudo "bash -c 'echo #{timezone} > /etc/timezone'"
+          sudo "cp /usr/share/zoneinfo/#{timezone} /etc/localtime"
+        end
+      end
+      
+      desc <<-DESC
+        Deploy a set of config files to the server, the files will be owned by \
+        root. This doesn't delete any files from the server.
+      DESC
+      task :deploy_files, :roles => [:web_admin, :db_admin, :app_admin] do
+        if defined? server_config_files_root && server_config_files_root
+          begin
+            # TODO use Zlib to support Windows
+            file = '/tmp/config_files.tgz'
+            run_local "tar zcf #{file} -C '#{server_config_files_root}' ."
+            put File.read(file), file
+            sudo "tar zxvf #{file} -C /"
+          ensure
+            rm_rf file
+            sudo "rm -f #{file}"
+          end
+        end
+      end
+      
+      desc <<-DESC
+      DESC
+      task :restart_services, :roles => [:web_admin, :db_admin, :app_admin] do
+        if defined? services_to_restart && services_to_restart && services_to_restart.any?
+          services_to_restart.each do |service|
+            sudo "/etc/init.d/#{service} restart"
+          end
+        end
+      end
+      
+      desc <<-DESC
+      DESC
+      task :enable_mail_server, :roles => [:web_admin, :db_admin, :app_admin] do
+        # TODO
+      end
+      
+      desc <<-DESC
+      DESC
+      task :add_user, :roles => [:web_admin, :db_admin, :app_admin] do
+        # TODO
+      end
+      
+      desc <<-DESC
+      DESC
+      task :run_script, :roles => [:web_admin, :db_admin, :app_admin] do
+        # TODO
+      end
+      
+      desc <<-DESC
+      DESC
+      task :archive_logs, :roles => [:web_admin, :db_admin, :app_admin] do
+        # TODO
+      end
     end
     
-    desc <<-DESC
-    DESC
-    task :add_user, :roles => [:web_admin, :db_admin, :app_admin] do
-      # TODO
-    end
-    
-    desc <<-DESC
-    DESC
-    task :run_script, :roles => [:web_admin, :db_admin, :app_admin] do
-      # TODO
-    end
-    
-    desc <<-DESC
-    DESC
-    task :archive_logs, :roles => [:web_admin, :db_admin, :app_admin] do
-      # TODO
-    end
-    
-    desc <<-DESC
-      Set default firewall rules.
-    DESC
-    task :configure_firewall, :roles => [:web, :db, :app] do
-      # TODO
-    end
   end
 end
