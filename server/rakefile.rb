@@ -199,8 +199,6 @@ task :configure => [:check_if_root, :install_gems] do |t|
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.profile"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.profile"
     
-    run_chroot "ln -s /usr/local/ec2onrails/bin/rebundle.sh /root/rebundle.sh"
-    
     (2..6).each { |n| rm_f "#{@fs_dir}/etc/event.d/tty#{n}" }
     
     rm_rf(["#{@fs_dir}/var/log/apache2", "#{@fs_dir}/var/log/mysql"])
