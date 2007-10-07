@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #    This file is part of EC2 on Rails.
-#    http://code.google.com/p/EC2 on Rails/
+#    http://rubyforge.org/projects/ec2onrails/
 #
 #    Copyright 2007 Paul Dowman, http://pauldowman.com/
 #

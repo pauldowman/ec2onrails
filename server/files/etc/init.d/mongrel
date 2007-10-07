@@ -27,12 +27,12 @@ NAME="mongrel cluster"
 NO_START=0
 
 start_cmd() {
-    sudo -u app /usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper start
+    sudo -u app /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper start
     return $?
 }
 
 stop_cmd() {
-    sudo -u app /usr/local/EC2 on Rails/bin/mongrel_cluster_ctl_wrapper stop
+    sudo -u app /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper stop
     return $?
 }
 

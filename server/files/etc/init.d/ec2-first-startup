@@ -21,15 +21,15 @@
 
 # This script runs the ec2 startup scripts
 
-FILE=/EC2 on Rails-first-boot
+FILE=/ec2onrails-first-boot
 
 if [ -e $FILE ] ; then
 
 	# this is an ugly hack to make sure DHCP initialization is finished:
 	sleep 15
 
-	for SCRIPT in `ls /usr/local/EC2 on Rails/startup-scripts/first-startup` ; do
-		"/usr/local/EC2 on Rails/startup-scripts/first-startup/$SCRIPT"
+	for SCRIPT in `ls /usr/local/ec2onrails/startup-scripts/first-startup` ; do
+		"/usr/local/ec2onrails/startup-scripts/first-startup/$SCRIPT"
 	done
 	
 	rm $FILE
