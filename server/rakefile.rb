@@ -252,7 +252,7 @@ task :load_config do |t|
   @private_key_file      = config['private_key_file']
   @cert_file             = config['cert_file']
   @bucket_name           = config['bucket_name']
-  @bundle_file_prefix    = config['bundle_file_prefix']
+  @bundle_file_prefix    = config['bundle_file_prefix'] + "-v#{@version::MAJOR}_#{@version::MINOR}_#{@version::TINY}"
 end
 
 desc "Use the Amazon AMI tools to create an AMI bundle"
