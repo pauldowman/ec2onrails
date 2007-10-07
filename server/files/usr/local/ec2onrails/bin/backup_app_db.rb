@@ -24,15 +24,19 @@ require File.join(File.dirname(__FILE__), 's3_lib')
 load_db_config
 load_s3_config
 
-cmd = "mysqldump --opt --skip-add-locks -u#{@user} "
-cmd += " -p'#{@password}' " unless @password.nil?
-cmd += " #{@database} | gzip > #{File.join(@archive_dir, @archive_filename)}"
-result = system(cmd)
-raise("mysqldump error: #{$?}") unless result
-
-AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
-
-# include the hostname in the bucket name so test instances don't accidentally clobber real backups
-bucket_name = "#{@bucket_base_name}_backup_#{hostname}"
-create_bucket(bucket_name)
-AWS::S3::S3Object.store(@archive_filename, open(File.join(@archive_dir, @archive_filename)), bucket_name)
+begin
+  setup
+  
+  cmd = "mysqldump --opt -u#{@user} "
+  cmd += " -p'#{@password}' " unless @password.nil?
+  cmd += " #{@database} | gzip > #{File.join(@temp_dir, @archive_filename)}"
+  result = system(cmd)
+  raise("mysqldump error: #{$?}") unless result
+  
+  AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
+  
+  create_bucket(@bucket_name)
+  AWS::S3::S3Object.store(@archive_filename, open(File.join(@temp_dir, @archive_filename)), @bucket_name)
+ensure
+  cleanup
+end

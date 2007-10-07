@@ -20,11 +20,33 @@ require 'rubygems'
 require 'aws/s3'
 require 'yaml'
 require 'erb'
+require 'fileutils'
 
-@archive_filename = "app.sql.gz"
-@archive_dir = "/mnt/backup/"
-@s3_config_file = "/mnt/app/current/config/s3.yml"
+include FileUtils
 
+@default_archive_filename = "app.sql.gz"
+@temp_dir = "/tmp/ec2onrails-db-backup-#{Time.new.to_i}"
+@config_file = "/mnt/app/current/config/s3.yml"
+
+
+def setup
+  mkdir_p @temp_dir
+  
+  @bucket_name = ARGV[0]
+  if ! @bucket_name || @bucket_name.empty?
+    # include the hostname in the bucket name so test instances don't accidentally clobber real backups
+    @bucket_name = "#{@bucket_base_name}_backup_#{hostname}"
+  end
+
+  @archive_filename = ARGV[1]
+  if ! @archive_filename || @archive_filename.empty?
+    @archive_filename = @default_archive_filename
+  end
+end
+
+def cleanup
+  rm_rf @temp_dir
+end
 
 def create_bucket(name)
   bucket = AWS::S3::Bucket.find(name)  
@@ -40,21 +62,20 @@ def load_db_config
 end
 
 def load_s3_config
-  if File.exists?(@s3_config_file)
+  if File.exists?(@config_file)
     s3_config = YAML::load(ERB.new(File.read("/mnt/app/current/config/s3.yml")).result)
     @aws_access_key        = s3_config['aws_access_key']
     @aws_secret_access_key = s3_config['aws_secret_access_key']
     @bucket_base_name      = s3_config['bucket_base_name']
   else
     if !File.exists?('/mnt/aws-config/config')
-      raise "Can't find either #{@s3_config_file} or /mnt/aws-config/config"
+      raise "Can't find either #{@config_file} or /mnt/aws-config/config"
     end
     @aws_access_key        = get_bash_config('AWS_ACCESS_KEY_ID')
     @aws_secret_access_key = get_bash_config('AWS_SECRET_ACCESS_KEY')
     @bucket_base_name      = get_bash_config('BUCKET_BASE_NAME')  
   end
 end
-
 
 # load an env value from the shared config file
 def get_bash_config(name)
