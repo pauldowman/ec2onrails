@@ -119,7 +119,7 @@ Capistrano::Configuration.instance.load do
     
     namespace :db do
       desc <<-DESC
-        Load configuration info for the production database from \
+        [internal] Load configuration info for the production database from \
         config/database.yml.
       DESC
       task :load_config, :roles => :db do
@@ -291,6 +291,9 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
+        Restart a set of services. Set ec2onrails_config[:services_to_restart] \
+        to an array of strings. It's assumed that each service has a script \
+        in /etc/init.d
       DESC
       task :restart_services, :roles => [:web_admin, :db_admin, :app_admin] do
         if cfg[:services_to_restart] && cfg[:services_to_restart].any?
