@@ -19,6 +19,7 @@
 require "rake/clean"
 require 'yaml'
 require 'erb'
+#require 'EC2'
 require '../gem/lib/ec2onrails/version'
 
 @config_file = "config.yml"
@@ -52,6 +53,7 @@ require '../gem/lib/ec2onrails/version'
   openssh-server
   php5
   php5-mysql
+  postfix
   rake
   rdoc
   ri
@@ -66,7 +68,6 @@ require '../gem/lib/ec2onrails/version'
 )
 
 @rubygems = %w(
-  RedCloth
   amazon-ec2
   aws-s3
   mongrel
@@ -184,7 +185,7 @@ desc "Configure the image"
 task :configure => [:check_if_root, :install_gems] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
-    replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{version::STRING}")
+    replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version::STRING}")
     
     run_chroot "localedef -i en_US -c -f UTF-8 en_US.UTF-8"
     run_chroot "a2enmod deflate"
@@ -284,7 +285,7 @@ end
 desc "This task is for deploying the contents of /files to a running server image to test config file changes without rebuilding."
 task :deploy_files do |t|
   # TODO allow user to specify key and hostname
-  run "rsync -rlvzcC --rsh='ssh -l root -i #{key}' files/ #{ec2_hostname}:/"
+  run "rsync -rlvzcC --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
 end
 
 desc  "This task creates a patch file containing all local modifications"
