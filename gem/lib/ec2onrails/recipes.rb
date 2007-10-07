@@ -25,6 +25,12 @@ include Ec2onrails::CapistranoUtils
 
 Capistrano::Configuration.instance.load do
 
+  unless ec2onrails_config
+    raise "ec2onrails_config variable not set. (It should be a hash.)"
+  end
+  
+  cfg = ec2onrails_config
+
   set :image_id, Ec2onrails::VERSION::AMI_ID
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
@@ -38,10 +44,6 @@ Capistrano::Configuration.instance.load do
   roles[:app_admin].to_s
   roles[:db_admin].to_s
   
-#  task :xx do
-#    # test...
-#  end
-
   # override default start/stop/restart tasks
   namespace :deploy do
     desc <<-DESC
@@ -141,8 +143,8 @@ Capistrano::Configuration.instance.load do
       task :create, :roles => :db do
         on_rollback { drop }
         load_config
-        run "echo 'create database #{production_db_name};' | mysql -u root"
-        run "echo \"grant all on #{production_db_name}.* to '#{production_db_user}'@'localhost' identified by '#{production_db_password}';\" | mysql -u root"
+        run "echo 'create database #{cfg[:production_db_name]};' | mysql -u root"
+        run "echo \"grant all on #{cfg[:production_db_name]}.* to '#{cfg[:production_db_user]}'@'localhost' identified by '#{cfg[:production_db_password]}';\" | mysql -u root"
       end
       
       desc <<-DESC
@@ -152,7 +154,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :drop, :roles => :db do
         load_config
-        run "echo 'drop database if exists #{production_db_name};' | mysql -u root"
+        run "echo 'drop database if exists #{cfg[:production_db_name]};' | mysql -u root"
       end
       
       desc <<-DESC
@@ -168,26 +170,27 @@ Capistrano::Configuration.instance.load do
         if it is set. If this is done db:drop won't work.
       DESC
       task :set_root_password, :roles => :db do
-        if defined? mysql_root_password && mysql_root_password
-          run "echo 'set password for root@localhost=password('#{mysql_root_password}');' | mysql -u root"
+        if cfg[:mysql_root_password]
+          run "echo 'set password for root@localhost=password('#{cfg[:mysql_root_password]}');' | mysql -u root"
         end
       end
       
       desc <<-DESC
-        Dump the MySQL database to the S3 bucket specified by a variable named \
-        "archive_to_bucket" The filename will be "app-<timestamp>.sql.gz".
+        Dump the MySQL database to the S3 bucket specified by \
+        ec2onrails_config[:archive_to_bucket]. The filename will be \
+        "app-<timestamp>.sql.gz".
       DESC
       task :archive, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb #{archive_to_bucket} app-#{Time.new.strftime('%y-%m-%d--%H-%M-%S')}.sql.gz"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb #{cfg[:archive_to_bucket]} app-#{Time.new.strftime('%y-%m-%d--%H-%M-%S')}.sql.gz"
       end
       
       desc <<-DESC
-        Restore the MySQL database from the S3 bucket specified by a variable named \
-        "restore_from_bucket". The archive filename is expected to be the default, \
-        "app.sql.gz".
+        Restore the MySQL database from the S3 bucket specified by \
+        ec2onrails_config[:restore_from_bucket]. The archive filename is \
+        expected to be the default, "app.sql.gz".
       DESC
       task :restore, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/restore_app_db.rb #{restore_from_bucket}"
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb #{cfg[:restore_from_bucket]}"
       end
     end
     
@@ -208,28 +211,26 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
-        Install extra Ubuntu packages. Set a variable named :packages with an \
-        array of strings:
-        set :packages, %w(libmagick logwatch)
+        Install extra Ubuntu packages. Set ec2onrails_config[:packages], it \
+        should be an array of strings.
         NOTE: the package installation will be non-interactive, if the packages \
         require configuration either log in as 'admin' and run \
         'dpkg-reconfigure packagename' or replace the package's config files \
         using the 'ec2onrails:deploy_config_files' task.
       DESC
       task :install_packages, :roles => [:web_admin, :db_admin, :app_admin] do
-        if defined? packages && packages && packages.any?
-          run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{packages.join(' ')}"
+        if cfg[:packages] && cfg[:packages].any?
+          run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{cfg[:packages].join(' ')}"
         end
       end
       
       desc <<-DESC
-        Install extra rubygems. Set a variable named :rubygems with an array \
-        of strings: \
-        set :rubygems, %w(hpricot rmagick)
+        Install extra rubygems. Set ec2onrails_config[:rubygems], it should \
+        be with an array of strings.
       DESC
       task :install_gems, :roles => [:web_admin, :db_admin, :app_admin] do
-        if defined? rubygems && rubygems && rubygems.any?
-          sudo "gem install #{rubygems.join(' ')} -y" do |ch, str, data|
+        if cfg[:rubygems] && cfg[:rubygems].any?
+          sudo "gem install #{cfg[:rubygems].join(' ')} -y" do |ch, str, data|
             ch[:data] ||= ""
             ch[:data] << data
             if data =~ />\s*$/
@@ -264,9 +265,9 @@ Capistrano::Configuration.instance.load do
         'posix/GMT' or 'Canada/Eastern'.
       DESC
       task :set_timezone, :roles => [:web_admin, :db_admin, :app_admin] do
-        if defined? timezone && timezone
-          sudo "bash -c 'echo #{timezone} > /etc/timezone'"
-          sudo "cp /usr/share/zoneinfo/#{timezone} /etc/localtime"
+        if cfg[:timezone]
+          sudo "bash -c 'echo #{cfg[:timezone]} > /etc/timezone'"
+          sudo "cp /usr/share/zoneinfo/#{cfg[:timezone]} /etc/localtime"
         end
       end
       
@@ -275,11 +276,11 @@ Capistrano::Configuration.instance.load do
         root. This doesn't delete any files from the server.
       DESC
       task :deploy_files, :roles => [:web_admin, :db_admin, :app_admin] do
-        if defined? server_config_files_root && server_config_files_root
+        if cfg[:server_config_files_root]
           begin
             # TODO use Zlib to support Windows
             file = '/tmp/config_files.tgz'
-            run_local "tar zcf #{file} -C '#{server_config_files_root}' ."
+            run_local "tar zcf #{file} -C '#{cfg[:server_config_files_root]}' ."
             put File.read(file), file
             sudo "tar zxvf #{file} -C /"
           ensure
@@ -292,8 +293,8 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
       DESC
       task :restart_services, :roles => [:web_admin, :db_admin, :app_admin] do
-        if defined? services_to_restart && services_to_restart && services_to_restart.any?
-          services_to_restart.each do |service|
+        if cfg[:services_to_restart] && cfg[:services_to_restart].any?
+          cfg[:services_to_restart].each do |service|
             sudo "/etc/init.d/#{service} restart"
           end
         end
