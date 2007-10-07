@@ -53,7 +53,6 @@ echo "--> Setting runlevel to 1 and pausing for 10 seconds..."
 runlevel --set=1
 sleep 10
 
-echo "--> Setting runlevel to 1 and pausing for 10 seconds..."
 touch /ec2onrails-first-boot || fail
 
 echo "--> Clearing sensitive files..."
