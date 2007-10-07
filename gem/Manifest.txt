@@ -6,6 +6,7 @@ Rakefile
 config/hoe.rb
 config/requirements.rb
 lib/ec2onrails.rb
+lib/ec2onrails/capistrano_utils.rb
 lib/ec2onrails/recipes.rb
 lib/ec2onrails/version.rb
 log/debug.log
