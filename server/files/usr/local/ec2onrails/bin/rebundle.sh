@@ -20,7 +20,7 @@
 
 
 cleanup() {
-  rm /ec2-on-rails-first-boot	
+  rm /ec2onrails-first-boot	
 }
 
 fail() {
@@ -54,7 +54,7 @@ runlevel --set=1
 sleep 10
 
 echo "--> Setting runlevel to 1 and pausing for 10 seconds..."
-touch /ec2-on-rails-first-boot || fail
+touch /ec2onrails-first-boot || fail
 
 echo "--> Clearing sensitive files..."
 /etc/init.d/sysklogd stop && cd /var/log && find . -type f | while read line; do cat /dev/null > "$line"; done && /etc/init.d/sysklogd start
