@@ -2,7 +2,7 @@ set :application, "yourapp"
 set :deploy_via, :copy
 set :copy_strategy, :export
 
-set :repository, "http://svn.foo.com/svn/trunk"
+set :repository, "http://svn.foo.com/svn/#{application}/trunk"
 
 ssh_options[:keys] = %w(/home/you/.ssh/your-ec2-key)
 

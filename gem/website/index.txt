@@ -62,7 +62,11 @@ You log in with your own
 You can login as a user named "admin" (which has sudo ability) or as "app" (the user 
 that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
 use the app user use to deploy the app, and the admin user for server admin tasks 
-that require sudo. 
+that require sudo.
+
+I'll post documentation for the Capistrano tasks soon, in the meantime see
+"this email":http://groups.google.com/group/ec2-on-rails-announce/browse_thread/thread/94c8da3e6124c6ba
+for a brief description.
 
 
 h2. Saving your own customized version of the image.
@@ -126,7 +130,7 @@ h4. 0.9.3, ami-a3f91cca
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * There is now a rubygem available with capistrano tasks.
 * "admin" user added, server admin cap tasks run as this user
-* 
+* MySQL settings tweaked to reflect large amount of RAM available on EC2 images.
 * "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_3":issues fixed in this release
 
 h4. 0.9.2, ami-0cf61365
