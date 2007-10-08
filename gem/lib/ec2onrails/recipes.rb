@@ -127,9 +127,19 @@ Capistrano::Configuration.instance.load do
         cfg[:production_db_name] = db_config['database']
         cfg[:production_db_user] = db_config['username']
         cfg[:production_db_password] = db_config['password']
+        cfg[:production_db_host] = db_config['host']
+        cfg[:production_db_socket] = db_config['socket']
+        
+        if (cfg[:production_db_host].nil? || cfg[:production_db_host].empty?) && 
+          (cfg[:production_db_host] != 'localhost' || cfg[:production_db_host] != '127.0.0.1') && 
+          (cfg[:production_db_socket].nil? || cfg[:production_db_socket].empty?)
+            raise "ERROR: missing database config. Make sure database.yml contains a 'production' section with either 'host: localhost' or 'socket: /var/run/mysqld/mysqld.sock'."
+        end
         
         [cfg[:production_db_name], cfg[:production_db_user], cfg[:production_db_password]].each do |s|
-          if s.match(/['"]/)
+          if s.nil? || s.empty?
+            raise "ERROR: missing database config. Make sure database.yml contains a 'production' section with a database name, user, and password."
+          elsif s.match(/['"]/)
             raise "ERROR: database config string '#{s}' contains quotes."
           end
         end
