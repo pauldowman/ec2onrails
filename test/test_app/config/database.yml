@@ -32,5 +32,5 @@ production:
   adapter: mysql
   database: test_app_production
   username: root
-  password: 
-  socket: /opt/local/var/run/mysql5/mysqld.sock
+  password: password
+  host: localhost
