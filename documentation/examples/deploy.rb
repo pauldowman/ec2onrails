@@ -15,7 +15,7 @@ role :db,  host, :primary => true
 set :ec2onrails_config, {
   :restore_from_bucket => "your-bucket",
   :archive_to_bucket => "your-other-bucket",
-  :packages => %w(logtail imagemagick),
+  :packages => %w(logwatch imagemagick),
   :rubygems => %w(RedCloth hpricot rmagick),
   :timezone => "Canada/Eastern",
   :server_config_files_root => "../server_config",

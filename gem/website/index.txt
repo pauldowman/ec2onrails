@@ -1,20 +1,101 @@
 h1. EC2 on Rails
 
-h2. This page will be updated soon!
+
+h2. A Ruby on Rails EC2 "Appliance"
+
+This is an Ubuntu Linux server image for 
+"Amazon's EC2 hosting service":http://www.amazon.com/b/ref=sc_fe_l_2/102-6342260-7987311?ie=UTF8&node=201590011&no=3435361
+that's ready to run a standard Ruby on Rails application with little or no customization. 
+Basically it's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
+
+My goal is that you should be able to simply start up an instance of the image 
+(soon a distributed cluster will be possible) and deploy your app to it using 
+Capistrano, with no other steps required. (You can also just copy it and 
+customize it if it doesn't meet all of your needs.)
+
+_Deploying a simple rails app should be simple, and complex customization (if required) should be possible._
+
+Features of the EC2 image:
+
+* Ready to deploy a Rails app with little or no configuration of the server required.
+* Automatic backup of MySQL database to S3.
+* Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more. Available as a rubygem.
+* Mongrel_cluster behind Apache 2.2, configured according to 
+  "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
+  with /etc/init.d startup script
+* Ruby on Rails 1.2.4
+* Ruby 1.8.5
+* MySQL 5
+* Ubuntu 7.04 Feisty with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/feisty/libs/libc6-xen package).
+* Amazon AMI tools installed
+* A script to rebundle a customized version of the image in one step if required
+* MySQL and Apache configured to write logs to /mnt/log so you don't fill up EC2's small root filesystem
+* Hostname set correctly to public hostname
 
 
-h2. What
+h2. Using the image
 
+This documentation will be improved very soon, for now hopefully this covers the basics:
 
-h2. Installing
+You need an Amazon EC2 account.
 
+Install the gem containing the Capistrano tasks:
 <pre syntax="ruby">sudo gem install ec2onrails</pre>
 
-h2. The basics
+Put "Capfile":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile 
+in the root of your rails folder, and put
+"deploy.rb":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb 
+and
+"s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml
+in the config folder.
+
+Start an instance of the EC2 image, currently the image id is *ami-a3f91cca* (soon there will be a Capistrano task to do this for 
+you so you won't need to remember the image id). You need to start it with a public key, the same way
+as the Amazon public images work.
+
+As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/public-ami-guidelines.html, 
+password-based logins are disabled. This is so that 
+neither I nor anyone else (except you) can log into your running instance. 
+You log in with your own 
+"public/private keypair":http://docs.amazonwebservices.com/AmazonEC2/gsg/2007-01-19/running-an-instance.html.
+
+You can login as a user named "admin" (which has sudo ability) or as "app" (the user 
+that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
+use the app user use to deploy the app, and the admin user for server admin tasks 
+that require sudo. 
 
 
-h2. Demonstration of usage
+h2. Saving your own customized version of the image.
 
+I'm trying to make the image customizable enough that you won't need to do this, but 
+if you want to save a customized version of the image, there is a script to do it: 
+<code>/usr/local/ec2onrails/bin/rebundle.sh</code>. It takes a long time and there 
+are long periods with no output so you might want to hit a key once in a while 
+(or set "ServerAliveInterval 60" in your ssh_config file) to avoid being disconnected 
+while it's running.
+
+It expects a directory, /mnt/aws-config, that contains a config file and your AWS 
+access identifiers. The contents of the directory are the following three files:
+
+* cert-XXXX.pem and pk-XXXX.pem. These are the X.509 certificate and private key files from your Amazon access key identifiers.
+* A file named config. It's contents should look like the following:
+
+<pre>
+AWS_ACCOUNT_ID=1234-1234-1234
+KEY_FILE_NAME=pk-XXXX.pem
+CERT_FILE_NAME=cert-XXXX.pem
+AWS_ACCESS_KEY_ID=ABC0123
+AWS_SECRET_ACCESS_KEY=abc0123abc0123abc0123
+BUCKET_BASE_NAME=a-string-identifier
+</pre>
+
+h2. Building the image
+
+Building the image is not required, most people will simply use the prebuilt public
+image, but there is also a Rake build script that builds the image, and optionally bundles 
+and uploads it to S3. 
+It should run on any Linux system, including one of the stock Fedora-based Amazon public AMI's 
+(it is tested on "the FC4 developer image":http://developer.amazonwebservices.com/connect/entry!default.jspa?categoryID=101&externalID=521).
 
 
 h2. Forum
@@ -24,17 +105,73 @@ h2. Forum
 "Discussion":http://groups.google.com/group/ec2-on-rails-discuss
 
 
+h2. Comments
+
+Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/contact/ or to the "Google group":http://groups.google.com/group/ec2-on-rails-discuss
+
+
+h2. Issues
+
+Please file bugs "here":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse 
+or if you don't have a RubyForge account send me an "email":http://pauldowman.com/contact/.
+
+h2. Change log
+
+Also see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
+
+
+h4. 0.9.3, ami-a3f91cca
+
+7 Oct, 2007
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* There is now a rubygem available with capistrano tasks.
+* "admin" user added, server admin cap tasks run as this user
+* 
+* "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_3":issues fixed in this release
+
+h4. 0.9.2, ami-0cf61365
+
+13 Sept, 2007
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_2":issues fixed in this release
+
+h4. 0.9.1, ami-99f712f0
+
+11 Sept, 2007
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed permissions on /var/lib/dhcp3
+* "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_1":issues fixed in this release
+
+h4. 0.9.0, ami-bdf411d4
+
+7 Sept 2007
+* First release built with new rake build script, this is a test release, not intended to be production-ready until it's tested more thoroughly.
+* Amazon EC2 API tools (java-based) no longer installed by default because they're not used on most servers. They're needed only for registering a rebundled image so there's now a script to install them: /usr/local/ec2-on-rails/install_ec2_api_tools.sh. The ruby-based EC2 image tools are still installed.
+* Removed "http://packages.ubuntu.com/feisty/libs/sun-java6-jre":Java and it's massive list of dependencies because it was only needed for the EC2 API tools. This saved a huge amount of space.
+* Removed ImageMagick, RMagick and hpricot due to popular demand. There will soon be cap2 tasks to customize which packages and gems are installed.
+
+h4. 0.8.1, ami-b79a7fde
+
+29 July 2007
+* Fixed S3 backup cron job.
+* Added script to restore data from S3 (/usr/local/aws/bin/restore_app_db.rb). This is useful when setting up a staging server to test your deployment, you can have it set up with a copy of your production data to test your migrations.
+* Rewrite rule now allows images/css on maintenance page
+* Added empty /etc/apache2/sites-available/app.custom for custom Apache configuration in a separate file (so it can be deployed by rsync more easily).
+* Added ImageMagick, RMagick and hpricot due to popular demand.
+
+h4. 0.8.0, ami-4e907527
+
+20 June 2007
+* Initial release.
+
+
 h2. How to submit patches
 
 Read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/ and for section "8b: Submit patch to Google Groups":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/#8b-google-groups, use the Google Group above.
 
 The trunk repository is <code>svn://rubyforge.org/var/svn/ec2onrails/trunk</code> for anonymous access.
 
+
 h2. License
 
 This code is free to use under the terms of the GPL v2. 
-
-h2. Contact
-
-Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/contact or to the "forum":http://groups.google.com/group/ec2-on-rails
-

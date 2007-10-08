@@ -17,6 +17,12 @@ h1 {
   letter-spacing: -0.1ex;
 	margin: 5px;
 }
+h4 {
+  margin-bottom: 0;
+}
+ul {
+  margin-top: 0;
+}
 li {
   padding: 0;
   margin: 0;
