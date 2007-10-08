@@ -1,0 +1,2 @@
+module DbFastHelper
+end

@@ -1,0 +1,2 @@
+module VerySlowHelper
+end

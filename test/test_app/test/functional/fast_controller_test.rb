@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '/../test_helper'
-require 'hello_world_controller'
+require 'fast_controller'
 
 # Re-raise errors caught by the controller.
-class HelloWorldController; def rescue_action(e) raise e end; end
+class FastController; def rescue_action(e) raise e end; end
 
-class HelloWorldControllerTest < Test::Unit::TestCase
+class FastControllerTest < Test::Unit::TestCase
   def setup
-    @controller = HelloWorldController.new
+    @controller = FastController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
   end
