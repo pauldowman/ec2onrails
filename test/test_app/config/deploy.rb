@@ -17,5 +17,5 @@ set :ec2onrails_config, {
   :rubygems => %w(),
   :timezone => "Canada/Eastern",
 #  :server_config_files_root => "../server_config",
-  :services_to_restart => %w(syslog)
+  :services_to_restart => %w(sysklogd)
 }
