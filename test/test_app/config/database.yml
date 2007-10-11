@@ -33,4 +33,4 @@ production:
   database: test_app_production
   username: root
   password: password
-  host: localhost
+  host: db_master
