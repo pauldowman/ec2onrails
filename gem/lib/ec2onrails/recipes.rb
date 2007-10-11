@@ -35,7 +35,7 @@ Capistrano::Configuration.instance.load do
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
   set :user, "app"
-
+  
   make_admin_role_for(:web, :web_admin)
   make_admin_role_for(:app, :app_admin)
   make_admin_role_for(:db, :db_admin)
@@ -79,7 +79,8 @@ Capistrano::Configuration.instance.load do
     task :setup, :roles => [:web, :db, :app] do
       ec2.start_instance
       server.set_timezone
-      server.upgrade_and_install_all
+      server.install_packages
+      server.install_gems
       server.deploy_files
       server.restart_services
       deploy.setup
@@ -205,6 +206,16 @@ Capistrano::Configuration.instance.load do
     end
     
     namespace :server do
+      desc <<-DESC
+        Tell the servers what roles they are in. This configures them with \
+        the appropriate settings for each role, and starts and/or stops the \
+        relevant services.
+      DESC
+      task :set_roles, :roles => [:web_admin, :db_admin, :app_admin] do
+        # TODO generate this based on the roles that actually exist so arbitrary new ones can be added
+        sudo "/usr/local/ec2onrails/bin/set_roles.rb web=#{hostnames_for_role(:web)} app=#{hostnames_for_role(:app)} db_primary=#{hostnames_for_role(:db, :primary => true)}"
+      end
+      
       desc <<-DESC
         Upgrade to the newest versions of all Ubuntu packages.
       DESC
