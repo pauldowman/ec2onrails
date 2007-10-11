@@ -1,19 +1,17 @@
 h1. EC2 on Rails
 
 
-h2. A Ruby on Rails EC2 "Appliance"
+h2. Deploy a Ruby on Rails app on EC2 in five minutes
 
-This is an Ubuntu Linux server image for 
+EC2 on Rails is an Ubuntu Linux server image for 
 "Amazon's EC2 hosting service":http://www.amazon.com/b/ref=sc_fe_l_2/102-6342260-7987311?ie=UTF8&node=201590011&no=3435361
 that's ready to run a standard Ruby on Rails application with little or no customization. 
-Basically it's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
+It's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
 
-My goal is that you should be able to simply start up an instance of the image 
-(soon a distributed cluster will be possible) and deploy your app to it using 
-Capistrano, with no other steps required. (You can also just copy it and 
-customize it if it doesn't meet all of your needs.)
+If you have an EC2 account and a public keypair you're five minutes away from deploying
+your Rails app.
 
-_Deploying a simple rails app should be simple, and complex customization (if required) should be possible._
+_Deploying a simple rails app is simple, and complex customization (if required) is possible._
 
 Features of the EC2 image:
 
@@ -30,17 +28,17 @@ Features of the EC2 image:
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
 * MySQL and Apache configured to write logs to /mnt/log so you don't fill up EC2's small root filesystem
-* Hostname set correctly to public hostname
 
 
 h2. Using the image
 
-This documentation will be improved very soon, for now hopefully this covers the basics:
+This documentation will be improved soon, for now hopefully this covers the basics.
 
-You need an Amazon EC2 account.
+h4. 1. Install the gem
 
-Install the gem containing the Capistrano tasks:
-<pre syntax="ruby">sudo gem install ec2onrails</pre>
+<pre>sudo gem install ec2onrails</pre>
+
+h4. 2. Add the config files to your Rails app
 
 Put "Capfile":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile 
 in the root of your rails folder, and put
@@ -49,29 +47,82 @@ and
 "s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml
 in the config folder.
 
-Start an instance of the EC2 image, currently the image id is *ami-a3f91cca* (soon there will be a Capistrano task to do this for 
-you so you won't need to remember the image id). You need to start it with a public key, the same way
-as the Amazon public images work.
+h4. 3. Start up an instance of the image.
+
+Soon there will be a Capistrano task to do this for you. In the meantime read the 
+"running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-03-01/GettingStartedGuide/running-an-instance.html
+in Amazon's getting started guide.
+
+The image id of the current image is *ami-a3f91cca*.
+
+At the moment only one instance is supported, very soon a distributed cluster
+will be possible.
 
 As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/public-ami-guidelines.html, 
-password-based logins are disabled. This is so that 
-neither I nor anyone else (except you) can log into your running instance. 
-You log in with your own 
+password-based logins are disabled. You log in with your own 
 "public/private keypair":http://docs.amazonwebservices.com/AmazonEC2/gsg/2007-01-19/running-an-instance.html.
 
-You can login as a user named "admin" (which has sudo ability) or as "app" (the user 
+Most basic things can be configured automatically by the Capistrano tasks, but if you want to 
+you can login by ssh as a user named "admin" (which has sudo ability) or as "app" (the user 
 that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
 use the app user use to deploy the app, and the admin user for server admin tasks 
 that require sudo.
 
-I'll post documentation for the Capistrano tasks soon, in the meantime see
-"this email":http://groups.google.com/group/ec2-on-rails-announce/browse_thread/thread/94c8da3e6124c6ba
-for a brief description.
+h4. 4. Deploy the app with Capistrano
+
+<pre>
+cap ec2onrails:setup
+cap deploy:migrations
+</pre>
+
+Yes, it's that easy! The setup task will set the server's timezone, install any 
+gems and Ubuntu packages that you specified in the config file, and 
+create your production database.
+
+That's it, you're done.
+
+h2. Capistrano tasks
+
+I'll post full documentation for the Capistrano tasks soon, in the meantime here's a brief summary:
+
+Server config tasks. These run as the admin user. You can specify lists of
+gems and Ubuntu packages to be installed. The deploy_files task uploads
+files to the server (they will be owned by root). It's intended mainly for
+customized config files for new packages installed via the install_packages
+task.
+* ec2onrails:server:deploy_files
+* ec2onrails:server:set_timezone
+* ec2onrails:server:upgrade_gems
+* ec2onrails:server:upgrade_packages
+* ec2onrails:server:install_gems
+* ec2onrails:server:install_packages
+* ec2onrails:server:upgrade_and_install_all
+* ec2onrails:server:restart_services
+
+Database management tasks: archive and restore can operate on any specified S3 bucket. 
+For example, I use this to restore the current production data (from my actual production backup
+bucket) onto a staging server that has the current production version of my
+app. I then deploy the new version which tests migrations exactly as they'll
+run on the production server.
+* ec2onrails:db:archive
+* ec2onrails:db:restore
+* ec2onrails:db:create
+* ec2onrails:db:drop
+* ec2onrails:db:recreate
+* ec2onrails:db:set_root_password
+
+* ec2onrails:setup
+- This is a convenience task to get a new instance completely set up in one
+step, everything except deploying the app.
+
+* ec2onrails:restore_db_and_deploy
+- Another convenience task to recreate the db, restore data to it from an s3
+bucket and deploy the app, useful to set up a staging server.
 
 
 h2. Saving your own customized version of the image.
 
-I'm trying to make the image customizable enough that you won't need to do this, but 
+I'm trying to make the image configurable enough that you won't need to do this, but 
 if you want to save a customized version of the image, there is a script to do it: 
 <code>/usr/local/ec2onrails/bin/rebundle.sh</code>. It takes a long time and there 
 are long periods with no output so you might want to hit a key once in a while 
@@ -102,33 +153,32 @@ It should run on any Linux system, including one of the stock Fedora-based Amazo
 (it is tested on "the FC4 developer image":http://developer.amazonwebservices.com/connect/entry!default.jspa?categoryID=101&externalID=521).
 
 
-h2. Forum
+h2. Mailing lists
 
-"Announcements":http://groups.google.com/group/ec2-on-rails-announce
-
-"Discussion":http://groups.google.com/group/ec2-on-rails-discuss
+There are two Google groups, one for 
+"announcements":http://groups.google.com/group/ec2-on-rails-announce
+and one for 
+"discussion":http://groups.google.com/group/ec2-on-rails-discuss.
 
 
 h2. Comments
 
-Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/contact/ or to the "Google group":http://groups.google.com/group/ec2-on-rails-discuss
+Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/contact/ 
+or to the "Google group":http://groups.google.com/group/ec2-on-rails-discuss.
+If you find bugs please file them 
+"here":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse 
+or send me an "email":http://pauldowman.com/contact/.
 
-
-h2. Issues
-
-Please file bugs "here":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse 
-or if you don't have a RubyForge account send me an "email":http://pauldowman.com/contact/.
 
 h2. Change log
 
 Also see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
-
 h4. 0.9.3, ami-a3f91cca
 
 7 Oct, 2007
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* There is now a rubygem available with capistrano tasks.
+* There is now a rubygem available with Capistrano tasks.
 * "admin" user added, server admin cap tasks run as this user
 * MySQL settings tweaked to reflect large amount of RAM available on EC2 images.
 * "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_3":issues fixed in this release
