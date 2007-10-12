@@ -155,7 +155,7 @@ Capistrano::Configuration.instance.load do
         on_rollback { drop }
         load_config
         run "echo 'create database #{cfg[:production_db_name]};' | mysql -u root"
-        run "echo \"grant all on #{cfg[:production_db_name]}.* to '#{cfg[:production_db_user]}'@'localhost' identified by '#{cfg[:production_db_password]}';\" | mysql -u root"
+        run "echo \"grant all on #{cfg[:production_db_name]}.* to '#{cfg[:production_db_user]}'@'%' identified by '#{cfg[:production_db_password]}';\" | mysql -u root"
       end
       
       desc <<-DESC
