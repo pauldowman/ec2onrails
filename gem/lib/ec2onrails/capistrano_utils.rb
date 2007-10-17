@@ -5,13 +5,14 @@ module Ec2onrails
       raise("error: #{$?}") unless result
     end
     
-    def make_admin_role_for(role, newrole_sym)
+    def make_admin_role_for(role)
+      newrole = "#{role.to_s}_admin".to_sym
       roles[role].each do |srv_def|
         options = srv_def.options.dup
         options[:user] = "admin"
         options[:port] = srv_def.port
         options[:no_release] = true
-        role newrole_sym, srv_def.host, options
+        role newrole, srv_def.host, options
       end
     end
     

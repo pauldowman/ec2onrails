@@ -36,9 +36,9 @@ Capistrano::Configuration.instance.load do
   set :use_sudo, false
   set :user, "app"
   
-  make_admin_role_for(:web, :web_admin)
-  make_admin_role_for(:app, :app_admin)
-  make_admin_role_for(:db, :db_admin)
+  make_admin_role_for :web
+  make_admin_role_for :app
+  make_admin_role_for :db
   
   roles[:web_admin].to_s
   roles[:app_admin].to_s
@@ -48,26 +48,26 @@ Capistrano::Configuration.instance.load do
   namespace :deploy do
     desc <<-DESC
       Overrides the default Capistrano deploy:start, directly calls \
-      /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper
+      /etc/init.d/mongrel
     DESC
-    task :start, :except => { :no_release => true } do
-      run "/usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper start"
+    task :start, :roles => :app do
+      run "/etc/init.d/mongrel start"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:stop, directly calls \
-      /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper
+      /etc/init.d/mongrel
     DESC
-    task :stop, :except => { :no_release => true } do
-      run "/usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper stop"
+    task :stop, :roles => :app do
+      run "/etc/init.d/mongrel stop"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:restart, directly calls \
-      /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper
+      /etc/init.d/mongrel
     DESC
-    task :restart, :except => { :no_release => true } do
-      run "/usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper restart"
+    task :restart, :roles => :app do
+      run "/etc/init.d/mongrel restart"
     end
   end
   
