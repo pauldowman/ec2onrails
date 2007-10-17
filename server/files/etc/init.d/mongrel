@@ -26,20 +26,33 @@
 NAME="mongrel cluster"
 NO_START=0
 
+########################################
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/gems/1.8/bin
+
+if [ ! -d /mnt/app/current ] ; then
+  [ "$VERBOSE" != no ] && log_warning_msg "/mnt/app/current doesn't exist, exiting"
+  exit 0
+end
+
+if [ `whoami` = "app" ] ; then
+  SUDO=""
+else
+  SUDO="sudo -u app"
+fi
+
 start_cmd() {
-    sudo -u app /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper start
+    $SUDO sh -c "export PATH=$PATH; mongrel_cluster_ctl start"
     return $?
 }
 
 stop_cmd() {
-    sudo -u app /usr/local/ec2onrails/bin/mongrel_cluster_ctl_wrapper stop
+    $SUDO sh -c "export PATH=$PATH; mongrel_cluster_ctl stop"
     return $?
 }
 
 
 ########################################
-
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/gems/1.8/bin
 
 . /lib/lsb/init-functions
 
