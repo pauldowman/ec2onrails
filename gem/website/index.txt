@@ -204,7 +204,8 @@ h4. 0.9.4, ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
 
 7 Oct, 2007
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* _The rebundling doesn't seem to be working._ I'll fix that in a new version. Details "here":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558
+* "The rebundling doesn't seem to be working":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558.
+  I'll fix that in a new version.
 * Ubuntu 7.10/Gutsy
 * Experimental multiple instance support.
 ** *Mongrel & MySQL now listen on all ports.* Be sure your firewall settings are correct, and set a MySQL root password.
