@@ -20,13 +20,13 @@
 
 
 # This is a script to prepare an Amazon public Fedora AMI to build EC2 on Rails.
-# It's intended to run an a public AMI such as this one:
-# http://developer.amazonwebservices.com/connect/entry!default.jspa?categoryID=101&externalID=521 
-#
-# It must be run as root.
+# It's intended to run on an Amazon public x86_64 AMI: ami-36ff1a5f
 
-/etc/init.d/httpd stop
-/etc/init.d/mysqld stop
+#/etc/init.d/httpd stop
+#/etc/init.d/mysqld stop
+
+yum -y install busybox
+ln -s /sbin/busybox /bin/ar
 
 cd /tmp
 
