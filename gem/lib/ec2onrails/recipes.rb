@@ -31,7 +31,9 @@ Capistrano::Configuration.instance.load do
   
   cfg = ec2onrails_config
 
-  set :image_id, Ec2onrails::VERSION::AMI_ID
+  set :ec2onrails_version, Ec2onrails::VERSION::STRING
+  set :image_id_32_bit, Ec2onrails::VERSION::AMI_ID_32_BIT
+  set :image_id_64_bit, Ec2onrails::VERSION::AMI_ID_64_BIT
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
   set :user, "app"
@@ -72,6 +74,14 @@ Capistrano::Configuration.instance.load do
   end
   
   namespace :ec2onrails do
+    desc <<-DESC
+      Show the AMI id's of the current images for this version of \
+      EC2 on Rails.
+    DESC
+    task :ami_ids, :roles => [:web, :db, :app] do
+      puts "32-bit server image for EC2 on Rails #{ec2onrails_version}: #{image_id_32_bit}"
+      puts "64-bit server image for EC2 on Rails #{ec2onrails_version}: #{image_id_64_bit}"
+    end
     
     desc <<-DESC
       Start a new server instance and prepare it for a cold deploy.
@@ -84,6 +94,7 @@ Capistrano::Configuration.instance.load do
       server.deploy_files
       server.restart_services
       deploy.setup
+      server.set_roles
       db.create
     end
     
@@ -99,15 +110,12 @@ Capistrano::Configuration.instance.load do
       deploy.restart
     end
     
-    namespace :ec2 do
+    namespace :ec2 do      
       desc <<-DESC
         Start an instance, using the AMI of the correct version to match this gem.
       DESC
       task :start_instance, :roles => [:web, :db, :app] do
         # TODO
-        # ec2 = EC2::Base.new(:access_key_id => access_key_id, :secret_access_key => secret_access_key)
-        # ec2.run_instances(:image_id => image_id, :key_name => key_name, :group_id => group_id)
-        # wait until image is booted
       end
       
       desc <<-DESC
@@ -228,7 +236,7 @@ Capistrano::Configuration.instance.load do
         Upgrade to the newest versions of all rubygems.
       DESC
       task :upgrade_gems, :roles => [:web_admin, :db_admin, :app_admin] do
-        sudo "gem update -y"
+        sudo "gem update -y --no-rdoc --no-ri"
       end
       
       desc <<-DESC
@@ -251,7 +259,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :install_gems, :roles => [:web_admin, :db_admin, :app_admin] do
         if cfg[:rubygems] && cfg[:rubygems].any?
-          sudo "gem install #{cfg[:rubygems].join(' ')} -y" do |ch, str, data|
+          sudo "gem install #{cfg[:rubygems].join(' ')} -y --no-rdoc --no-ri" do |ch, str, data|
             ch[:data] ||= ""
             ch[:data] << data
             if data =~ />\s*$/
@@ -280,7 +288,7 @@ Capistrano::Configuration.instance.load do
         Set the timezone using the value of the variable named timezone. \
         Valid options for timezone can be determined by the contents of \
         /usr/share/zoneinfo, which can be seen here: \
-        http://packages.ubuntu.com/cgi-bin/search_contents.pl?searchmode=filelist&word=tzdata&version=feisty&arch=all&page=1&number=all \
+        http://packages.ubuntu.com/cgi-bin/search_contents.pl?searchmode=filelist&word=tzdata&version=gutsy&arch=all&page=1&number=all \
         Remove 'usr/share/zoneinfo/' from the filename, and use the last \
         directory and file as the value. For example 'Africa/Abidjan' or \
         'posix/GMT' or 'Canada/Eastern'.
