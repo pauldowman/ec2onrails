@@ -49,6 +49,9 @@ if [ ! -e /usr/local/ec2-api-tools ] ; then
   aptitude install -y sun-java6-jre || fail "couldn't install Java package"
 fi
 
+echo "--> Clearing apt cache..."
+aptitude clean
+
 echo "--> Setting runlevel to 1 and pausing for 10 seconds..."
 runlevel --set=1
 sleep 10
