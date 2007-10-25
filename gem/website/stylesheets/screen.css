@@ -1,5 +1,5 @@
 body {
-  background-color: #E1D1F1;
+  background-color: white;
   font-family: "Georgia", sans-serif;
   font-size: 16px;
   line-height: 1.6em;
@@ -29,8 +29,7 @@ li {
   list-style-type: square;
 }
 a {
-  color: #5E5AFF;
-	background-color: #DAC;
+  color: #00266F;
   font-weight: normal;
   text-decoration: underline;
 }
@@ -51,7 +50,7 @@ blockquote {
 }
 .coda {
   text-align: right;
-  color: #77f;
+  color: #444;
   font-size: smaller;
 }
 
@@ -107,8 +106,8 @@ pre, code {
   text-align: right;
   font-family: sans-serif;
   font-weight: normal;
-  background-color: #B3ABFF;
-  color: #141331;
+  background-color: #7CBBFF;
+  color: #7CBBFF;
   padding: 15px 20px 10px 20px;
   margin: 0 auto;
 	margin-top: 15px;
@@ -126,7 +125,7 @@ pre, code {
 #version p {
   text-decoration: none;
 	color: #141331;
-	background-color: #B3ABFF;
+	background-color: #7CBBFF;
 	margin: 0;
 	padding: 0;
 }
@@ -134,7 +133,7 @@ pre, code {
 #version a {
   text-decoration: none;
 	color: #141331;
-	background-color: #B3ABFF;
+	background-color: #7CBBFF;
 }
 
 .clickable {
