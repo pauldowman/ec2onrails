@@ -18,21 +18,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function make_dir() {
-  mkdir $1
-  if [ $2 ] ; then
-    chown $2 $1
-  fi
-}
 
-make_dir /tmp
-
-make_dir /mnt/app app:app
-
-make_dir /mnt/log
-make_dir /mnt/log/apache2    www-data:www-data
-make_dir /mnt/log/fsck
-make_dir /mnt/log/mysql      mysql:mysql
-
-make_dir /mnt/mysql_data     mysql:mysql
-make_dir /mnt/mysql_data/tmp mysql:mysql
+mv /var/lib/mysql/mysql /mnt/mysql_data/
+rm -rf /var/lib/mysql/*
