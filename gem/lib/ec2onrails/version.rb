@@ -23,6 +23,7 @@ module Ec2onrails #:nodoc:
     TINY  = 4
     STRING = [MAJOR, MINOR, TINY].join('.')
     
-    AMI_ID = 'ami-a3f91cca'
+    AMI_ID_32_BIT = 'ami-73c1241a'
+    AMI_ID_64_BIT = 'ami-72c1241b'
   end
 end

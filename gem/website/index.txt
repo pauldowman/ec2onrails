@@ -17,17 +17,20 @@ Features of the EC2 image:
 
 * Ready to deploy a Rails app with little or no configuration of the server required.
 * Automatic backup of MySQL database to S3.
-* Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more. Available as a rubygem.
+* Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem).
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
   with /etc/init.d startup script
-* Ruby on Rails 1.2.4
-* Ruby 1.8.5
+* Ruby on Rails 1.2.5
+* Ruby 1.8.6
 * MySQL 5
-* Ubuntu 7.04 Feisty with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/feisty/libs/libc6-xen package).
+* Ubuntu 7.10 "Gutsy" with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/feisty/libs/libc6-xen package).
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
 * MySQL and Apache configured to write logs to /mnt/log so you don't fill up EC2's small root filesystem
+* 32-bit and 64-bit images available (supports all instance types, small to extra large).
+* Created using a publicly available (GPL) build file.
+* Multiple instance support (though it's still experimental, not fully tested yet).
 
 
 h2. Using the image
@@ -47,28 +50,41 @@ and
 "s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml
 in the config folder.
 
-h4. 3. Start up an instance of the image.
+Be sure to customize those files and read the comments.
+
+Also, if you're using a separate instance for the database, use the hostname "db_primary"
+in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve
+to the instance defined in your Capistrano "db" role.
+
+h4. 4. Start up one or more instances of the image.
 
 Soon there will be a Capistrano task to do this for you. In the meantime read the 
-"running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-03-01/GettingStartedGuide/running-an-instance.html
+"running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html
 in Amazon's getting started guide.
 
-The image id of the current image is *ami-a3f91cca*.
+The image id's of the current images are:
+* 32-bit: *ami-73c1241a*.
+* 64-bit: *ami-72c1241b*.
 
-At the moment only one instance is supported, very soon a distributed cluster
-will be possible.
+(Please read the change log below for release notes. NOTE: multiple 
+instance support isn't fully tested yet, look for version 1.0 soon!)
 
-As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-03-01/DeveloperGuide/public-ami-guidelines.html, 
+As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, 
 password-based logins are disabled. You log in with your own 
-"public/private keypair":http://docs.amazonwebservices.com/AmazonEC2/gsg/2007-01-19/running-an-instance.html.
+"public/private keypair":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html.
 
 Most basic things can be configured automatically by the Capistrano tasks, but if you want to 
-you can login by ssh as a user named "admin" (which has sudo ability) or as "app" (the user 
+you can login by ssh as a user named "admin" (has sudo ability) or as "app" (the user 
 that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
 use the app user use to deploy the app, and the admin user for server admin tasks 
 that require sudo.
 
-h4. 4. Deploy the app with Capistrano
+Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. 
+Be sure that you haven't allowed public access to any ports other than TCP 22 and TCP 80.
+If you're using multiple instances, be sure to allow them network access to each other.
+
+
+h4. 5. Deploy the app with Capistrano
 
 <pre>
 cap ec2onrails:setup
@@ -98,6 +114,11 @@ task.
 * ec2onrails:server:install_packages
 * ec2onrails:server:upgrade_and_install_all
 * ec2onrails:server:restart_services
+* ec2onrails:server:set_roles
+- Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).
+For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
+are running. Eventually this will customize settings for the running services also. Note that
+an instance can have more than one role. If there's only one instance it will have all roles.
 
 Database management tasks: archive and restore can operate on any specified S3 bucket. 
 For example, I use this to restore the current production data (from my actual production backup
@@ -110,6 +131,9 @@ run on the production server.
 * ec2onrails:db:drop
 * ec2onrails:db:recreate
 * ec2onrails:db:set_root_password
+
+* ec2onrails:ami_ids
+- Shows the AMI id's of the images that match the current version of the gem.
 
 * ec2onrails:setup
 - This is a convenience task to get a new instance completely set up in one
@@ -144,13 +168,14 @@ AWS_SECRET_ACCESS_KEY=abc0123abc0123abc0123
 BUCKET_BASE_NAME=a-string-identifier
 </pre>
 
+
 h2. Building the image
 
 Building the image is not required, most people will simply use the prebuilt public
 image, but there is also a Rake build script that builds the image, and optionally bundles 
 and uploads it to S3. 
 It should run on any Linux system, including one of the stock Fedora-based Amazon public AMI's 
-(it is tested on "the FC4 developer image":http://developer.amazonwebservices.com/connect/entry!default.jspa?categoryID=101&externalID=521).
+(it is tested on "Amazon's FC6 x86_64 image":http://developer.amazonwebservices.com/connect/entry.jspa?externalID=994&categoryID=101).
 
 
 h2. Mailing lists
@@ -174,13 +199,31 @@ h2. Change log
 
 Also see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
-h4. 0.9.3, ami-a3f91cca
+
+h4. 0.9.4, ami-73c1241a (32-bit) and ami-72c1241b (64-bit)
 
 7 Oct, 2007
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Ubuntu 7.10/Gutsy
+* Experimental multiple instance support.
+** *Mongrel & MySQL now listen on all ports.* Be sure your firewall settings are correct, and set a MySQL root password.
+* RDoc and RI not generated for installed gems.
+* No longer upgrades packages & gems on ec2onrails:server:setup task.
+* 32-bit and 64-bit images.
+* EC2 AMI tools version 2007-08-29.
+* NTP removed, it's no longer needed under Xen.
+* MySQL data dir dirs now under /mnt.
+* syslog now logs to /mnt/log.
+* Build now cleans apt cache, image is now 1/2 the size.
+
+
+h4. 0.9.3, ami-a3f91cca
+
+23 Oct, 2007
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * There is now a rubygem available with Capistrano tasks.
 * "admin" user added, server admin cap tasks run as this user
-* MySQL settings tweaked to reflect large amount of RAM available on EC2 images.
+* MySQL settings tweaked to reflect large amount of RAM available on EC2 instances.
 * "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_3":issues fixed in this release
 
 h4. 0.9.2, ami-0cf61365

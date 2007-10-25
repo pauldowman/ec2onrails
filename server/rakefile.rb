@@ -20,15 +20,18 @@ require "rake/clean"
 require 'yaml'
 require 'erb'
 #require 'EC2'
-require '../gem/lib/ec2onrails/version'
+require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
 
 @config_file = "config.yml"
+
+@arch = ENV['arch'] || "32bit" # or use 'arch=64bit rake' on the command line
 
 @packages = %w(
   adduser
   alien
   apache2
   aptitude
+  ca-certificates
   cron
   curl
   gcc
@@ -48,8 +51,6 @@ require '../gem/lib/ec2onrails/version'
   mysql-client
   mysql-server
   nano
-  ntp
-  ntpdate
   openssh-server
   php5
   php5-mysql
@@ -76,11 +77,32 @@ require '../gem/lib/ec2onrails/version'
   rake
 )
 
+@arch_config = {
+  "32bit" => {
+    :name => "i386",
+    :ubuntu_name => "i386",
+    :modules_file => "modules-2.6.16-ec2.tgz",
+    :modules_version => "2.6.16-xenU"
+  },
+  "64bit" => {
+    :name => "x86_64",
+    :ubuntu_name => "amd64",
+    :modules_file => "ec2-modules-2.6.16.33-xenU-x86_64.tgz",
+    :modules_version => "2.6.16.33-xenU"
+  }
+}
+
+
 # I recommend using apt-cacher or apt-proxy. Change the url here and in files/etc/apt/sources.list
 @deb_mirror = "" # Leave blank to use default
 #@deb_mirror = "http://localhost:3142/archive.ubuntu.com/ubuntu/" # This is for a local apt-cacher instance
 
-@output_dir = "output"
+
+def arch_config
+  @arch_config[@arch]
+end
+
+@output_dir = "output-#{arch_config[:name]}"
 @fs_dir = "#{@output_dir}/fs"
 
 @version = Ec2onrails::VERSION
@@ -130,22 +152,22 @@ task :install_debootstrap => @fs_dir do |t|
     # We need devices.tar.gz from the .deb, it's not in the .tar.
     # But I want to use the .tar instead of the .deb because the .deb
     # puts files all over the filesystem
-    run "cd #{@output_dir}; curl http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.1~feisty1.tar.gz | tar zx"
-    run "curl http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.1~feisty1_all.deb > #{@output_dir}/deb"
+    run "cd #{@output_dir}; curl http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.3build1.tar.gz | tar zx"
+    run "curl http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.3build1_all.deb > #{@output_dir}/deb"
     run "cd #{@output_dir}; ar x deb"
     run "cd #{@output_dir}; tar zxf data.tar.gz"
-    cp "#{@output_dir}/usr/lib/debootstrap/devices.tar.gz", "#{@output_dir}/debootstrap-1.0.1"
+    cp "#{@output_dir}/usr/lib/debootstrap/devices.tar.gz", "#{@output_dir}/debootstrap-1.0.3build1"
     
-    # We need to symlink scripts/ubuntu/feisty to scripts/feisty
-    run "cd #{@output_dir}/debootstrap-1.0.1/scripts; ln -s ubuntu/feisty"
+    # We need to symlink scripts/ubuntu/gutsy to scripts/gutsy
+    run "cd #{@output_dir}/debootstrap-1.0.3build1/scripts; ln -s ubuntu/gutsy"
   end
 end
 
 desc "Run debootstrap"
 task :bootstrap => [:check_if_root, :install_debootstrap] do |t|
   unless_completed(t) do
-    ENV['DEBOOTSTRAP_DIR'] = "#{@output_dir}/debootstrap-1.0.1"
-    run "sh #{@output_dir}/debootstrap-1.0.1/debootstrap --arch i386 --include=gnupg,aptitude feisty #{@fs_dir} #{@deb_mirror}"
+    ENV['DEBOOTSTRAP_DIR'] = "#{@output_dir}/debootstrap-1.0.3build1"
+    run "sh #{@output_dir}/debootstrap-1.0.3build1/debootstrap --arch #{arch_config[:ubuntu_name]} --include=gnupg,aptitude gutsy #{@fs_dir} #{@deb_mirror}"
   end
 end
 
@@ -168,8 +190,8 @@ end
 desc "Download and unpack the Amazon kernel modules archive"
 task :install_kernel_modules => [:check_if_root, :install_packages] do |t|
   unless_completed(t) do
-    run "curl http://s3.amazonaws.com/ec2-downloads/modules-2.6.16-ec2.tgz | tar zx -C #{@fs_dir}"
-    run_chroot "depmod -F /boot/System.map-2.6.16-xenU"
+    run "curl http://s3.amazonaws.com/ec2-downloads/#{arch_config[:modules_file]} | tar zx -C #{@fs_dir}"
+    run_chroot "depmod -e -F /boot/System.map-#{arch_config[:modules_version]} #{arch_config[:modules_version]}"
   end
 end
 
@@ -177,7 +199,7 @@ desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
   unless_completed(t) do
     # TODO This part is way too interactive, try http://geminstaller.rubyforge.org
-    run_chroot "gem install #{@rubygems.join(' ')} -y"
+    run_chroot "gem install #{@rubygems.join(' ')} -y --no-rdoc --no-ri"
   end
 end
 
@@ -207,11 +229,12 @@ task :configure => [:check_if_root, :install_gems] do |t|
     
     touch "#{@fs_dir}/ec2onrails-first-boot"
     
-    # TODO find out the most correct solution here, this seems to be a bug in feisty
-    # where the dhcp daemon runs as dhcp but the dir that it tries to write it is
-    # owned by root and not writable by others.
+    # TODO find out the most correct solution here, this seems to be a bug in
+    # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
+    # that it tries to write it is owned by root and not writable by others.
     run_chroot "chown -R dhcp /var/lib/dhcp3"
     
+    run_chroot "aptitude clean"
   end
 end
 
@@ -229,12 +252,12 @@ task :install_ami_tools => [:check_if_root, :configure] do |t|
     # alternatively could just use patch command here
     
     file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/image.rb"
-    new_line = '    exec("cd #{dev_dir} && /sbin/MAKEDEV console && /sbin/MAKEDEV std && /sbin/MAKEDEV generic\n")'
-    replace_line(file, new_line, 149)
+    new_line = "    exec( 'rsync -rlpgoDS ' + exclude + File::join( src, '*' ) + ' ' + dst )"
+    replace_line(file, new_line, 161)
     
     file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/bundlevol.rb"
     new_line = "LOCAL_FS_TYPES = ['ext2', 'ext3', 'xfs', 'jfs', 'reiserfs', 'tmpfs']\n"
-    replace_line(file, new_line, 85)
+    replace_line(file, new_line, 81)
   end
 end
 
@@ -250,7 +273,7 @@ task :load_config do |t|
   @private_key_file      = config['private_key_file']
   @cert_file             = config['cert_file']
   @bucket_name           = config['bucket_name']
-  @bundle_file_prefix    = config['bundle_file_prefix'] + "-v#{@version::MAJOR}_#{@version::MINOR}_#{@version::TINY}"
+  @bundle_file_prefix    = config['bundle_file_prefix'] + "-v#{@version::MAJOR}_#{@version::MINOR}_#{@version::TINY}-#{arch_config[:name]}"
 end
 
 desc "Use the Amazon AMI tools to create an AMI bundle"
@@ -261,7 +284,7 @@ task :bundle => [:load_config, :install_ami_tools] do |t|
     cp @cert_file,        "#{@fs_dir}/tmp"
     
     env = "RUBYLIB=/usr/lib/ruby/1.8:/usr/local/lib/1.8/i486-linux:/usr/lib/site_ruby"
-    run_chroot "sh -c '#{env} ec2-bundle-vol -e /tmp -d /tmp -k /tmp/#{File.basename(@private_key_file)} -c /tmp/#{File.basename(@cert_file)} -u #{@aws_account_id} -p #{@bundle_file_prefix}'"
+    run_chroot "sh -c '#{env} ec2-bundle-vol -r #{arch_config[:name]} -e /tmp -d /tmp -k /tmp/#{File.basename(@private_key_file)} -c /tmp/#{File.basename(@cert_file)} -u #{@aws_account_id} -p #{@bundle_file_prefix}'"
   end
 end
 
@@ -315,13 +338,11 @@ def unless_completed(task, &proc)
 end
 
 def run_chroot(command, ignore_error = false)
-  result = system "chroot '#{@fs_dir}' #{command}"
-  unless ignore_error
-    raise("Error code #{$?} returned by command '#{command}'") unless result
-  end
+  run "chroot '#{@fs_dir}' #{command}"
 end
 
 def run(command, ignore_error = false)
+  puts "*** #{command}" 
   result = system command
   raise("error: #{$?}") unless result || ignore_error
 end
