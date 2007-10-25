@@ -18,8 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require File.join(File.dirname(__FILE__), 's3_lib')
+exit unless File.exists?("/mnt/app/current")
 
+require File.join(File.dirname(__FILE__), 's3_lib')
 
 load_db_config
 load_s3_config
