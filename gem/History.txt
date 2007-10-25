@@ -1,3 +1,20 @@
+== 0.9.4 2007-10-25
+
+* ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* _The rebundling doesn't seem to be working._ I'll fix that in a new version. Details "here":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558
+* Ubuntu 7.10/Gutsy
+* Experimental multiple instance support.
+** *Mongrel & MySQL now listen on all ports.* Be sure your firewall settings are correct, and set a MySQL root password.
+* RDoc and RI not generated for installed gems.
+* No longer upgrades packages & gems on ec2onrails:server:setup task.
+* 32-bit and 64-bit images.
+* EC2 AMI tools version 2007-08-29.
+* NTP removed, it's no longer needed under Xen.
+* MySQL data dir dirs now under /mnt.
+* syslog now logs to /mnt/log.
+* Build now cleans apt cache, image is now 1/2 the size.
+
 == 0.9.3 2007-10-06
 
 * Initial release
