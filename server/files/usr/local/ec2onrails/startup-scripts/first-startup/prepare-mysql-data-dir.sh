@@ -20,4 +20,3 @@
 
 
 mv /var/lib/mysql/mysql /mnt/mysql_data/
-rm -rf /var/lib/mysql/*
