@@ -31,9 +31,9 @@ NO_START=0
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/gems/1.8/bin
 
 if [ ! -d /mnt/app/current ] ; then
-  [ "$VERBOSE" != no ] && log_warning_msg "/mnt/app/current doesn't exist, exiting"
+  echo "/mnt/app/current doesn't exist, exiting..."
   exit 0
-end
+fi
 
 if [ `whoami` = "app" ] ; then
   SUDO=""
