@@ -24,7 +24,7 @@ Features of the EC2 image:
 * Ruby on Rails 1.2.5
 * Ruby 1.8.6
 * MySQL 5
-* Ubuntu 7.10 "Gutsy" with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/feisty/libs/libc6-xen package).
+* Ubuntu 7.10 "Gutsy" with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/gutsy/libs/libc6-xen package).
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
 * MySQL and Apache configured to write logs to /mnt/log so you don't fill up EC2's small root filesystem
@@ -206,9 +206,9 @@ h4. 0.9.4, ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * "The rebundling doesn't seem to be working":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558.
   I'll fix that in a new version.
-* Ubuntu 7.10/Gutsy
+* Ubuntu 7.10/Gutsy (This means new versions of almost all packages. Ruby is now 1.8.6.)
 * Experimental multiple instance support.
-** *Mongrel & MySQL now listen on all ports.* Be sure your firewall settings are correct, and set a MySQL root password.
+** *Mongrel & MySQL now need to listen on the public network interface.* Be sure your firewall settings are correct, and set a MySQL root password (use "cap ec2onrails:db:set_root_password").
 * RDoc and RI not generated for installed gems.
 * No longer upgrades packages & gems on ec2onrails:server:setup task.
 * 32-bit and 64-bit images.
