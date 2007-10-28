@@ -1,2 +1,0 @@
-/dev/sda2       /mnt    ext3    defaults        1 2
-/dev/sda3       swap    swap    defaults        0 0
