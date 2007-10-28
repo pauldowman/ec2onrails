@@ -31,7 +31,7 @@ NO_START=0
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/gems/1.8/bin
 
 if [ ! -d /mnt/app/current ] ; then
-  echo "/mnt/app/current doesn't exist, exiting..."
+  echo "/mnt/app/current doesn't exist, not starting mongrel..."
   exit 0
 fi
 
@@ -48,6 +48,11 @@ start_cmd() {
 
 stop_cmd() {
     $SUDO sh -c "export PATH=$PATH; mongrel_cluster_ctl stop"
+    return $?
+}
+
+restart_cmd() {
+    $SUDO sh -c "export PATH=$PATH; mongrel_cluster_ctl restart"
     return $?
 }
 
@@ -82,11 +87,7 @@ case "$1" in
     ;;
     restart)
         log_begin_msg "Restarting $NAME..."
-        if ! stop_cmd; then
-                log_end_msg 1
-        fi
-        sleep 10
-        if start_cmd; then
+        if restart_cmd; then
                 log_end_msg 0
         else
                 log_end_msg 1
