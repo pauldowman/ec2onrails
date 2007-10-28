@@ -1,3 +1,10 @@
+== 0.9.5 2007-10-28
+
+* ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed rebundling.
+* Generates new ssh keys on first startup
+
 == 0.9.4 2007-10-25
 
 * ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
