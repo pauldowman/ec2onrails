@@ -199,6 +199,7 @@ desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
   unless_completed(t) do
     # TODO This part is way too interactive, try http://geminstaller.rubyforge.org
+    run_chroot "gem update -y --no-rdoc --no-ri"
     run_chroot "gem install #{@rubygems.join(' ')} -y --no-rdoc --no-ri"
   end
 end
@@ -252,7 +253,7 @@ task :install_ami_tools => [:check_if_root, :configure] do |t|
     # alternatively could just use patch command here
     
     file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/image.rb"
-    new_line = "    exec( 'rsync -rlpgoDS ' + exclude + File::join( src, '*' ) + ' ' + dst )"
+    new_line = "    exec( 'rsync -rlpgoDS ' + exclude + '--exclude /etc/udev/rules.d/70-persistent-net.rules ' + File::join( src, '*' ) + ' ' + dst )"
     replace_line(file, new_line, 161)
     
     file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/bundlevol.rb"
