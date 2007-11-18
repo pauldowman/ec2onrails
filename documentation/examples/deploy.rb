@@ -2,8 +2,8 @@
 
 set :application, "yourapp"
 
-set :deploy_via, :copy       # optional, see Capistrano docs for details
-set :copy_strategy, :export  # optional, see Capistrano docs for details
+#set :deploy_via, :copy       # optional, see Capistrano docs for details
+#set :copy_strategy, :export  # optional, see Capistrano docs for details
 
 set :repository, "http://svn.foo.com/svn/#{application}/trunk"
 
@@ -19,10 +19,10 @@ role :db,  "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
 
 # EC2 on Rails config
 set :ec2onrails_config, {
-  # S3 bucket used by the ec2onrails:db:archive task
+  # S3 bucket used by the ec2onrails:db:restore task
   :restore_from_bucket => "your-bucket",
   
-  # S3 bucket used by the ec2onrails:db:restore task
+  # S3 bucket used by the ec2onrails:db:archive task
   :archive_to_bucket => "your-other-bucket",
   
   # Set a root password for MySQL. Run "cap ec2onrails:db:set_root_password"
@@ -38,11 +38,12 @@ set :ec2onrails_config, {
   # Any extra RubyGems to install if desired
   :rubygems => %w(RedCloth hpricot rmagick),
   
-  # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for details
+  # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
+  # details
   :timezone => "Canada/Eastern",
   
-  # Files to deploy to the server, It's intended mainly for
-  # customized config files for new packages installed via the 
+  # Files to deploy to the server (they'll be owned by root). It's intended
+  # mainly for customized config files for new packages installed via the 
   # ec2onrails:server:install_packages task. 
   :server_config_files_root => "../server_config",
   
