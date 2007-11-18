@@ -65,8 +65,7 @@ The image id's of the current images are:
 * 32-bit: *ami-86c025ef*.
 * 64-bit: *ami-99c025f0*.
 
-(Please read the change log below for release notes. NOTE: multiple 
-instance support isn't fully tested yet, look for version 1.0 soon!)
+Please read the change log below for release notes.
 
 As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, 
 password-based logins are disabled. You log in with your own 
@@ -83,7 +82,22 @@ Be sure that you haven't allowed public access to any ports other than TCP 22 an
 If you're using multiple instances, be sure to allow them network access to each other.
 
 
-h4. 5. Deploy the app with Capistrano
+h4. 5. Copy your public key from the server to keep Capistrano happy
+
+Technically all you should need to connect to the server is the private key file, the public key is on the server. 
+But for some reason Capistrano requires that you have both the public key and the private key files together on the client.
+
+So wherever you stored your private key file, you need to put the public key file beside it, with the extension ".pub". 
+You can copy it from the server using scp like this:
+
+<pre>scp -i /home/you/.ssh/your-private-key admin@ec2-xxx....amazonaws.com:.ssh/authorized_keys /home/you/.ssh/your-private-key.pub</pre>
+
+This uses scp to connect to the server using your private key. It copies the file "authorized_keys" from /home/admin/.ssh/ and 
+saves it in your .ssh dir. So after this you should have two files, one named "yourkey" (this is your private key) and one 
+named (yourkey.pub), this is your public key.
+
+
+h4. 6. Deploy the app with Capistrano
 
 <pre>
 cap ec2onrails:setup
@@ -200,6 +214,8 @@ Also see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&grou
 
 h4. 0.9.5, ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
 
+_UPDATE Tues. Oct 30: RubyForge is having "some issues with the gem server":http://rubyforge.org/forum/message.php?msg_id=31052 right now and gems that have been released over the last few days aren't available yet, so the 0.9.5 gem isn't available yet. They're working on it, it should be back soon. The 0.9.5 image should work with the 0.9.4 gem._
+
 28 Oct, 2007
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * Fixed rebundling.
@@ -207,7 +223,7 @@ h4. 0.9.5, ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
 
 h4. 0.9.4, ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
 
-7 Oct, 2007
+25 Oct, 2007
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * "The rebundling doesn't seem to be working":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558.
   I'll fix that in a new version.
