@@ -18,6 +18,10 @@
 
 require 'fileutils'
 include FileUtils
+require 'tmpdir'
+require 'zlib'
+require 'archive/tar/minitar'
+include Archive::Tar
 
 require 'ec2onrails/version'
 require 'ec2onrails/capistrano_utils'
@@ -119,7 +123,6 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
-        Set default firewall rules.
       DESC
       task :configure_firewall do
         # TODO
@@ -190,7 +193,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :set_root_password, :roles => :db do
         if cfg[:mysql_root_password]
-          run "echo 'set password for root@localhost=password('#{cfg[:mysql_root_password]}');' | mysql -u root"
+          run %{echo "set password for root@localhost=password('#{cfg[:mysql_root_password]}');" | mysql -u root}
         end
       end
       
@@ -200,7 +203,7 @@ Capistrano::Configuration.instance.load do
         "app-<timestamp>.sql.gz".
       DESC
       task :archive, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb #{cfg[:archive_to_bucket]} app-#{Time.new.strftime('%y-%m-%d--%H-%M-%S')}.sql.gz"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb #{cfg[:archive_to_bucket]} app-#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}.sql.gz"
       end
       
       desc <<-DESC
@@ -263,6 +266,7 @@ Capistrano::Configuration.instance.load do
             ch[:data] ||= ""
             ch[:data] << data
             if data =~ />\s*$/
+              puts data
               puts "The gem command is asking for a number:"
               choice = STDIN.gets
               ch.send_data(choice)
@@ -307,14 +311,17 @@ Capistrano::Configuration.instance.load do
       task :deploy_files, :roles => [:web_admin, :db_admin, :app_admin] do
         if cfg[:server_config_files_root]
           begin
-            # TODO use Zlib to support Windows
-            file = '/tmp/config_files.tgz'
-            run_local "tar zcf #{file} -C '#{cfg[:server_config_files_root]}' ."
-            put File.read(file), file
-            sudo "tar zxvf #{file} -o -C /"
+            filename = "config_files.tar"
+            local_file = "#{Dir.tmpdir}/#{filename}"
+            remote_file = "/tmp/#{filename}"
+            FileUtils.cd(cfg[:server_config_files_root]) do
+              File.open(local_file, 'wb') { |tar| Minitar.pack(".", tar) }
+            end
+            put File.read(local_file), remote_file
+            sudo "tar xvf #{remote_file} -o -C /"
           ensure
-            rm_rf file
-            sudo "rm -f #{file}"
+            rm_rf local_file
+            run "rm -f #{remote_file}"
           end
         end
       end
