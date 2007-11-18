@@ -46,6 +46,7 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   libopenssl-ruby
   libreadline-ruby
   libruby
+  logrotate
   make
   man-db
   mysql-client
@@ -224,9 +225,10 @@ task :configure => [:check_if_root, :install_gems] do |t|
     
     (2..6).each { |n| rm_f "#{@fs_dir}/etc/event.d/tty#{n}" }
     
-    rm_rf(["#{@fs_dir}/var/log/apache2", "#{@fs_dir}/var/log/mysql"])
-    run_chroot "ln -sf /mnt/log/apache2 /var/log/apache2"
-    run_chroot "ln -sf /mnt/log/mysql /var/log/mysql"
+    %w(apache2 mysql auth.log daemon.log kern.log mail.err mail.info mail.log mail.warn syslog user.log).each do |f|
+      rm_rf "#{@fs_dir}/var/log/#{f}"
+      run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
+    end
     
     touch "#{@fs_dir}/ec2onrails-first-boot"
     
