@@ -1,0 +1,20 @@
+/mnt/log/apache2/*.log {
+  daily
+  missingok
+  dateext
+  maxage 3
+  compress
+  notifempty
+  create 640 root adm
+  sharedscripts
+  postrotate
+    if [ -f /var/run/apache2.pid ]; then
+      /etc/init.d/apache2 reload > /dev/null
+    fi
+    
+    rm -f /mnt/log/apache2/access.log.offset
+    rm -f /mnt/log/apache2/error.log.offset
+    /usr/local/ec2onrails/bin/archive_apache_logs.rb
+    
+  endscript
+}
