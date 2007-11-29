@@ -74,6 +74,7 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   aws-s3
   mongrel
   mongrel_cluster
+  optiflag
   rails
   rake
 )

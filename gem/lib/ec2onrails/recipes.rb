@@ -203,7 +203,7 @@ Capistrano::Configuration.instance.load do
         "app-<timestamp>.sql.gz".
       DESC
       task :archive, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb #{cfg[:archive_to_bucket]} app-#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}.sql.gz"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --file app-#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}.sql.gz"
       end
       
       desc <<-DESC
@@ -212,7 +212,7 @@ Capistrano::Configuration.instance.load do
         expected to be the default, "app.sql.gz".
       DESC
       task :restore, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/restore_app_db.rb #{cfg[:restore_from_bucket]}"
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]}"
       end
     end
     

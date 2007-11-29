@@ -3,12 +3,13 @@
   daily
   missingok
   dateext
-  maxage 3
-  compress
   notifempty
   copytruncate
   postrotate
     rm -f /mnt/app/current/log/production.log.offset
-    /usr/local/ec2onrails/bin/archive_rails_log.rb
+    logfile=/mnt/app/current/log/production.log-`date +%Y%m%d`
+    gzip $logfile
+    /usr/local/ec2onrails/bin/archive_file.rb --file $logfile.gz
+    rm $logfile.gz
   endscript
 }

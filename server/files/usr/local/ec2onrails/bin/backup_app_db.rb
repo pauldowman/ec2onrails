@@ -25,19 +25,19 @@ require File.join(File.dirname(__FILE__), 's3_lib')
 load_db_config
 load_s3_config
 
+@default_archive_file = "app.sql.gz"
+
 begin
   setup
+  @archive_file = File.join(@temp_dir, @archive_file)
   
   cmd = "mysqldump --opt -u#{@user} "
   cmd += " -p'#{@password}' " unless @password.nil?
-  cmd += " #{@database} | gzip > #{File.join(@temp_dir, @archive_filename)}"
+  cmd += " #{@database} | gzip > #{@archive_file}"
   result = system(cmd)
   raise("mysqldump error: #{$?}") unless result
   
-  AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
-  
-  create_bucket(@bucket_name)
-  AWS::S3::S3Object.store(@archive_filename, open(File.join(@temp_dir, @archive_filename)), @bucket_name)
+  store_file
 ensure
   cleanup
 end

@@ -23,20 +23,13 @@ require File.join(File.dirname(__FILE__), 's3_lib')
 load_s3_config
 load_db_config
 
+@default_archive_filename = "app.sql.gz"
+
 begin
   setup
+  @archive_file = File.join(@temp_dir, @archive_file)
   
-  archive_file = File.join(@temp_dir, @archive_filename)
-  
-  AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
-  
-  open(archive_file, 'w') do |file|
-    AWS::S3::S3Object.stream(@archive_filename, @bucket_name) do |chunk|
-      file.write chunk
-    end
-  end
-  
-  cmd = "gunzip -c #{archive_file} | mysql -u#{@user} "
+  cmd = "gunzip -c #{@archive_file} | mysql -u#{@user} "
   cmd += " -p'#{@password}' " unless @password.nil?
   cmd += " #{@database}"
   result = system(cmd)

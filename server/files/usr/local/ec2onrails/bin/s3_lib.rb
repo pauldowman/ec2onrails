@@ -21,27 +21,28 @@ require 'aws/s3'
 require 'yaml'
 require 'erb'
 require 'fileutils'
+require 'optiflag'
 
 include FileUtils
 
-@default_archive_filename = "app.sql.gz"
-@temp_dir = "/tmp/ec2onrails-db-backup-#{Time.new.to_i}"
-@config_file = "/mnt/app/current/config/s3.yml"
+module CommandLineArgs extend OptiFlagSet
+  optional_flag "bucket"
+  optional_flag "file"
 
+  and_process!
+end
+
+@temp_dir = "/tmp/ec2onrails-backup-#{Time.new.to_i}"
+@config_file = "/mnt/app/current/config/s3.yml"
 
 def setup
   mkdir_p @temp_dir
   
-  @bucket_name = ARGV[0]
-  if ! @bucket_name || @bucket_name.empty?
-    # include the hostname in the bucket name so test instances don't accidentally clobber real backups
-    @bucket_name = "#{@bucket_base_name}_backup_#{hostname}"
-  end
-
-  @archive_filename = ARGV[1]
-  if ! @archive_filename || @archive_filename.empty?
-    @archive_filename = @default_archive_filename
-  end
+  # include the hostname in the bucket name so test instances don't accidentally clobber real backups
+  @bucket_name = ARGV.flags.bucket || "#{@bucket_base_name}_backup_#{hostname}"
+  @archive_file = ARGV.flags.file || @default_archive_file
+  
+  AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
 end
 
 def cleanup
@@ -49,9 +50,11 @@ def cleanup
 end
 
 def create_bucket(name)
-  bucket = AWS::S3::Bucket.find(name)  
-rescue AWS::S3::NoSuchBucket
-  AWS::S3::Bucket.create(name)
+  begin
+    AWS::S3::Bucket.find(name)  
+  rescue AWS::S3::NoSuchBucket
+    AWS::S3::Bucket.create(name)
+  end
 end
 
 def load_db_config
@@ -74,6 +77,19 @@ def load_s3_config
     @aws_access_key        = get_bash_config('AWS_ACCESS_KEY_ID')
     @aws_secret_access_key = get_bash_config('AWS_SECRET_ACCESS_KEY')
     @bucket_base_name      = get_bash_config('BUCKET_BASE_NAME')  
+  end
+end
+
+def store_file
+  create_bucket(@bucket_name)
+  AWS::S3::S3Object.store(File.basename(@archive_file), open(@archive_file), @bucket_name)
+end
+
+def retrieve_file(dir)
+  open(@archive_file, 'w') do |file|
+    AWS::S3::S3Object.stream(File.basename(@archive_file), @bucket_name) do |chunk|
+      file.write chunk
+    end
   end
 end
 

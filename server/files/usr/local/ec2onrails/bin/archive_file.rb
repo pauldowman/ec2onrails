@@ -18,21 +18,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-exit unless File.exists?("/mnt/app/current/log")
+# This script archives a file to S3
 
 require File.join(File.dirname(__FILE__), 's3_lib')
 
 load_s3_config
 
+
 begin
   setup
-  
-  @archive_filename = "production.log-#{Time.new.strftime('%Y%m%d')}.gz"
-  
-  AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
-  
-  create_bucket(@bucket_name)
-  AWS::S3::S3Object.store(@archive_filename, open(File.join("/mnt/app/current/log", @archive_filename)), @bucket_name)
+  exit unless File.exists?(@archive_file)
+  store_file
 ensure
   cleanup
 end
