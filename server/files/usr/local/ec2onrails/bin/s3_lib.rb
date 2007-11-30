@@ -85,7 +85,7 @@ def store_file
   AWS::S3::S3Object.store(File.basename(@archive_file), open(@archive_file), @bucket_name)
 end
 
-def retrieve_file(dir)
+def retrieve_file
   open(@archive_file, 'w') do |file|
     AWS::S3::S3Object.stream(File.basename(@archive_file), @bucket_name) do |chunk|
       file.write chunk

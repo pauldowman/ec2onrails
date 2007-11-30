@@ -23,11 +23,13 @@ require File.join(File.dirname(__FILE__), 's3_lib')
 load_s3_config
 load_db_config
 
-@default_archive_filename = "app.sql.gz"
+@default_archive_file = "app.sql.gz"
 
 begin
   setup
   @archive_file = File.join(@temp_dir, @archive_file)
+  
+  retrieve_file
   
   cmd = "gunzip -c #{@archive_file} | mysql -u#{@user} "
   cmd += " -p'#{@password}' " unless @password.nil?
