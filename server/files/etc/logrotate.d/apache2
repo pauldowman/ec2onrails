@@ -2,7 +2,6 @@
   daily
   missingok
   dateext
-  compress
   notifempty
   create 640 root adm
   sharedscripts
