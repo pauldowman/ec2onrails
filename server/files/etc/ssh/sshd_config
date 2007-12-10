@@ -79,3 +79,5 @@ UsePAM yes
 
 PermitUserEnvironment yes
 AcceptEnv PATH
+
+GatewayPorts clientspecified
