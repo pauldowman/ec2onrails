@@ -77,6 +77,7 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   optiflag
   rails
   rake
+  rfacebook
 )
 
 @arch_config = {
