@@ -46,6 +46,8 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   libopenssl-ruby
   libreadline-ruby
   libruby
+  libyaml-ruby
+  libzlib-ruby
   logrotate
   make
   man-db
@@ -185,8 +187,8 @@ task :install_packages => [:check_if_root, :bootstrap, :mount_proc] do |t|
     run_chroot "aptitude install -y #{@packages.join(' ')}"
     
     # stop the daemons that were installed if they're running
-    run_chroot "/etc/init.d/apache2 stop", true
-    run_chroot "/etc/init.d/mysql stop", true
+    run_chroot "/etc/init.d/apache2 stop"
+    run_chroot "/etc/init.d/mysql stop"
   end
 end
 
@@ -204,6 +206,10 @@ task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
     # TODO This part is way too interactive, try http://geminstaller.rubyforge.org
     run_chroot "gem update -y --no-rdoc --no-ri"
     run_chroot "gem install #{@rubygems.join(' ')} -y --no-rdoc --no-ri"
+    
+    # Install Rails 1.2.6 as well as the latest.
+    # this is a big ugly since we have a nice list of gems already, but it doesn't allow specifying a version
+    run_chroot "gem install rails -v 1.2.6 -y --no-rdoc --no-ri"
   end
 end
 
@@ -224,6 +230,7 @@ task :configure => [:check_if_root, :install_gems] do |t|
     
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.profile"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.profile"
+    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/admin/.profile"
     
     (2..6).each { |n| rm_f "#{@fs_dir}/etc/event.d/tty#{n}" }
     
@@ -343,7 +350,7 @@ def unless_completed(task, &proc)
 end
 
 def run_chroot(command, ignore_error = false)
-  run "chroot '#{@fs_dir}' #{command}"
+  run "chroot '#{@fs_dir}' #{command}", ignore_error
 end
 
 def run(command, ignore_error = false)
