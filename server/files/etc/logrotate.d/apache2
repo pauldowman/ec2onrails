@@ -2,7 +2,6 @@
   daily
   missingok
   dateext
-  notifempty
   create 640 root adm
   sharedscripts
   postrotate
