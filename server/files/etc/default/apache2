@@ -1,2 +1,0 @@
-# 0 = start on boot; 1 = don't start on boot
-NO_START=0
