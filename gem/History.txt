@@ -5,6 +5,7 @@
 * Fixed server:install_gems task, issue #16006
 * Fixed db:set_root_password task for Capistrano 2.1, issue #15256
 * Fixed apache config to remove warning on restart, issue #16213
+* Now includes Rails 2.0.1 as well as 1.2.6
 * Removed dependency on tar for server:deploy_files task, now using all-ruby tar lib
 * Rotate logs (including rails production.log) and archive to S3 daily
 * Symlink all log files in /mnt/log from /var/log so that programs (e.g. logwatch) that expect them to be in /var/log still work
