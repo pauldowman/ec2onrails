@@ -1,3 +1,16 @@
+== 0.9.6 2007-12-21
+
+* ami-e620c58f (32-bit) and ami-f920c590 (64-bit)
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0. Soon!!
+* Fixed server:install_gems task, issue #16006
+* Fixed db:set_root_password task for Capistrano 2.1, issue #15256
+* Fixed apache config to remove warning on restart, issue #16213
+* Removed dependency on tar for server:deploy_files task, now using all-ruby tar lib
+* Rotate logs (including rails production.log) and archive to S3 daily
+* Symlink all log files in /mnt/log from /var/log so that programs (e.g. logwatch) that expect them to be in /var/log still work
+* New script to archive any file to s3
+* New command-line flags on s3 archive & restore scripts
+
 == 0.9.5 2007-10-28
 
 * ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
@@ -24,4 +37,45 @@
 
 == 0.9.3 2007-10-06
 
-* Initial release
+* ami-a3f91cca
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* There is now a rubygem available with Capistrano tasks.
+* "admin" user added, server admin cap tasks run as this user
+* MySQL settings tweaked to reflect large amount of RAM available on EC2 instances.
+* Fixed missing /etc/mongrel_cluster
+* Installed more ruby standard lib packages
+
+== 0.9.2 2007-09-13
+
+* ami-0cf61365
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed missing kernel modules
+
+== 0.9.1 2007-09-11
+
+* ami-99f712f0
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed permissions on /var/lib/dhcp3
+
+== 0.9.0 2007-09-07
+
+* ami-bdf411d4
+* First release built with new rake build script, this is a test release, not intended to be production-ready until it's tested more thoroughly.
+* Amazon EC2 API tools (java-based) no longer installed by default because they're not used on most servers. They're needed only for registering a rebundled image so there's now a script to install them: /usr/local/ec2-on-rails/install_ec2_api_tools.sh. The ruby-based EC2 image tools are still installed.
+* Removed "http://packages.ubuntu.com/feisty/libs/sun-java6-jre":Java and it's massive list of dependencies because it was only needed for the EC2 API tools. This saved a huge amount of space.
+* Removed ImageMagick, RMagick and hpricot due to popular demand. There will soon be cap2 tasks to customize which packages and gems are installed.
+
+== 0.8.1 2007-07-29
+
+* ami-b79a7fde
+* Fixed S3 backup cron job.
+* Added script to restore data from S3 (/usr/local/aws/bin/restore_app_db.rb). This is useful when setting up a staging server to test your deployment, you can have it set up with a copy of your production data to test your migrations.
+* Rewrite rule now allows images/css on maintenance page
+* Added empty /etc/apache2/sites-available/app.custom for custom Apache configuration in a separate file (so it can be deployed by rsync more easily).
+* Added ImageMagick, RMagick and hpricot due to popular demand.
+
+== 0.8.0 2007-06-20
+
+* ami-4e907527
+* Initial release.
+

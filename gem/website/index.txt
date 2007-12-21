@@ -34,7 +34,9 @@ Features of the EC2 image:
 
 h2. Using the image
 
-This documentation will be improved soon, for now hopefully this covers the basics.
+This documentation will be improved soon, for now hopefully this covers the basics. 
+For the AMI id's of the current images see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt.
+
 
 h4. 1. Install the gem
 
@@ -61,11 +63,11 @@ Soon there will be a Capistrano task to do this for you. In the meantime read th
 "running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html
 in Amazon's getting started guide.
 
-The image id's of the current images are:
-* 32-bit: *ami-86c025ef*.
-* 64-bit: *ami-99c025f0*.
+For the AMI id's of the current images see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt
+or do <code>cap ec2onrails:ami_ids</code> from within the app that you configured in the previous step.
 
-Please read the change log below for release notes.
+Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt for release notes, and 
+see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
 As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, 
 password-based logins are disabled. You log in with your own 
@@ -210,78 +212,7 @@ or send me an "email":http://pauldowman.com/contact/.
 
 h2. Change log
 
-Also see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
-
-h4. 0.9.5, ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
-
-_UPDATE Tues. Oct 30: RubyForge is having "some issues with the gem server":http://rubyforge.org/forum/message.php?msg_id=31052 right now and gems that have been released over the last few days aren't available yet, so the 0.9.5 gem isn't available yet. They're working on it, it should be back soon. The 0.9.5 image should work with the 0.9.4 gem._
-
-28 Oct, 2007
-* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* Fixed rebundling.
-* Generates new ssh keys on first startup.
-
-h4. 0.9.4, ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
-
-25 Oct, 2007
-* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* "The rebundling doesn't seem to be working":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558.
-  I'll fix that in a new version.
-* Ubuntu 7.10/Gutsy (This means new versions of almost all packages. Ruby is now 1.8.6.)
-* Experimental multiple instance support.
-** *Mongrel & MySQL now need to listen on the public network interface.* Be sure your firewall settings are correct, and set a MySQL root password (use "cap ec2onrails:db:set_root_password").
-* RDoc and RI not generated for installed gems.
-* No longer upgrades packages & gems on ec2onrails:server:setup task.
-* 32-bit and 64-bit images.
-* EC2 AMI tools version 2007-08-29.
-* NTP removed, it's no longer needed under Xen.
-* MySQL data dir dirs now under /mnt.
-* syslog now logs to /mnt/log.
-* Build now cleans apt cache, image is now 1/2 the size.
-
-h4. 0.9.3, ami-a3f91cca
-
-23 Oct, 2007
-* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* There is now a rubygem available with Capistrano tasks.
-* "admin" user added, server admin cap tasks run as this user
-* MySQL settings tweaked to reflect large amount of RAM available on EC2 instances.
-* "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_3":issues fixed in this release
-
-h4. 0.9.2, ami-0cf61365
-
-13 Sept, 2007
-* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_2":issues fixed in this release
-
-h4. 0.9.1, ami-99f712f0
-
-11 Sept, 2007
-* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* Fixed permissions on /var/lib/dhcp3
-* "http://code.google.com/p/ec2-on-rails/issues/list?can=1&q=label%3AFixed-in-0_9_1":issues fixed in this release
-
-h4. 0.9.0, ami-bdf411d4
-
-7 Sept 2007
-* First release built with new rake build script, this is a test release, not intended to be production-ready until it's tested more thoroughly.
-* Amazon EC2 API tools (java-based) no longer installed by default because they're not used on most servers. They're needed only for registering a rebundled image so there's now a script to install them: /usr/local/ec2-on-rails/install_ec2_api_tools.sh. The ruby-based EC2 image tools are still installed.
-* Removed "http://packages.ubuntu.com/feisty/libs/sun-java6-jre":Java and it's massive list of dependencies because it was only needed for the EC2 API tools. This saved a huge amount of space.
-* Removed ImageMagick, RMagick and hpricot due to popular demand. There will soon be cap2 tasks to customize which packages and gems are installed.
-
-h4. 0.8.1, ami-b79a7fde
-
-29 July 2007
-* Fixed S3 backup cron job.
-* Added script to restore data from S3 (/usr/local/aws/bin/restore_app_db.rb). This is useful when setting up a staging server to test your deployment, you can have it set up with a copy of your production data to test your migrations.
-* Rewrite rule now allows images/css on maintenance page
-* Added empty /etc/apache2/sites-available/app.custom for custom Apache configuration in a separate file (so it can be deployed by rsync more easily).
-* Added ImageMagick, RMagick and hpricot due to popular demand.
-
-h4. 0.8.0, ami-4e907527
-
-20 June 2007
-* Initial release.
+See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt.
 
 
 h2. How to submit patches
