@@ -193,7 +193,7 @@ Capistrano::Configuration.instance.load do
       task :create, :roles => :db do
         on_rollback { drop }
         load_config
-        run "echo 'create database #{cfg[:db_name]} if not exists;' | mysql -u root"
+        run "echo 'create database if not exists #{cfg[:db_name]};' | mysql -u root"
         run "echo \"grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';\" | mysql -u root"
       end
       
