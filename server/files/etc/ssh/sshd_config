@@ -77,7 +77,8 @@ Subsystem sftp /usr/lib/openssh/sftp-server
 
 UsePAM yes
 
-PermitUserEnvironment yes
-AcceptEnv PATH
+# PermitUserEnvironment yes
+# AcceptEnv PATH
+# AcceptEnv RUBYLIB
 
 GatewayPorts clientspecified

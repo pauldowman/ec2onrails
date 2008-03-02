@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/ruby
 
 #    This file is part of EC2 on Rails.
 #    http://rubyforge.org/projects/ec2onrails/
@@ -19,8 +19,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This one is a bit of a hack: We need to set the path for non-interactive 
-# ssh commands for the app user, it needs the gem bin dir because
-# capistrano assumes it's in the path
-echo 'PATH=/usr/local/bin:/usr/bin:/bin:/var/lib/gems/1.8/bin' > /home/app/.ssh/environment
-echo 'PATH=/usr/local/bin:/usr/bin:/bin:/var/lib/gems/1.8/bin' > /home/admin/.ssh/environment
+# This script updates the value of "environment" in the the mongrel_cluster
+# config file.
+
+require "yaml"
+require "erb"
+
+if ARGV.length != 1
+  puts "usage: set_rails_env <value>"
+  exit 1
+end
+
+@rails_env = ARGV[0]
+
+# update mongrel_cluster config
+config = YAML::load_file("/etc/mongrel_cluster/app.yml")
+config["environment"] = @rails_env
+File.open("/etc/mongrel_cluster/app.yml", 'w') do |f|
+  YAML.dump(config, f)
+end

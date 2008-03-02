@@ -51,6 +51,7 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   logrotate
   make
   man-db
+  memcached
   mysql-client
   mysql-server
   nano
@@ -71,16 +72,17 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   wget
 )
 
-@rubygems = %w(
-  amazon-ec2
-  aws-s3
-  mongrel
-  mongrel_cluster
-  optiflag
-  rails
-  rake
-  rfacebook
-)
+@rubygems = [
+  "amazon-ec2",
+  "aws-s3",
+  "memcache-client",
+  "mongrel",
+  "mongrel_cluster",
+  "optiflag",
+  "rails",
+  "rails -v 1.2.6",
+  "rake"
+]
 
 @arch_config = {
   "32bit" => {
@@ -204,12 +206,12 @@ desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
   unless_completed(t) do
     # TODO This part is way too interactive, try http://geminstaller.rubyforge.org
-    run_chroot "gem update -y --no-rdoc --no-ri"
-    run_chroot "gem install #{@rubygems.join(' ')} -y --no-rdoc --no-ri"
-    
-    # Install Rails 1.2.6 as well as the latest.
-    # this is a big ugly since we have a nice list of gems already, but it doesn't allow specifying a version
-    run_chroot "gem install rails -v 1.2.6 -y --no-rdoc --no-ri"
+    env = "RUBYLIB=/usr/lib/ruby/1.8:/usr/local/lib/1.8/i486-linux:/usr/lib/site_ruby"
+    run_chroot "env #{env} gem update --system --no-rdoc --no-ri"
+    run_chroot "env #{env} gem update -y --no-rdoc --no-ri"
+    @rubygems.each do |gem|
+      run_chroot "env #{env} gem install #{gem} -y --no-rdoc --no-ri"
+    end
   end
 end
 
@@ -227,10 +229,12 @@ task :configure => [:check_if_root, :install_gems] do |t|
     
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password admin"
+    run_chroot "/usr/sbin/adduser admin adm"
+    run_chroot "/usr/sbin/addgroup sudoers"
     
-    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.profile"
-    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.profile"
-    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/admin/.profile"
+    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.bashrc"
+    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.bashrc"
+    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/admin/.bashrc"
     
     (2..6).each { |n| rm_f "#{@fs_dir}/etc/event.d/tty#{n}" }
     
@@ -241,7 +245,7 @@ task :configure => [:check_if_root, :install_gems] do |t|
     
     touch "#{@fs_dir}/ec2onrails-first-boot"
     
-    # TODO find out the most correct solution here, this seems to be a bug in
+    # TODO find out the most correct solution here, there seems to be a bug in
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
     # that it tries to write it is owned by root and not writable by others.
     run_chroot "chown -R dhcp /var/lib/dhcp3"
@@ -317,7 +321,6 @@ end
 
 desc "This task is for deploying the contents of /files to a running server image to test config file changes without rebuilding."
 task :deploy_files do |t|
-  # TODO allow user to specify key and hostname
   run "rsync -rlvzcC --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
 end
 

@@ -88,6 +88,34 @@ Capistrano::Configuration.instance.load do
     end
     
     desc <<-DESC
+      Copies the public key from the server using the external "ssh"
+      command because Net::SSH, which is used by Capistrano, needs it.
+      This will only work if you have an ssh command in the path.
+      If Capistrano can successfully connect to your EC2 instance you
+      don't need to do this. It will copy from the first server in the
+      :app role, this can be overridden by specifying the HOST 
+      environment variable
+    DESC
+    task :get_public_key_from_server do
+      host = find_servers_for_task(current_task).first.host
+      privkey = ssh_options[:keys][0]
+      pubkey = "#{privkey}.pub"
+      msg = <<-MSG
+      Your first key in ssh_options[:keys] is #{privkey}, presumably that's 
+      your EC2 private key. The public key will be copied from the server 
+      named '#{host}' and saved locally as #{pubkey}. Continue? [y/n]
+      MSG
+      choice = nil
+      while choice != "y" && choice != "n"
+        choice = Capistrano::CLI.ui.ask(msg).downcase
+        msg = "Please enter 'y' or 'n'."
+      end
+      if choice == "y"
+        run_local "scp -i '#{privkey}' app@#{host}:.ssh/authorized_keys #{pubkey}"
+      end
+    end
+        
+    desc <<-DESC
       Start a new server instance and prepare it for a cold deploy.
     DESC
     task :setup, :roles => [:web, :db, :app] do
@@ -96,6 +124,7 @@ Capistrano::Configuration.instance.load do
       server.install_packages
       server.install_gems
       server.deploy_files
+      server.set_rails_env
       server.restart_services
       deploy.setup
       server.set_roles
@@ -116,7 +145,6 @@ Capistrano::Configuration.instance.load do
     
     namespace :ec2 do      
       desc <<-DESC
-        Start an instance, using the AMI of the correct version to match this gem.
       DESC
       task :start_instance, :roles => [:web, :db, :app] do
         # TODO
@@ -131,26 +159,26 @@ Capistrano::Configuration.instance.load do
     
     namespace :db do
       desc <<-DESC
-        [internal] Load configuration info for the production database from \
+        [internal] Load configuration info for the database from 
         config/database.yml.
       DESC
       task :load_config, :roles => :db do
-        db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)['production']
-        cfg[:production_db_name] = db_config['database']
-        cfg[:production_db_user] = db_config['username']
-        cfg[:production_db_password] = db_config['password']
-        cfg[:production_db_host] = db_config['host']
-        cfg[:production_db_socket] = db_config['socket']
+        db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env]
+        cfg[:db_name] = db_config['database']
+        cfg[:db_user] = db_config['username']
+        cfg[:db_password] = db_config['password']
+        cfg[:db_host] = db_config['host']
+        cfg[:db_socket] = db_config['socket']
         
-        if (cfg[:production_db_host].nil? || cfg[:production_db_host].empty?) && 
-          (cfg[:production_db_host] != 'localhost' || cfg[:production_db_host] != '127.0.0.1') && 
-          (cfg[:production_db_socket].nil? || cfg[:production_db_socket].empty?)
-            raise "ERROR: missing database config. Make sure database.yml contains a 'production' section with either 'host: localhost' or 'socket: /var/run/mysqld/mysqld.sock'."
+        if (cfg[:db_host].nil? || cfg[:db_host].empty?) && 
+          (cfg[:db_host] != 'localhost' || cfg[:db_host] != '127.0.0.1') && 
+          (cfg[:db_socket].nil? || cfg[:db_socket].empty?)
+            raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with either 'host: localhost' or 'socket: /var/run/mysqld/mysqld.sock'."
         end
         
-        [cfg[:production_db_name], cfg[:production_db_user], cfg[:production_db_password]].each do |s|
+        [cfg[:db_name], cfg[:db_user], cfg[:db_password]].each do |s|
           if s.nil? || s.empty?
-            raise "ERROR: missing database config. Make sure database.yml contains a 'production' section with a database name, user, and password."
+            raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with a database name, user, and password."
           elsif s.match(/['"]/)
             raise "ERROR: database config string '#{s}' contains quotes."
           end
@@ -158,25 +186,25 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
-        Create the MySQL production database. Assumes there is no MySQL root \
+        Create the MySQL database. Assumes there is no MySQL root \
         password. To create a MySQL root password create a task that's run \
         after this task using an after hook.
       DESC
       task :create, :roles => :db do
         on_rollback { drop }
         load_config
-        run "echo 'create database #{cfg[:production_db_name]};' | mysql -u root"
-        run "echo \"grant all on #{cfg[:production_db_name]}.* to '#{cfg[:production_db_user]}'@'%' identified by '#{cfg[:production_db_password]}';\" | mysql -u root"
+        run "echo 'create database #{cfg[:db_name]} if not exists;' | mysql -u root"
+        run "echo \"grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';\" | mysql -u root"
       end
       
       desc <<-DESC
-        Drop the MySQL production database. Assumes there is no MySQL root \
+        Drop the MySQL database. Assumes there is no MySQL root \
         password. If there is a MySQL root password, create a task that removes \
         it and run that task before this one using a before hook.
       DESC
       task :drop, :roles => :db do
         load_config
-        run "echo 'drop database if exists #{cfg[:production_db_name]};' | mysql -u root"
+        run "echo 'drop database if exists #{cfg[:db_name]};' | mysql -u root"
       end
       
       desc <<-DESC
@@ -224,7 +252,18 @@ Capistrano::Configuration.instance.load do
       DESC
       task :set_roles, :roles => [:web_admin, :db_admin, :app_admin] do
         # TODO generate this based on the roles that actually exist so arbitrary new ones can be added
-        sudo "/usr/local/ec2onrails/bin/set_roles.rb web=#{hostnames_for_role(:web)} app=#{hostnames_for_role(:app)} db_primary=#{hostnames_for_role(:db, :primary => true)}"
+        sudo "/usr/local/ec2onrails/bin/set_roles.rb web=#{hostnames_for_role(:web)} app=#{hostnames_for_role(:app)} db_primary=#{hostnames_for_role(:db, :primary => true)} memcache=#{hostnames_for_role(:memcache)}"
+      end
+
+      desc <<-DESC
+        Change the default value of RAILS_ENV on the server. Technically
+        this changes the server's mongrel config to use a different value
+        for "environment". The value is specified in :rails_env
+      DESC
+      task :set_rails_env, :roles => [:web_admin, :db_admin, :app_admin] do
+        rails_env = fetch(:rails_env, "production")
+        sudo "/usr/local/ec2onrails/bin/set_rails_env #{rails_env}"
+        deploy.restart
       end
       
       desc <<-DESC
@@ -239,6 +278,7 @@ Capistrano::Configuration.instance.load do
         Upgrade to the newest versions of all rubygems.
       DESC
       task :upgrade_gems, :roles => [:web_admin, :db_admin, :app_admin] do
+        sudo "gem update --system --no-rdoc --no-ri"
         sudo "gem update -y --no-rdoc --no-ri"
       end
       
@@ -248,7 +288,7 @@ Capistrano::Configuration.instance.load do
         NOTE: the package installation will be non-interactive, if the packages \
         require configuration either log in as 'admin' and run \
         'dpkg-reconfigure packagename' or replace the package's config files \
-        using the 'ec2onrails:deploy_config_files' task.
+        using the 'ec2onrails:server:deploy_files' task.
       DESC
       task :install_packages, :roles => [:web_admin, :db_admin, :app_admin] do
         if cfg[:packages] && cfg[:packages].any?
@@ -261,17 +301,18 @@ Capistrano::Configuration.instance.load do
         be with an array of strings.
       DESC
       task :install_gems, :roles => [:web_admin, :db_admin, :app_admin] do
-        if cfg[:rubygems] && cfg[:rubygems].any?
-          sudo "gem install #{cfg[:rubygems].join(' ')} -y --no-rdoc --no-ri" do |ch, str, data|
-            ch[:data] ||= ""
-            ch[:data] << data
-            if data =~ />\s*$/
-              puts data
-              puts "The gem command is asking for a number:"
-              choice = STDIN.gets
-              ch.send_data(choice)
-            else
-              puts data
+        if cfg[:rubygems]
+          cfg[:rubygems].each do |gem|
+            sudo "gem install #{gem} -y --no-rdoc --no-ri" do |ch, str, data|
+              ch[:data] ||= ""
+              ch[:data] << data
+              if data =~ />\s*$/
+                puts data
+                choice = Capistrano::CLI.ui.ask("The gem command is asking for a number:")
+                ch.send_data("#{choice}\n")
+              else
+                puts data
+              end
             end
           end
         end
@@ -354,12 +395,6 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
       DESC
       task :run_script, :roles => [:web_admin, :db_admin, :app_admin] do
-        # TODO
-      end
-      
-      desc <<-DESC
-      DESC
-      task :archive_logs, :roles => [:web_admin, :db_admin, :app_admin] do
         # TODO
       end
     end

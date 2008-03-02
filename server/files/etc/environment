@@ -1,0 +1,2 @@
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/gems/1.8/bin:/usr/local/ec2onrails/bin"
+RUBYLIB=/usr/lib/ruby/1.8:/usr/local/lib/1.8/i486-linux:/usr/lib/site_ruby

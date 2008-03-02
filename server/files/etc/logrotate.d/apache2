@@ -7,16 +7,6 @@
   postrotate
     if [ -f /var/run/apache2.pid ]; then
       /etc/init.d/apache2 reload > /dev/null
-    fi
-    
-    rm -f /mnt/log/apache2/access.log.offset
-    rm -f /mnt/log/apache2/error.log.offset
-    
-    for f in `ls /mnt/log/apache2/*.log` ; do
-      logfile=$f-`date +%Y%m%d`
-      gzip $logfile
-      /usr/local/ec2onrails/bin/archive_file.rb --file $logfile.gz && rm $logfile.gz
-    done
-    
+    fi    
   endscript
 }

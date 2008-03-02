@@ -20,31 +20,15 @@
 
 
 require 'socket'
+require 'net/http'
 require 'pp'
-
-roles = {}
-$*.each do |arg|
-  arg.match(/(.*)=(.*)/)
-  role = $1
-  hostnames = $2
-  hostnames.split(',').each do |hostname|
-    roles[role] ||= []
-    roles[role] << hostname
-  end
-end
-
-pp roles
-
-@hostname = `hostname`.strip
 
 def start(service, prog_name = service)
   # enable service if disabled:
   run("chmod a+x /etc/init.d/#{service}")
   
   # start service if not running:
-  if (system("pidof -x #{prog_name}"))
-    result = run("sh /etc/init.d/#{service} restart")
-  else
+  unless (system("pidof -x #{prog_name}"))
     result = run("sh /etc/init.d/#{service} start")
   end
 end
@@ -63,13 +47,46 @@ def run(cmd)
   puts("*****ERROR: #{cmd} returned #{$?}") unless result
 end
 
+def get_address_metadata(type)
+  address  = Net::HTTP.get('169.254.169.254', "/2007-08-29/meta-data/#{type}").strip
+  raise "couldn't get instance data: #{type}" unless address =~ /\A\d+\.\d+\.\d+\.\d+\Z/
+  puts "#{type}: #{address}"
+  return address
+end
+
 def resolve(hostname)
-  if hostname == @hostname 
+  address = IPSocket.getaddress(hostname).strip
+  puts address
+  if address == @local_address || address == @public_address
     "127.0.0.1"
   else
-    IPSocket.getaddress(hostname)
+    address
+  end
+  rescue Exception => e
+    puts "couldn't resolve hostname '#{hostname}'"
+    raise e
+end
+
+def in_role(role)
+  return false unless @roles[role]
+  return @roles[role].include?("127.0.0.1") 
+end
+
+@local_address  = get_address_metadata "local-ipv4"
+@public_address  = get_address_metadata "public-ipv4"
+
+@roles = {}
+$*.each do |arg|
+  arg.match(/(.*)=(.*)/)
+  role = $1
+  hostnames = $2
+  hostnames.split(',').each do |hostname|
+    @roles[role] ||= []
+    @roles[role] << resolve(hostname)
   end
 end
+
+pp @roles
 
 
 #######################################
@@ -79,12 +96,12 @@ end
 # TODO add db_slave role, memcache role
 
 # web role:
-if roles["web"] && roles["web"].include?(@hostname)
+if in_role("web")
   puts "Starting web role..."
   balancer_members = File.open("/etc/ec2onrails/balancer_members", "w") do |f|
-    roles["app"].each do |hostname|
+    @roles["app"].each do |address|
       (8000..8005).each do |port|
-        f << "BalancerMember http://#{resolve(hostname)}:#{port}\n"
+        f << "BalancerMember http://#{address}:#{port}\n"
       end
       f << "\n"
     end
@@ -96,12 +113,11 @@ else
 end
 
 # app role:
-if roles["app"] && roles["app"].include?(@hostname)
+if in_role("app")
   puts "Starting app role..."
-  # edit /etc/hosts, need db_primary hostname & db_slave hostname
-  db_primary = roles["db_primary"][0]
-  db_primary_addr = resolve(db_primary)
-  puts "db_primary is #{db_primary}, has ip address: #{db_primary_addr}"
+  # edit /etc/hosts, need db_primary address & db_slave address
+  db_primary_addr = @roles["db_primary"][0]
+  puts "db_primary has ip address: #{db_primary_addr}"
   
   run("cp /etc/hosts.original /etc/hosts")
   run("echo '\n#{db_primary_addr}\tdb_primary\n' >> /etc/hosts")
@@ -112,13 +128,23 @@ else
 end
 
 # db primary role:
-if roles["db_primary"] && roles["db_primary"].include?(@hostname)
+if in_role("db_primary")
   puts "Starting db_primary role..."
   # increase caches, etc if no other roles exist?
   start("mysql")
 else
   puts "Stopping db_primary role..."
   stop("mysql")
+end
+
+# memcache role:
+if in_role("memcache")
+  puts "Starting memcache role..."
+  # increase memory size, etc if no other roles exist?
+  start("memcached")
+else
+  puts "Stopping memcache role..."
+  stop("memcached")
 end
 
 #######################################

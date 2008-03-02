@@ -1,5 +1,5 @@
 ############################################################
-# This script is sourced by .profile and by /usr/local/ec2onrails/rebundle.sh
+# This script is sourced by .bashrc and by /usr/local/ec2onrails/rebundle.sh
 # You shouldn't need to change anything in here
 
 if [ -r /mnt/aws-config/config ] ; then
@@ -13,4 +13,13 @@ export EC2_HOME=/usr/local/ec2-api-tools
 export PATH="$PATH:/var/lib/gems/1.8/bin:$EC2_HOME/bin:/usr/local/ec2onrails/bin"
 
 export JAVA_HOME="/usr/lib/jvm/java-6-sun"
-export RUBYLIB=/usr/lib/ruby/1.8:/usr/local/lib/1.8/i486-linux:/usr/lib/site_ruby
+
+# Set the bash prompt to include the rails environment name
+case "$TERM" in
+xterm-color)
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]-\[\033[01;35m\]`rails_env`\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    ;;
+*)
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h-`rails_env`:\w\$ '
+    ;;
+esac

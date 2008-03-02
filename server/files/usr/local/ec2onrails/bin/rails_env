@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 #    This file is part of EC2 on Rails.
 #    http://rubyforge.org/projects/ec2onrails/
 #
@@ -16,14 +18,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Ec2onrails #:nodoc:
-  module VERSION #:nodoc:
-    MAJOR = 0
-    MINOR = 9
-    TINY  = 7
-    STRING = [MAJOR, MINOR, TINY].join('.')
-    
-    AMI_ID_32_BIT = 'ami-5c0aef35'
-    AMI_ID_64_BIT = 'ami-540aef3d'
-  end
+
+# This script runs a command with RAILS_ENV set to the value that's specified
+# in the the mongrel_cluster config file. If a command isn't given as an 
+# argument it simply prints the value of RAILS_ENV
+
+require "yaml"
+
+@rails_env = YAML::load_file("/etc/mongrel_cluster/app.yml")["environment"]
+
+if ARGV.any?
+  result = system "env RAILS_ENV=#{@rails_env} #{ARGV.join(' ')}"
+  raise("error: #{$?}") unless result
+else
+  puts @rails_env
 end

@@ -1,3 +1,20 @@
+== 0.9.7
+
+* ami-5c0aef35 (32-bit) and ami-540aef3d (64-bit)
+* memcached installed, and capistrano tasks now support a new role named "memcache". Memcached won't run on hosts that aren't in the "memcache" role.
+* New Capistrano task ec2onrails:get_public_key_from_server to copy the public key file from the server before first use.
+* cap ec2onrails:server:install_gems can now install a specific version of a gem instead of the latest (use "gemname -v version" instead of "gemname" in deploy.rb)
+* Now automatically runs hourly, daily, weekly and monthly scripts in current application's script directory, they run as "app" user, with $RAILS_ENV set.
+* Support for different named rails environments (e.g. "production", "staging1", "staging2"), the current environment name is defined in /etc/mongrel_cluster/app.yml
+* s3.yml now supports multiple sections for different rails environment names
+* cap ec2onrails:server:upgrade_gems now does "gem update --system"
+* Added admin user to adm group to allow read access to syslog without using sudo
+* Added "sudoers" group, if you add named administrator accounts, add them to this group
+* Set PATH and RUBYLIB in /etc/environment, removed and disabled $HOME/.ssh/environment because it's no longer necessary
+* Fixed bug #16423: "hostname defined in deploy.rb shouldn't have to match what the instance thinks it's hostname is"
+* Removed rfacebook gem
+
+
 == 0.9.6 2007-12-21
 
 * ami-e620c58f (32-bit) and ami-f920c590 (64-bit)
@@ -12,6 +29,7 @@
 * New script to archive any file to s3
 * New command-line flags on s3 archive & restore scripts
 
+
 == 0.9.5 2007-10-28
 
 * ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
@@ -19,11 +37,12 @@
 * Fixed rebundling.
 * Generates new ssh keys on first startup
 
+
 == 0.9.4 2007-10-25
 
 * ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
-* _The rebundling doesn't seem to be working._ I'll fix that in a new version. Details "here":http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558
+* _The rebundling doesn't seem to be working._ I'll fix that in a new version. Details at http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558
 * Ubuntu 7.10/Gutsy
 * Experimental multiple instance support.
 ** *Mongrel & MySQL now listen on all ports.* Be sure your firewall settings are correct, and set a MySQL root password.
@@ -36,6 +55,7 @@
 * syslog now logs to /mnt/log.
 * Build now cleans apt cache, image is now 1/2 the size.
 
+
 == 0.9.3 2007-10-06
 
 * ami-a3f91cca
@@ -46,17 +66,20 @@
 * Fixed missing /etc/mongrel_cluster
 * Installed more ruby standard lib packages
 
+
 == 0.9.2 2007-09-13
 
 * ami-0cf61365
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * Fixed missing kernel modules
 
+
 == 0.9.1 2007-09-11
 
 * ami-99f712f0
 * This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
 * Fixed permissions on /var/lib/dhcp3
+
 
 == 0.9.0 2007-09-07
 
@@ -66,6 +89,7 @@
 * Removed "http://packages.ubuntu.com/feisty/libs/sun-java6-jre":Java and it's massive list of dependencies because it was only needed for the EC2 API tools. This saved a huge amount of space.
 * Removed ImageMagick, RMagick and hpricot due to popular demand. There will soon be cap2 tasks to customize which packages and gems are installed.
 
+
 == 0.8.1 2007-07-29
 
 * ami-b79a7fde
@@ -74,6 +98,7 @@
 * Rewrite rule now allows images/css on maintenance page
 * Added empty /etc/apache2/sites-available/app.custom for custom Apache configuration in a separate file (so it can be deployed by rsync more easily).
 * Added ImageMagick, RMagick and hpricot due to popular demand.
+
 
 == 0.8.0 2007-06-20
 

@@ -10,12 +10,15 @@ set :repository, "http://svn.foo.com/svn/#{application}/trunk"
 # NOTE: for some reason Capistrano requires you to have both the public and
 # the private key in the same folder, the public key should have the 
 # extension ".pub".
-ssh_options[:keys] = %w(/home/you/.ssh/your-ec2-key)
+ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/your-ec2-key"]
 
 # Your EC2 instances
-role :web, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
-role :app, "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
-role :db,  "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
+role :web,      "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
+role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
+role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
+role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
+
+set :rails_env, production
 
 # EC2 on Rails config
 set :ec2onrails_config, {
@@ -33,10 +36,11 @@ set :ec2onrails_config, {
   :mysql_root_password => "your-mysql-root-password",
   
   # Any extra Ubuntu packages to install if desired
-  :packages => %w(logwatch imagemagick),
+  :packages => ["logwatch", "imagemagick"],
   
-  # Any extra RubyGems to install if desired
-  :rubygems => %w(RedCloth hpricot rmagick),
+  # Any extra RubyGems to install if desired: can be "gemname" or if a 
+  # particular version is desired "gemname -v 1.0.1"
+  :rubygems => ["rmagick", "rfacebook -v 0.9.7"],
   
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
   # details

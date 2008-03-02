@@ -27,6 +27,7 @@ Features of the EC2 image:
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
 * MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
+* Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
 * Created using a build file, full source is available.
 * Multiple instance support.
@@ -89,14 +90,9 @@ h4. 5. Copy your public key from the server to keep Capistrano happy
 Technically all you should need to connect to the server is the private key file, the public key is on the server. 
 But for some reason Capistrano requires that you have both the public key and the private key files together on the client.
 
-So wherever you stored your private key file, you need to put the public key file beside it, with the extension ".pub". 
-You can copy it from the server using scp like this:
+From within the root of your rails app do:
 
-<pre>scp -i /home/you/.ssh/your-private-key admin@ec2-xxx....amazonaws.com:.ssh/authorized_keys /home/you/.ssh/your-private-key.pub</pre>
-
-This uses scp to connect to the server using your private key. It copies the file "authorized_keys" from /home/admin/.ssh/ and 
-saves it in your .ssh dir. So after this you should have two files, one named "yourkey" (this is your private key) and one 
-named (yourkey.pub), this is your public key.
+<pre>cap ec2onrails:get_public_key_from_server</pre>
 
 
 h4. 6. Deploy the app with Capistrano
@@ -108,9 +104,9 @@ cap deploy:migrations
 
 Yes, it's that easy! The setup task will set the server's timezone, install any 
 gems and Ubuntu packages that you specified in the config file, and 
-create your production database.
+create your database.
 
-That's it, you're done.
+That's it, your app is now running on EC2!!
 
 h2. Capistrano tasks
 
@@ -157,6 +153,8 @@ step, everything except deploying the app.
 * ec2onrails:restore_db_and_deploy
 - Another convenience task to recreate the db, restore data to it from an s3
 bucket and deploy the app, useful to set up a staging server.
+
+To get a full list of the Capistrano tasks at any time type <code>cap -T</code> from with your rails app root.
 
 
 h2. Saving your own customized version of the image.

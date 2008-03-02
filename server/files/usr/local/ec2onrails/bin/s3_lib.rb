@@ -34,6 +34,7 @@ end
 
 @temp_dir = "/tmp/ec2onrails-backup-#{Time.new.to_i}"
 @config_file = "/mnt/app/current/config/s3.yml"
+@rails_env = `/usr/local/ec2onrails/bin/rails_env`.strip
 
 def setup
   mkdir_p @temp_dir
@@ -58,18 +59,26 @@ def create_bucket(name)
 end
 
 def load_db_config
-  db_config = YAML::load(ERB.new(File.read("/mnt/app/current/config/database.yml")).result)
-  @database = db_config['production']['database']
-  @user = db_config['production']['username']
-  @password = db_config['production']['password']
+  db_config = YAML::load(ERB.new(File.read("/mnt/app/current/config/database.yml")).result)[@rails_env]
+  @database = db_config['database']
+  @user = db_config['username']
+  @password = db_config['password']
 end
 
 def load_s3_config
   if File.exists?(@config_file)
     s3_config = YAML::load(ERB.new(File.read("/mnt/app/current/config/s3.yml")).result)
-    @aws_access_key        = s3_config['aws_access_key']
-    @aws_secret_access_key = s3_config['aws_secret_access_key']
-    @bucket_base_name      = s3_config['bucket_base_name']
+    
+    # try to load the section for the current RAILS_ENV
+    section = s3_config[@rails_env]
+    if section.nil?
+      # fall back to keys at the root of the tree
+      section = s3_config
+    end
+    
+    @aws_access_key        = section['aws_access_key']
+    @aws_secret_access_key = section['aws_secret_access_key']
+    @bucket_base_name      = section['bucket_base_name']
   else
     if !File.exists?('/mnt/aws-config/config')
       raise "Can't find either #{@config_file} or /mnt/aws-config/config"
