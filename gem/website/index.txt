@@ -215,11 +215,18 @@ See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt.
 
 h2. How to submit patches
 
-Read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/ and for section "8b: Submit patch to Google Groups":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/#8b-google-groups, use the Google Group above.
+Pleae read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/.
+The source code can be checked out anonymously using: 
+<pre>
+svn checkout http://ec2onrails.rubyforge.org/svn/trunk ec2onrails
+</pre>
 
-The trunk repository is <code>svn://rubyforge.org/var/svn/ec2onrails/trunk</code> for anonymous access.
-
+Patches can be submitted to the "RubyForge Tracker":http://rubyforge.org/tracker/?atid=17560&group_id=4552&func=browse 
+or "emailed directly to me":http://pauldowman.com/contact/ .
 
 h2. License
 
 This code is free to use under the terms of the GPL v2. 
+
+If you find EC2 on Rails useful please "recommend Paul Dowman":http://www.workingwithrails.com/person/10131-paul-dowman
+at Working With Rails.
