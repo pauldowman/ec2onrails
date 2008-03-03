@@ -1,4 +1,4 @@
-== 0.9.7
+== 0.9.7 2008-03-03
 
 * ami-5c0aef35 (32-bit) and ami-540aef3d (64-bit)
 * memcached installed, and capistrano tasks now support a new role named "memcache". Memcached won't run on hosts that aren't in the "memcache" role.
