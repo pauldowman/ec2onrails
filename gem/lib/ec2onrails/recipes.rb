@@ -279,7 +279,18 @@ Capistrano::Configuration.instance.load do
       DESC
       task :upgrade_gems, :roles => [:web_admin, :db_admin, :app_admin] do
         sudo "gem update --system --no-rdoc --no-ri"
-        sudo "gem update -y --no-rdoc --no-ri"
+        sudo "gem update -y --no-rdoc --no-ri" do |ch, str, data|
+          ch[:data] ||= ""
+          ch[:data] << data
+          if data =~ />\s*$/
+            puts data
+            choice = Capistrano::CLI.ui.ask("The gem command is asking for a number:")
+            ch.send_data("#{choice}\n")
+          else
+            puts data
+          end
+        end
+        
       end
       
       desc <<-DESC
