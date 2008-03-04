@@ -20,9 +20,10 @@ Features of the EC2 image:
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem).
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
-* Ruby on Rails 1.2.5
+* Ruby on Rails 2.0.2 and 1.2.6
 * Ruby 1.8.6
 * MySQL 5
+* "memcached":http://www.danga.com/memcached/
 * Ubuntu 7.10 "Gutsy" with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/gutsy/libs/libc6-xen package).
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
@@ -31,6 +32,7 @@ Features of the EC2 image:
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
 * Created using a build file, full source is available.
 * Multiple instance support.
+* Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application's script directory
 
 
 h2. Using the image
@@ -66,6 +68,8 @@ in Amazon's getting started guide.
 
 For the AMI id's of the current images see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt
 or do <code>cap ec2onrails:ami_ids</code> from within the app that you configured in the previous step.
+
+_NOTE: Only use the images that match the current version of the gem._
 
 Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt for release notes, and 
 see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
@@ -117,15 +121,15 @@ gems and Ubuntu packages to be installed. The deploy_files task uploads
 files to the server (they will be owned by root). It's intended mainly for
 customized config files for new packages installed via the install_packages
 task.
-* ec2onrails:server:deploy_files
-* ec2onrails:server:set_timezone
-* ec2onrails:server:upgrade_gems
-* ec2onrails:server:upgrade_packages
-* ec2onrails:server:install_gems
-* ec2onrails:server:install_packages
-* ec2onrails:server:upgrade_and_install_all
-* ec2onrails:server:restart_services
-* ec2onrails:server:set_roles
+* <code>cap ec2onrails:server:deploy_files</code>
+* <code>cap ec2onrails:server:set_timezone</code>
+* <code>cap ec2onrails:server:upgrade_gems</code>
+* <code>cap ec2onrails:server:upgrade_packages</code>
+* <code>cap ec2onrails:server:install_gems</code>
+* <code>cap ec2onrails:server:install_packages</code>
+* <code>cap ec2onrails:server:upgrade_and_install_all</code>
+* <code>cap ec2onrails:server:restart_services</code>
+* <code>cap ec2onrails:server:set_roles</code>
 - Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).
 For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
 are running. Eventually this will customize settings for the running services also. Note that
@@ -136,21 +140,21 @@ For example, I use this to restore the current production data (from my actual p
 bucket) onto a staging server that has the current production version of my
 app. I then deploy the new version which tests migrations exactly as they'll
 run on the production server.
-* ec2onrails:db:archive
-* ec2onrails:db:restore
-* ec2onrails:db:create
-* ec2onrails:db:drop
-* ec2onrails:db:recreate
-* ec2onrails:db:set_root_password
+* <code>cap ec2onrails:db:archive</code>
+* <code>cap ec2onrails:db:restore</code>
+* <code>cap ec2onrails:db:create</code>
+* <code>cap ec2onrails:db:drop</code>
+* <code>cap ec2onrails:db:recreate</code>
+* <code>cap ec2onrails:db:set_root_password</code>
 
-* ec2onrails:ami_ids
+* <code>cap ec2onrails:ami_ids</code>
 - Shows the AMI id's of the images that match the current version of the gem.
 
-* ec2onrails:setup
+* <code>cap ec2onrails:setup</code>
 - This is a convenience task to get a new instance completely set up in one
 step, everything except deploying the app.
 
-* ec2onrails:restore_db_and_deploy
+* <code>cap ec2onrails:restore_db_and_deploy</code>
 - Another convenience task to recreate the db, restore data to it from an s3
 bucket and deploy the app, useful to set up a staging server.
 
