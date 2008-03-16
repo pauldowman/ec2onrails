@@ -18,7 +18,7 @@ role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
 role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 
-set :rails_env, production
+set :rails_env, "production"
 
 # EC2 on Rails config
 set :ec2onrails_config, {
