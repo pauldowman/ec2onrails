@@ -18,6 +18,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+exit unless File.stat("/etc/init.d/mysql").executable?
 exit unless File.exists?("/mnt/app/current")
 
 require File.join(File.dirname(__FILE__), 's3_lib')
