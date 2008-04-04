@@ -48,9 +48,20 @@ set :ec2onrails_config, {
   
   # Files to deploy to the server (they'll be owned by root). It's intended
   # mainly for customized config files for new packages installed via the 
-  # ec2onrails:server:install_packages task. 
+  # ec2onrails:server:install_packages task. Subdirectories and files inside
+  # here will be placed in the same structure relative to the root of the
+  # server's filesystem. 
   :server_config_files_root => "../server_config",
   
   # If config files are deployed, some services might need to be restarted
-  :services_to_restart => %w(apache2 postfix sysklogd)
+  :services_to_restart => %w(apache2 postfix sysklogd),
+  
+  # Set an email address to forward admin mail messages to
+  :admin_mail_forward_address => "you@yourdomain.com",
+  
+  # Set this if you want SSL to be enabled on the web server. The SSL cert 
+  # and key files need to exist on the server, The cert file should be in
+  # /etc/ssl/certs/default.pem and the key file should be in
+  # /etc/ssl/private/default.key (see :server_config_files_root).
+  :enable_ssl => true
 }

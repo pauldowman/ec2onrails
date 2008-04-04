@@ -4,3 +4,6 @@ port: "8000"
 environment: production
 pid_file: log/mongrel.pid
 servers: 6
+daemon: true
+user: app
+group: app

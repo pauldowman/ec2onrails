@@ -1,0 +1,3 @@
+mynetworks_style = host
+relay_domains =
+inet_interfaces = 127.0.0.1

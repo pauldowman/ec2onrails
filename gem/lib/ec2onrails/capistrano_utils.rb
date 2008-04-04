@@ -5,6 +5,11 @@ module Ec2onrails
       raise("error: #{$?}") unless result
     end
     
+    def run_init_script(script, arg)
+      # since init scripts might have the execute bit unset by the set_roles script we need to check
+      sudo "sh -c 'if [ -x /etc/init.d/#{script} ] ; then /etc/init.d/#{script} #{arg}; fi'"
+    end
+    
     def make_admin_role_for(role)
       newrole = "#{role.to_s}_admin".to_sym
       roles[role].each do |srv_def|
@@ -16,13 +21,13 @@ module Ec2onrails
       end
     end
     
-    # return hostnames for the role named role_sym. It must have the options given or no hostnames will be returned
+    # return hostnames for the role named role_sym that has the specified options
     def hostnames_for_role(role_sym, options = {})
       role = roles[role_sym]
       unless role
         return []
       end
-      role.reject{|s| s.options != options}.collect{|s| s.host}.join(',')
+      role.select{|s| s.options == options}.collect{|s| s.host}
     end
   end
 end

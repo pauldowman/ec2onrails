@@ -52,6 +52,7 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   make
   man-db
   memcached
+  monit
   mysql-client
   mysql-server
   nano
@@ -59,13 +60,11 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   php5
   php5-mysql
   postfix
-  rake
   rdoc
   ri
   rsync
   ruby
   ruby1.8-dev
-  rubygems
   subversion
   unzip
   vim
@@ -205,12 +204,13 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
   unless_completed(t) do
-    # TODO This part is way too interactive, try http://geminstaller.rubyforge.org
-    env = "RUBYLIB=/usr/lib/ruby/1.8:/usr/local/lib/1.8/i486-linux:/usr/lib/site_ruby"
-    run_chroot "env #{env} gem update --system --no-rdoc --no-ri"
-    run_chroot "env #{env} gem update -y --no-rdoc --no-ri"
+    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/34638/rubygems-1.1.0.tgz && tar zxf rubygems-1.1.0.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.1.0 && ruby setup.rb'"
+    run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
+    run_chroot "gem update --system --no-rdoc --no-ri"
+    run_chroot "gem update --no-rdoc --no-ri"
     @rubygems.each do |gem|
-      run_chroot "env #{env} gem install #{gem} -y --no-rdoc --no-ri"
+      run_chroot "gem install #{gem} --no-rdoc --no-ri"
     end
   end
 end
@@ -226,6 +226,8 @@ task :configure => [:check_if_root, :install_gems] do |t|
     run_chroot "a2enmod proxy_balancer"
     run_chroot "a2enmod proxy_http"
     run_chroot "a2enmod rewrite"
+    rm "#{@fs_dir}/etc/ssl/certs/ssl-cert-snakeoil.pem"
+    rm "#{@fs_dir}/etc/ssl/private/ssl-cert-snakeoil.key"
     
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password admin"
@@ -267,13 +269,9 @@ task :install_ami_tools => [:check_if_root, :configure] do |t|
     # modify ami tools src files as described in various posts on the aws forums
     # alternatively could just use patch command here
     
-    file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/image.rb"
-    new_line = "    exec( 'rsync -rlpgoDS ' + exclude + '--exclude /etc/udev/rules.d/70-persistent-net.rules ' + File::join( src, '*' ) + ' ' + dst )"
-    replace_line(file, new_line, 161)
-    
-    file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/bundlevol.rb"
-    new_line = "LOCAL_FS_TYPES = ['ext2', 'ext3', 'xfs', 'jfs', 'reiserfs', 'tmpfs']\n"
-    replace_line(file, new_line, 81)
+    # file = "#{@fs_dir}/usr/lib/site_ruby/aes/amiutil/image.rb"
+    # new_line = "    exec( 'rsync -rlpgoDS ' + exclude + '--exclude /etc/udev/rules.d/70-persistent-net.rules ' + File::join( src, '*' ) + ' ' + dst )"
+    # replace_line(file, new_line, 161)
   end
 end
 
@@ -321,6 +319,7 @@ end
 
 desc "This task is for deploying the contents of /files to a running server image to test config file changes without rebuilding."
 task :deploy_files do |t|
+  raise "need 'key' and 'host' env  vars defined" unless ENV['key'] && ENV['host']
   run "rsync -rlvzcC --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
 end
 

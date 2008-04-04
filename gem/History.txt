@@ -1,3 +1,17 @@
+== 0.9.8 XXXX-XX-XX
+
+* ami-XXXX (32-bit) and ami-XXXX (64-bit)
+* Added monit, monitors mysqld, apache, memcached and mongrels
+* Enabled postfix by default, mail is delivered to admin user (or use new :admin_mail_forward_address option in deploy.rb to set an email address)
+* Apache now supports SSL, includes default self-signed cert generated for each instance on first startup, set :ec2onrails[:enable_ssl] = true to enable and upload ssl cert & key
+* Now installing rubygems from source instead of using Ubuntu package, updated to 1.1.0
+* Apache now denies access to any file in a directory named .svn, to protect the subversion info of those who deploy with Capistrano "checkout" method
+* Added force-proxy-request-1.0 and proxy-nokeepalive for proxy requests to mongrel to fix occasional "proxy: error reading status line from remote server" error (mongrel doesn't support keep-alive anyway), see apache bug #37770
+* Increased default memcache size to 128m, and memcache now listens on all interfaces for clustered use
+* Tuned MySQL setting defaults for better performance
+* Database backup script now exits cleanly instead of failing if instance is not in database role.
+
+
 == 0.9.7 2008-03-03
 
 * ami-5c0aef35 (32-bit) and ami-540aef3d (64-bit)

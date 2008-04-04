@@ -1,0 +1,8 @@
+#!/bin/sh
+
+. /etc/environment
+export PATH
+export RUBYLIB
+
+mongrel_rails cluster::start -C /etc/mongrel_cluster/app.yml --clean $*
+

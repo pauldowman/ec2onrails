@@ -19,26 +19,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-require 'socket'
 require 'net/http'
 require 'pp'
+require 'socket'
+require 'yaml'
 
-def start(service, prog_name = service)
-  # enable service if disabled:
-  run("chmod a+x /etc/init.d/#{service}")
-  
+def start(role, service, prog_name = service)
+  # ensure script is executable
+  run "chmod a+x /etc/init.d/#{service}"
   # start service if not running:
   unless (system("pidof -x #{prog_name}"))
-    result = run("sh /etc/init.d/#{service} start")
+    run "sh /etc/init.d/#{service} start"
   end
+  run "monit -g #{role} monitor all"
 end
 
-def stop(service, prog_name = service)
+def stop(role, service, prog_name = service)
+  run "monit -g #{role} unmonitor all"
   if (system("pidof -x #{prog_name}"))
     result = run("sh /etc/init.d/#{service} stop")
-  end
-  
-  # disable service in case of reboot
+  end  
+  # make start script non-executable in case of reboot
   run("chmod a-x /etc/init.d/#{service}")
 end
 
@@ -56,7 +57,6 @@ end
 
 def resolve(hostname)
   address = IPSocket.getaddress(hostname).strip
-  puts address
   if address == @local_address || address == @public_address
     "127.0.0.1"
   else
@@ -67,84 +67,83 @@ def resolve(hostname)
     raise e
 end
 
+def resolve_all_addresses(original)
+  resolved = {}
+  original.each do |rolename, hostnames|
+    resolved[rolename] = hostnames.map{|hostname| resolve(hostname)} if hostnames
+  end
+  resolved
+end
+
 def in_role(role)
   return false unless @roles[role]
   return @roles[role].include?("127.0.0.1") 
 end
 
+ROLES_FILE = "/etc/ec2onrails/roles.yml"
+
 @local_address  = get_address_metadata "local-ipv4"
-@public_address  = get_address_metadata "public-ipv4"
+@public_address = get_address_metadata "public-ipv4"
 
-@roles = {}
-$*.each do |arg|
-  arg.match(/(.*)=(.*)/)
-  role = $1
-  hostnames = $2
-  hostnames.split(',').each do |hostname|
-    @roles[role] ||= []
-    @roles[role] << resolve(hostname)
-  end
-end
-
+@roles = resolve_all_addresses(YAML::load_file(ROLES_FILE))
+puts "Roles: "
 pp @roles
 
 
 #######################################
 # TODO move these role definitions each into it's own file so adding a new 
 #      role is just dropping a ruby file into a directory
-#
-# TODO add db_slave role, memcache role
+
+# memcache role:
+if in_role(:memcache)
+  puts "Starting memcache role..."
+  # increase memory size, etc if no other roles exist?
+  start(:memcache, "memcached")
+else
+  puts "Stopping memcache role..."
+  stop(:memcache, "memcached")
+end
+
+# db primary role:
+if in_role(:db_primary)
+  puts "Starting db_primary role..."
+  # increase caches, etc if no other roles exist?
+  start(:db_primary, "mysql")
+else
+  puts "Stopping db_primary role..."
+  stop(:db_primary, "mysql")
+end
 
 # web role:
-if in_role("web")
+if in_role(:web)
   puts "Starting web role..."
   balancer_members = File.open("/etc/ec2onrails/balancer_members", "w") do |f|
-    @roles["app"].each do |address|
+    @roles[:app].each do |address|
       (8000..8005).each do |port|
         f << "BalancerMember http://#{address}:#{port}\n"
       end
       f << "\n"
     end
   end
-  start("apache2")
+  start(:web, "apache2")
 else
   puts "Stopping web role..."
-  stop("apache2")
+  stop(:web, "apache2")
 end
 
 # app role:
-if in_role("app")
+if in_role(:app)
   puts "Starting app role..."
   # edit /etc/hosts, need db_primary address & db_slave address
-  db_primary_addr = @roles["db_primary"][0]
+  db_primary_addr = @roles[:db_primary][0]
   puts "db_primary has ip address: #{db_primary_addr}"
   
   run("cp /etc/hosts.original /etc/hosts")
   run("echo '\n#{db_primary_addr}\tdb_primary\n' >> /etc/hosts")
-  start("mongrel", "mongrel_rails")
+  start(:app, "mongrel", "mongrel_rails")
 else
   puts "Stopping app role..."
-  stop("mongrel", "mongrel_rails")
-end
-
-# db primary role:
-if in_role("db_primary")
-  puts "Starting db_primary role..."
-  # increase caches, etc if no other roles exist?
-  start("mysql")
-else
-  puts "Stopping db_primary role..."
-  stop("mysql")
-end
-
-# memcache role:
-if in_role("memcache")
-  puts "Starting memcache role..."
-  # increase memory size, etc if no other roles exist?
-  start("memcached")
-else
-  puts "Stopping memcache role..."
-  stop("memcached")
+  stop(:app, "mongrel", "mongrel_rails")
 end
 
 #######################################

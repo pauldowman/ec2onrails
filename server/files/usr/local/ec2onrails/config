@@ -10,7 +10,7 @@ export EC2_PRIVATE_KEY="/mnt/aws-config/$KEY_FILE_NAME"
 export EC2_CERT="/mnt/aws-config/$CERT_FILE_NAME"
 
 export EC2_HOME=/usr/local/ec2-api-tools
-export PATH="$PATH:/var/lib/gems/1.8/bin:$EC2_HOME/bin:/usr/local/ec2onrails/bin"
+export PATH="$PATH:$EC2_HOME/bin"
 
 export JAVA_HOME="/usr/lib/jvm/java-6-sun"
 

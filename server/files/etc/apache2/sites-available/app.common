@@ -14,6 +14,12 @@ DocumentRoot /mnt/app/current/public
   Allow from all
 </Directory>
 
+# Disallow browsing of Subversion working copy administrative dirs.
+<DirectoryMatch "^/.*/\.svn/">
+  Order allow,deny
+  Deny from all
+</DirectoryMatch>
+
 RewriteEngine On
 
 # Uncomment for rewrite debugging

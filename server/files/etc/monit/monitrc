@@ -1,0 +1,12 @@
+set daemon 10 
+set logfile syslog facility log_daemon 
+set mailserver localhost
+set mail-format {
+  from: admin@localhost
+  subject: $HOST: $SERVICE $EVENT at $DATE
+}
+set alert admin@localhost only on { timeout, nonexist } 
+set httpd port 2812
+#  address localhost
+  allow localhost
+include /etc/monit/*.monitrc
