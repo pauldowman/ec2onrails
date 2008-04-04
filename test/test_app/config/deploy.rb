@@ -9,6 +9,8 @@ role :web, host
 role :app, host
 role :db,  host, :primary => true
 
+set :rails_env, "production"
+
 # EC2 on Rails config
 set :ec2onrails_config, {
   :packages => [],
