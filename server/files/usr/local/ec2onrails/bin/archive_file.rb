@@ -20,7 +20,7 @@
 
 # This script archives a file to S3
 
-require File.join(File.dirname(__FILE__), 's3_lib')
+require File.join("#{File.dirname(__FILE__)}/../s3_lib")
 
 load_s3_config
 

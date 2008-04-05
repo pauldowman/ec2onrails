@@ -240,7 +240,7 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
         Restore the MySQL database from the S3 bucket specified by \
         ec2onrails_config[:restore_from_bucket]. The archive filename is \
-        expected to be the default, "app.sql.gz".
+        expected to be the default, "mysqldump.sql.gz".
       DESC
       task :restore, :roles => [:db] do
         run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]}"

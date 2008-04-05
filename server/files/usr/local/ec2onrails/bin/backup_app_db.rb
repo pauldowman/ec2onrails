@@ -21,24 +21,43 @@
 exit unless File.stat("/etc/init.d/mysql").executable?
 exit unless File.exists?("/mnt/app/current")
 
-require File.join(File.dirname(__FILE__), 's3_lib')
+require File.join("#{File.dirname(__FILE__)}/../s3_lib")
 
 load_db_config
 load_s3_config
 
-@default_archive_file = "app.sql.gz"
+@default_archive_file = "mysqldump.sql.gz"
+
+module CommandLineArgs extend OptiFlagSet
+  optional_switch_flag "full_backup"
+  and_process!
+end
 
 begin
   setup
-  @archive_file = File.join(@temp_dir, @archive_file)
+  if ARGV.flags.full_backup
+    # Full backup, purge binary logs and do a mysqldump
+    @archive_file = File.join(@temp_dir, @archive_file)
   
-  cmd = "mysqldump --opt -u#{@user} "
-  cmd += " -p'#{@password}' " unless @password.nil?
-  cmd += " #{@database} | gzip > #{@archive_file}"
-  result = system(cmd)
-  raise("mysqldump error: #{$?}") unless result
+    run %{mysql -u root -e "reset master"}
   
-  store_file
+    cmd = "mysqldump --flush-logs --single-transaction --skip-lock-tables --opt -u#{@user} "
+    cmd += " -p'#{@password}' " unless @password.nil?
+    cmd += " #{@database} | gzip > #{@archive_file}"
+    run cmd
+
+    run %{mysql -u root -e "purge master logs to 'mysql-bin.000002'"}
+  
+    store_file
+  
+    delete_files(@dir ? "#{@dir}/mysql-bin" : "mysql-bin")
+  else
+    # Incremental backup
+    
+    run %{mysql -u root -e "flush logs"}
+    # TODO copy logs up to n-1 to s3
+    run %{mysql -u root -e "purge master logs to 'mysql-bin.#{n}'"}
+  end
 ensure
   cleanup
 end

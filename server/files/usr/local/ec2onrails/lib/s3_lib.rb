@@ -27,8 +27,8 @@ include FileUtils
 
 module CommandLineArgs extend OptiFlagSet
   optional_flag "bucket"
+  optional_flag "dir"
   optional_flag "file"
-
   and_process!
 end
 
@@ -41,7 +41,9 @@ def setup
   
   # include the hostname in the bucket name so test instances don't accidentally clobber real backups
   @bucket_name = ARGV.flags.bucket || "#{@bucket_base_name}_backup_#{hostname}"
+  @dir = ARGV.flags.dir
   @archive_file = ARGV.flags.file || @default_archive_file
+  @key = @dir ? "#{@dir}/#{File.basename(@archive_file)}" : File.basename(@archive_file)
   
   AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
 end
@@ -91,14 +93,20 @@ end
 
 def store_file
   create_bucket(@bucket_name)
-  AWS::S3::S3Object.store(File.basename(@archive_file), open(@archive_file), @bucket_name)
+  AWS::S3::S3Object.store(@key, open(@archive_file), @bucket_name)
 end
 
 def retrieve_file
   open(@archive_file, 'w') do |file|
-    AWS::S3::S3Object.stream(File.basename(@archive_file), @bucket_name) do |chunk|
+    AWS::S3::S3Object.stream(@key, @bucket_name) do |chunk|
       file.write chunk
     end
+  end
+end
+
+def delete_files(prefix)
+  AWS::S3::Bucket.objects(@bucket_name, :prefix => prefix).each do |obj|
+    obj.delete
   end
 end
 
@@ -111,3 +119,7 @@ def hostname
   `hostname -s`.strip
 end
 
+def run(command)
+  result = system command
+  raise("error: #{$?}") unless result
+end

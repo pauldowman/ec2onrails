@@ -18,12 +18,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require File.join(File.dirname(__FILE__), 's3_lib')
+require File.join("#{File.dirname(__FILE__)}/../s3_lib")
 
 load_s3_config
 load_db_config
 
-@default_archive_file = "app.sql.gz"
+@default_archive_file = "mysqldump.sql.gz"
 
 begin
   setup
