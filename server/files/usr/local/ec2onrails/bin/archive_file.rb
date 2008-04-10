@@ -20,15 +20,25 @@
 
 # This script archives a file to S3
 
-require File.join("#{File.dirname(__FILE__)}/../s3_lib")
+require "rubygems"
+require "optiflag"
+require "#{File.dirname(__FILE__)}/../lib/s3_helper"
+require "#{File.dirname(__FILE__)}/../lib/utils"
 
-load_s3_config
+include FileUtils
 
-
-begin
-  setup
-  exit unless File.exists?(@archive_file)
-  store_file
-ensure
-  cleanup
+module CommandLineArgs extend OptiFlagSet
+  optional_flag "bucket"
+  optional_flag "dir"
+  optional_flag "file"
+  and_process!
 end
+
+# include the hostname in the bucket name so test instances don't accidentally clobber real backups
+bucket = ARGV.flags.bucket || Ec2onrails::Utils.hostname
+dir = ARGV.flags.dir
+@file = ARGV.flags.file
+exit unless File.exists?(@file)
+
+@s3 = Ec2onrails::S3Helper.new(@bucket, @dir)
+@s3.store_file(@file)

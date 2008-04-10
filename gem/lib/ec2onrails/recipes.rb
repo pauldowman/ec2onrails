@@ -148,7 +148,6 @@ Capistrano::Configuration.instance.load do
       deploy.symlink
       # don't need to migrate because we're restoring the db
       db.restore
-      deploy.restart
     end
     
     namespace :ec2 do
@@ -198,6 +197,10 @@ Capistrano::Configuration.instance.load do
         load_config
         run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
         run %{mysql -u root -e "grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        # Do a full backup of the newly-created db so the automatic incremental backups make sense
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb"
       end
       
       desc <<-DESC

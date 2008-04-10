@@ -18,24 +18,41 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require File.join("#{File.dirname(__FILE__)}/../s3_lib")
+require "rubygems"
+require "optiflag"
+require "fileutils"
+require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
+require "#{File.dirname(__FILE__)}/../lib/s3_helper"
+require "#{File.dirname(__FILE__)}/../lib/utils"
 
-load_s3_config
-load_db_config
+module CommandLineArgs extend OptiFlagSet
+  optional_flag "bucket"
+  optional_flag "dir"
+  and_process!
+end
 
-@default_archive_file = "mysqldump.sql.gz"
+bucket_suffix = ARGV.flags.bucket || Ec2onrails::Utils.hostname
+dir = ARGV.flags.dir || "database"
+@s3 = Ec2onrails::S3Helper.new(bucket_suffix, dir)
+@mysql = Ec2onrails::MysqlHelper.new
+@temp_dir = "/tmp/ec2onrails-backup-#{bucket_suffix}-#{dir}"
+if File.exists?(@temp_dir)
+  puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
+  exit
+end
 
 begin
-  setup
-  @archive_file = File.join(@temp_dir, @archive_file)
+  FileUtils.mkdir_p @temp_dir
   
-  retrieve_file
+  file = "#{@temp_dir}/dump.sql.gz"
+  @s3.retrieve_file(file)
+  @mysql.load_from_dump(file)
   
-  cmd = "gunzip -c #{@archive_file} | mysql -u#{@user} "
-  cmd += " -p'#{@password}' " unless @password.nil?
-  cmd += " #{@database}"
-  result = system(cmd)
-  raise("mysql error: #{$?}") unless result
+  @s3.retrieve_files("mysql-bin.", @temp_dir)
+  logs = Dir.glob("#{@temp_dir}/mysql-bin.[0-9]*").sort
+  logs.each {|log| @mysql.execute_binary_log(log) }
+  
+  @mysql.execute_sql "reset master"
 ensure
-  cleanup
+  FileUtils.rm_rf(@temp_dir)
 end

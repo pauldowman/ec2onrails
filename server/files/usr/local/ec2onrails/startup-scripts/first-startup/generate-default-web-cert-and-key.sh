@@ -21,9 +21,11 @@
 
 # Generate a new self-signed cert and key for https
 
+echo "Generating default self-signed SSL cert and key..."
+
 cd /tmp
-openssl genrsa -out server.key 1024
-openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt <<END
+openssl genrsa -out /etc/ssl/private/default.key 1024
+openssl req -new -key /etc/ssl/private/default.key -out server.csr <<END
 CA
 .
 .
