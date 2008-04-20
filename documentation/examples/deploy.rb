@@ -22,8 +22,10 @@ set :rails_env, "production"
 
 # EC2 on Rails config
 set :ec2onrails_config, {
-  # S3 bucket used by the ec2onrails:db:restore task
+  # S3 bucket and subdir used by the ec2onrails:db:restore task. The subdir
+  # is probably just "database"
   :restore_from_bucket => "your-bucket",
+  :restore_from_bucket_subdir => "database",
   
   # S3 bucket used by the ec2onrails:db:archive task
   :archive_to_bucket => "your-other-bucket",

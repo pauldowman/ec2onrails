@@ -15,24 +15,27 @@ _Deploying a simple rails app is simple, and complex customization (if required)
 
 Features of the EC2 image:
 
-* Ready to deploy a Rails app with little or no configuration of the server required.
-* Automatic backup of MySQL database to S3.
-* Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem).
+* Ready to deploy a Rails app with little or no configuration of the server required
+* Automatic backup of MySQL database to S3 (full backup nightly + incremental using binary logs every 10 minutes)
+* Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
 * Ruby on Rails 2.0.2 and 1.2.6
 * Ruby 1.8.6
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
+* "monit":http://www.tildeslash.com/monit/ system monitoring
 * Ubuntu 7.10 "Gutsy" with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/gutsy/libs/libc6-xen package).
+* SSL support
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
 * MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
 * Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
-* Created using a build file, full source is available.
-* Multiple instance support.
+* Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552
+* Supports multiple instances
 * Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application's script directory
+* Local SMTP server
 
 
 h2. Using the image
@@ -92,11 +95,14 @@ If you're using multiple instances, be sure to allow them network access to each
 h4. 5. Copy your public key from the server to keep Capistrano happy
 
 Technically all you should need to connect to the server is the private key file, the public key is on the server. 
-But for some reason Capistrano requires that you have both the public key and the private key files together on the client.
+But for some reason 
+"Capistrano requires that you have both the public key and the private key files together on the client":http://groups.google.com/group/capistrano/browse_thread/thread/1102208ff925d18.
 
 From within the root of your rails app do:
 
 <pre>cap ec2onrails:get_public_key_from_server</pre>
+
+Note, this will only work if you have an external ssh command in the path, it won't work for most Windows users.
 
 
 h4. 6. Deploy the app with Capistrano

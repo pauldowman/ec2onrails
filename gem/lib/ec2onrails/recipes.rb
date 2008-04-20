@@ -53,6 +53,8 @@ Capistrano::Configuration.instance.load do
     all_admin_role_names << "#{name.to_s}_admin".to_sym
   end  
   
+  after "deploy:symlink", "ec2onrails:server:set_roles"
+  
   # override default start/stop/restart tasks
   namespace :deploy do
     desc <<-DESC
@@ -125,7 +127,7 @@ Capistrano::Configuration.instance.load do
     desc <<-DESC
       Prepare a newly-started instance for a cold deploy.
     DESC
-    task :setup do
+    task :setup, :roles => all_admin_role_names do
       server.set_admin_mail_forward_address
       server.set_timezone
       server.install_packages
@@ -136,6 +138,7 @@ Capistrano::Configuration.instance.load do
       server.restart_services
       deploy.setup
       server.set_roles
+      sudo "monit -g app unmonitor all"
       db.create
     end
     
@@ -200,7 +203,7 @@ Capistrano::Configuration.instance.load do
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         # Do a full backup of the newly-created db so the automatic incremental backups make sense
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb"
+        sudo "/usr/local/ec2onrails/bin/backup_app_db.rb"
       end
       
       desc <<-DESC
@@ -236,8 +239,8 @@ Capistrano::Configuration.instance.load do
         ec2onrails_config[:archive_to_bucket]. The filename will be \
         "app-<timestamp>.sql.gz".
       DESC
-      task :archive, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --file app-#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}.sql.gz"
+      task :archive, :roles => :db do
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --noreset --bucket #{cfg[:archive_to_bucket]} --dir database-#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}"
       end
       
       desc <<-DESC
@@ -245,8 +248,8 @@ Capistrano::Configuration.instance.load do
         ec2onrails_config[:restore_from_bucket]. The archive filename is \
         expected to be the default, "mysqldump.sql.gz".
       DESC
-      task :restore, :roles => [:db] do
-        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]}"
+      task :restore, :roles => :db do
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
       end
     end
     

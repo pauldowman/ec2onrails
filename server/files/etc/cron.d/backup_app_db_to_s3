@@ -1,2 +1,2 @@
-0                 6 * * *     app   /usr/local/ec2onrails/bin/backup_app_db.rb
-05,15,25,35,45,55 * * * *     app   /usr/local/ec2onrails/bin/backup_app_db.rb --incremental
+0                 6 * * *     root   /usr/local/ec2onrails/bin/backup_app_db.rb
+05,15,25,35,45,55 * * * *     root   /usr/local/ec2onrails/bin/backup_app_db.rb --incremental

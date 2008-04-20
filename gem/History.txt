@@ -1,6 +1,7 @@
 == 0.9.8 XXXX-XX-XX
 
 * ami-XXXX (32-bit) and ami-XXXX (64-bit)
+* This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
 * Incremental database backups instead of doing a full mysqldump each time (full backup is done nightly)
 * Added monit monitoring daemon: monitors mysqld, apache, memcached and mongrels
 * Enabled postfix by default, mail is delivered to admin user (or use new :admin_mail_forward_address option in deploy.rb to set an email address)

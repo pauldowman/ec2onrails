@@ -31,11 +31,11 @@ module CommandLineArgs extend OptiFlagSet
   and_process!
 end
 
-bucket_suffix = ARGV.flags.bucket || Ec2onrails::Utils.hostname
+bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir || "database"
-@s3 = Ec2onrails::S3Helper.new(bucket_suffix, dir)
+@s3 = Ec2onrails::S3Helper.new(bucket, dir)
 @mysql = Ec2onrails::MysqlHelper.new
-@temp_dir = "/tmp/ec2onrails-backup-#{bucket_suffix}-#{dir}"
+@temp_dir = "/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir}"
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
   exit

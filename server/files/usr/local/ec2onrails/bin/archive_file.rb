@@ -35,10 +35,10 @@ module CommandLineArgs extend OptiFlagSet
 end
 
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
-bucket = ARGV.flags.bucket || Ec2onrails::Utils.hostname
+bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir
-@file = ARGV.flags.file
-exit unless File.exists?(@file)
+file = ARGV.flags.file
+exit unless File.exists?(file)
 
-@s3 = Ec2onrails::S3Helper.new(@bucket, @dir)
-@s3.store_file(@file)
+@s3 = Ec2onrails::S3Helper.new(bucket, dir)
+@s3.store_file(file)

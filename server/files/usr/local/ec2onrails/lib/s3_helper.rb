@@ -37,13 +37,13 @@ module Ec2onrails
     attr_accessor :aws_secret_access_key
     attr_accessor :bucket
 
-    def initialize(bucket_suffix, dir, config_file = DEFAULT_CONFIG_FILE, rails_env = Utils.rails_env)
+    def initialize(bucket, dir, config_file = DEFAULT_CONFIG_FILE, rails_env = Utils.rails_env)
       @dir = dir
       @config_file = config_file
       @rails_env = rails_env
       load_s3_config
+      @bucket = bucket || "#{@bucket_base_name}-#{Ec2onrails::Utils.hostname}"
       AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
-      @bucket = "#{@bucket_base_name}-#{bucket_suffix}"
     end
 
     def load_s3_config
@@ -75,7 +75,7 @@ module Ec2onrails
         AWS::S3::Bucket.find(@bucket)
       rescue AWS::S3::NoSuchBucket
         AWS::S3::Bucket.create(@bucket)
-        sleep 1 # If we try to use the bucket too quickly sometimes it's not found
+        sleep 10 # If we try to use the bucket too quickly sometimes it's not found
       end
     end
 
