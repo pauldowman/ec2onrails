@@ -203,7 +203,7 @@ Capistrano::Configuration.instance.load do
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         # Do a full backup of the newly-created db so the automatic incremental backups make sense
-        sudo "/usr/local/ec2onrails/bin/backup_app_db.rb"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb"
       end
       
       desc <<-DESC
