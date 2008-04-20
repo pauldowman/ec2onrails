@@ -13,6 +13,6 @@ NameVirtualHost *:443
 
   # see http://httpd.apache.org/docs/2.2/ssl/ssl_intro.html and http://httpd.apache.org/docs/2.2/mod/mod_ssl.html
   SSLEngine On
-  SSLCertificateFile    /etc/ssl/certs/default.crt
-  SSLCertificateKeyFile /etc/ssl/private/default.key
+  SSLCertificateFile    /etc/ec2onrails/ssl/cert/ec2onrails-default.crt
+  SSLCertificateKeyFile /etc/ec2onrails/ssl/private/ec2onrails-default.key
 </VirtualHost>

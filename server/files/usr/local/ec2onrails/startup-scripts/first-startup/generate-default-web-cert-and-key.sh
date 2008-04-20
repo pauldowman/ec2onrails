@@ -23,9 +23,11 @@
 
 echo "Generating default self-signed SSL cert and key..."
 
+export RANDFILE=/tmp/randfile
+
 cd /tmp
-openssl genrsa -out /etc/ssl/private/default.key 1024
-openssl req -new -key /etc/ssl/private/default.key -out server.csr <<END
+openssl genrsa -out server.key 1024
+openssl req -new -key server.key -out server.csr <<END
 CA
 .
 .
@@ -37,4 +39,11 @@ CA
 .
 
 END
-openssl x509 -req -days 365 -in server.csr -signkey /etc/ssl/private/default.key -out /etc/ssl/certs/default.crt
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+mkdir -p /etc/ec2onrails/ssl/cert
+mkdir -p -m 700 /etc/ec2onrails/ssl/private
+mv server.key /etc/ec2onrails/ssl/private/ec2onrails-default.key
+mv server.crt /etc/ec2onrails/ssl/cert/ec2onrails-default.crt
+rm $RANDFILE
+rm server.csr
