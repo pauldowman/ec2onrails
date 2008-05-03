@@ -4,10 +4,10 @@
 
 if [ -r /mnt/aws-config/config ] ; then
   . /mnt/aws-config/config
-fi
+  export EC2_PRIVATE_KEY="/mnt/aws-config/$KEY_FILE_NAME"
+  export EC2_CERT="/mnt/aws-config/$CERT_FILE_NAME"
 
-export EC2_PRIVATE_KEY="/mnt/aws-config/$KEY_FILE_NAME"
-export EC2_CERT="/mnt/aws-config/$CERT_FILE_NAME"
+fi
 
 export EC2_HOME=/usr/local/ec2-api-tools
 export PATH="$PATH:$EC2_HOME/bin"
@@ -23,3 +23,8 @@ xterm-color)
     PS1='${debian_chroot:+($debian_chroot)}\u@\h-`rails_env`:\w\$ '
     ;;
 esac
+
+# Set some useful aliases
+alias app="pushd /mnt/app/current && sudo su bash && popd"
+alias log="tail -f /mnt/app/current/log/`rails_env`.log"
+alias logs="tail -f /mnt/app/current/log/*.log /mnt/log/apache2/*.log /mnt/log/syslog"
