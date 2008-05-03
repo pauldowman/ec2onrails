@@ -1,9 +1,9 @@
 check process mongrel_8000 with pidfile /mnt/app/shared/log/mongrel.8000.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only 8000" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only 8000" 
-  if totalmem is greater than 150.0 MB for 4 cycles then restart 
-  if cpu is greater than 80% for 4 cycles then restart 
-  if failed port 8000 with timeout 10 seconds then restart
+  if totalmem is greater than 150.0 MB for 4 cycles then alert 
+  if cpu is greater than 80% for 4 cycles then alert 
+  if failed port 8000 with timeout 10 seconds then alert
   if 20 restarts within 20 cycles then timeout
   mode manual
   group app
@@ -11,9 +11,9 @@ check process mongrel_8000 with pidfile /mnt/app/shared/log/mongrel.8000.pid
 check process mongrel_8001 with pidfile /mnt/app/shared/log/mongrel.8001.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only 8001" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only 8001" 
-  if totalmem is greater than 150.0 MB for 4 cycles then restart 
-  if cpu is greater than 80% for 4 cycles then restart 
-  if failed port 8001 with timeout 10 seconds then restart
+  if totalmem is greater than 150.0 MB for 4 cycles then alert 
+  if cpu is greater than 80% for 4 cycles then alert 
+  if failed port 8001 with timeout 10 seconds then alert
   if 20 restarts within 20 cycles then timeout 
   mode manual
   group app
@@ -21,9 +21,9 @@ check process mongrel_8001 with pidfile /mnt/app/shared/log/mongrel.8001.pid
 check process mongrel_8002 with pidfile /mnt/app/shared/log/mongrel.8002.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only 8002" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only 8002" 
-  if totalmem is greater than 150.0 MB for 4 cycles then restart 
-  if cpu is greater than 80% for 4 cycles then restart 
-  if failed port 8002 with timeout 10 seconds then restart
+  if totalmem is greater than 150.0 MB for 4 cycles then alert 
+  if cpu is greater than 80% for 4 cycles then alert 
+  if failed port 8002 with timeout 10 seconds then alert
   if 20 restarts within 20 cycles then timeout 
   mode manual
   group app
@@ -31,9 +31,9 @@ check process mongrel_8002 with pidfile /mnt/app/shared/log/mongrel.8002.pid
 check process mongrel_8003 with pidfile /mnt/app/shared/log/mongrel.8003.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only 8003" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only 8003" 
-  if totalmem is greater than 150.0 MB for 4 cycles then restart 
-  if cpu is greater than 80% for 4 cycles then restart 
-  if failed port 8003 with timeout 10 seconds then restart
+  if totalmem is greater than 150.0 MB for 4 cycles then alert 
+  if cpu is greater than 80% for 4 cycles then alert 
+  if failed port 8003 with timeout 10 seconds then alert
   if 20 restarts within 20 cycles then timeout 
   mode manual
   group app
@@ -41,9 +41,9 @@ check process mongrel_8003 with pidfile /mnt/app/shared/log/mongrel.8003.pid
 check process mongrel_8004 with pidfile /mnt/app/shared/log/mongrel.8004.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only 8004" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only 8004" 
-  if totalmem is greater than 150.0 MB for 4 cycles then restart 
-  if cpu is greater than 80% for 4 cycles then restart 
-  if failed port 8004 with timeout 10 seconds then restart
+  if totalmem is greater than 150.0 MB for 4 cycles then alert 
+  if cpu is greater than 80% for 4 cycles then alert 
+  if failed port 8004 with timeout 10 seconds then alert
   if 20 restarts within 20 cycles then timeout 
   mode manual
   group app
@@ -51,9 +51,9 @@ check process mongrel_8004 with pidfile /mnt/app/shared/log/mongrel.8004.pid
 check process mongrel_8005 with pidfile /mnt/app/shared/log/mongrel.8005.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only 8005" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only 8005" 
-  if totalmem is greater than 150.0 MB for 4 cycles then restart 
-  if cpu is greater than 80% for 4 cycles then restart 
-  if failed port 8005 with timeout 10 seconds then restart
+  if totalmem is greater than 150.0 MB for 4 cycles then alert 
+  if cpu is greater than 80% for 4 cycles then alert 
+  if failed port 8005 with timeout 10 seconds then alert
   if 20 restarts within 20 cycles then timeout 
   mode manual
   group app
