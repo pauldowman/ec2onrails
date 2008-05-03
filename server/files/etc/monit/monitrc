@@ -5,7 +5,7 @@ set mail-format {
   from: admin@localhost
   subject: $HOST: $SERVICE $EVENT at $DATE
 }
-set alert admin@localhost only on { timeout, nonexist } 
+set alert admin@localhost #only on { timeout, nonexist }
 set httpd port 2812
 #  address localhost
   allow localhost
