@@ -71,11 +71,13 @@ module Ec2onrails
     end
 
     def create_bucket
+      retries = 0
       begin
         AWS::S3::Bucket.find(@bucket)
       rescue AWS::S3::NoSuchBucket
         AWS::S3::Bucket.create(@bucket)
-        sleep 10 # If we try to use the bucket too quickly sometimes it's not found
+        sleep 1 # If we try to use the bucket too quickly sometimes it's not found
+        retry if (retries += 1) < 15
       end
     end
 

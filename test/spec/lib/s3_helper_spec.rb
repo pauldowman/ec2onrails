@@ -44,7 +44,7 @@ describe Ec2onrails::S3Helper do
   describe "with a real connection" do
     # Integration tests to make sure we can use the real API
     before(:each) do
-      @s3_helper = Ec2onrails::S3Helper.new("test", nil, REAL_S3_CONFIG, "production")
+      @s3_helper = Ec2onrails::S3Helper.new("ec2onrails-test", nil, REAL_S3_CONFIG, "production")
       begin
         bucket = AWS::S3::Bucket.find(@s3_helper.bucket)
         bucket.delete_all
