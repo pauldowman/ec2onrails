@@ -71,7 +71,7 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :stop, :roles => :app_admin do
-      sudo "monit -g app unmonitor all"
+      sudo "monit -g app unmonitor all && sleep 5"
       run_init_script("mongrel", "stop")
     end
     
@@ -80,9 +80,8 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :restart, :roles => :app_admin do
-      sudo "monit -g app unmonitor all"
-      run_init_script("mongrel", "restart")
-      sudo "monit -g app monitor all"
+      deploy.stop
+      deploy.start
     end
   end
   
@@ -133,7 +132,7 @@ Capistrano::Configuration.instance.load do
       server.install_packages
       server.install_gems
       server.deploy_files
-      server.enable_ssl
+      server.enable_ssl if cfg[:enable_ssl]
       server.set_rails_env
       server.restart_services
       deploy.setup
@@ -168,24 +167,24 @@ Capistrano::Configuration.instance.load do
         in order to interact with it).
       DESC
       task :load_config do
-        db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env]
-        cfg[:db_name] = db_config['database']
-        cfg[:db_user] = db_config['username']
-        cfg[:db_password] = db_config['password']
-        cfg[:db_host] = db_config['host']
-        cfg[:db_socket] = db_config['socket']
+        unless hostnames_for_role(:db, :primary => true).empty?
+          db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env.to_s]
+          cfg[:db_name] = db_config['database']
+          cfg[:db_user] = db_config['username']
+          cfg[:db_password] = db_config['password']
+          cfg[:db_host] = db_config['host']
+          cfg[:db_socket] = db_config['socket']
         
-        if (cfg[:db_host].nil? || cfg[:db_host].empty?) && 
-          (cfg[:db_host] != 'localhost' || cfg[:db_host] != '127.0.0.1') && 
-          (cfg[:db_socket].nil? || cfg[:db_socket].empty?)
-            raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with either 'host: localhost' or 'socket: /var/run/mysqld/mysqld.sock'."
-        end
+          if (cfg[:db_host].nil? || cfg[:db_host].empty?) && (cfg[:db_socket].nil? || cfg[:db_socket].empty?)
+              raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with either 'host: hostname' or 'socket: /var/run/mysqld/mysqld.sock'."
+          end
         
-        [cfg[:db_name], cfg[:db_user], cfg[:db_password]].each do |s|
-          if s.nil? || s.empty?
-            raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with a database name, user, and password."
-          elsif s.match(/['"]/)
-            raise "ERROR: database config string '#{s}' contains quotes."
+          [cfg[:db_name], cfg[:db_user], cfg[:db_password]].each do |s|
+            if s.nil? || s.empty?
+              raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with a database name, user, and password."
+            elsif s.match(/['"]/)
+              raise "ERROR: database config string '#{s}' contains quotes."
+            end
           end
         end
       end
@@ -289,7 +288,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :upgrade_packages, :roles => all_admin_role_names do
         sudo "aptitude -q update"
-        run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y dist-upgrade"
+        run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y safe-upgrade"
       end
       
       desc <<-DESC
@@ -425,10 +424,9 @@ Capistrano::Configuration.instance.load do
         /etc/ssl/private/default.key (use the deploy_files task).
       DESC
       task :enable_ssl, :roles => :web_admin do
-        if cfg[:enable_ssl]
-          sudo "a2enmod ssl"
-          sudo "a2ensite default-ssl"
-        end
+        sudo "a2enmod ssl"
+        sudo "a2ensite default-ssl"
+        sudo "/etc/init.d/apache2 restart"
       end
     end
     
