@@ -184,7 +184,7 @@ task :install_packages => [:check_if_root, :bootstrap, :mount_proc] do |t|
     #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
     run_chroot "aptitude update"
-    run_chroot "aptitude dist-upgrade -y"
+    run_chroot "aptitude safe-upgrade -y"
     run_chroot "aptitude install -y #{@packages.join(' ')}"
     
     # stop the daemons that were installed if they're running
@@ -204,8 +204,8 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/34638/rubygems-1.1.0.tgz && tar zxf rubygems-1.1.0.tgz'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.1.0 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/34638/rubygems-1.1.1.tgz && tar zxf rubygems-1.1.1.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.1.1 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
