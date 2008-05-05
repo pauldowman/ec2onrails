@@ -19,4 +19,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-cp /var/lib/mysql/mysql /mnt/mysql_data/
+cp -rp /var/lib/mysql/mysql /mnt/mysql_data/
