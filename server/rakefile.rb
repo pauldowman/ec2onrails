@@ -187,7 +187,8 @@ task :install_packages => [:check_if_root, :bootstrap, :mount_proc] do |t|
     run_chroot "aptitude update"
     run_chroot "aptitude full-upgrade -y"
     run_chroot "aptitude install -y #{@packages.join(' ')}"
-    run_chroot "aptitude forget-new"
+    run_chroot "aptitude forget-new"    
+    run_chroot "aptitude clean"
     
     # stop the daemons that were installed if they're running
     run_chroot "/etc/init.d/apache2 stop"
@@ -253,8 +254,6 @@ task :configure => [:check_if_root, :install_gems] do |t|
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
     # that it tries to write it is owned by root and not writable by others.
     run_chroot "chown -R dhcp /var/lib/dhcp3"
-    
-    run_chroot "aptitude clean"
   end
 end
 
