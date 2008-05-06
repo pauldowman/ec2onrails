@@ -100,7 +100,8 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
 
 
 # I recommend using apt-cacher or apt-proxy. Change the url here and in files/etc/apt/sources.list
-@deb_mirror = "" # Leave blank to use default
+# @deb_mirror = "" # Leave blank to use default
+@deb_mirror = "http://mirrors.kernel.org/ubuntu/"
 #@deb_mirror = "http://localhost:3142/archive.ubuntu.com/ubuntu/" # This is for a local apt-cacher instance
 
 
@@ -184,8 +185,9 @@ task :install_packages => [:check_if_root, :bootstrap, :mount_proc] do |t|
     #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
     run_chroot "aptitude update"
-    run_chroot "aptitude safe-upgrade -y"
+    run_chroot "aptitude full-upgrade -y"
     run_chroot "aptitude install -y #{@packages.join(' ')}"
+    run_chroot "aptitude forget-new"
     
     # stop the daemons that were installed if they're running
     run_chroot "/etc/init.d/apache2 stop"
