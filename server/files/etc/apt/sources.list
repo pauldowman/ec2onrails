@@ -1,35 +1,8 @@
-# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
-# newer versions of the distribution.
+deb http://us.archive.ubuntu.com/ubuntu gutsy main restricted universe multiverse
+deb-src http://us.archive.ubuntu.com/ubuntu gutsy main restricted universe multiverse
 
-# main repo
+deb http://us.archive.ubuntu.com/ubuntu gutsy-updates main restricted universe multiverse
+deb-src http://us.archive.ubuntu.com/ubuntu gutsy-updates main restricted universe multiverse
 
-deb http://archive.ubuntu.com/ubuntu/ gutsy main restricted
-deb-src http://archive.ubuntu.com/ubuntu/ gutsy main restricted
-
-deb http://archive.ubuntu.com/ubuntu/ gutsy-updates main restricted
-deb-src http://archive.ubuntu.com/ubuntu/ gutsy-updates main restricted
-
-deb http://security.ubuntu.com/ubuntu gutsy-security main restricted
-deb-src http://security.ubuntu.com/ubuntu gutsy-security main restricted
-
-# universe
-
-deb http://archive.ubuntu.com/ubuntu/ gutsy universe
-deb-src http://archive.ubuntu.com/ubuntu/ gutsy universe
-
-deb http://archive.ubuntu.com/ubuntu/ gutsy-updates universe
-deb-src http://archive.ubuntu.com/ubuntu/ gutsy-updates universe
-
-deb http://security.ubuntu.com/ubuntu gutsy-security universe
-deb-src http://security.ubuntu.com/ubuntu gutsy-security universe
-
-# multiverse
-
-deb http://archive.ubuntu.com/ubuntu/ gutsy multiverse
-deb-src http://archive.ubuntu.com/ubuntu/ gutsy multiverse
-
-deb http://archive.ubuntu.com/ubuntu/ gutsy-updates multiverse
-deb-src http://archive.ubuntu.com/ubuntu/ gutsy-updates multiverse
-
-deb http://security.ubuntu.com/ubuntu gutsy-security multiverse
-deb-src http://security.ubuntu.com/ubuntu gutsy-security multiverse
+deb http://security.ubuntu.com/ubuntu gutsy-security main restricted universe multiverse
+deb-src http://security.ubuntu.com/ubuntu gutsy-security main restricted universe multiverse
