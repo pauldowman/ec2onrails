@@ -62,7 +62,6 @@ begin
     unless ARGV.flags.noreset
       @mysql.execute_sql "reset master"
       @mysql.dump file
-      @mysql.execute_sql "purge master logs to 'mysql-bin.000002'"
       @s3.store_file file
       @s3.delete_files("mysql-bin")
     end
