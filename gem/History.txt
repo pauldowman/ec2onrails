@@ -2,8 +2,8 @@
 
 * ami-XXXX (32-bit) and ami-XXXX (64-bit)
 * This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
-* Incremental database backups instead of doing a full mysqldump each time (full backup is done nightly)
-* Added monit monitoring daemon: monitors mysqld, apache, memcached and mongrels (only alerting for now, not restarting services yet).
+* Incremental database backups instead of doing a full mysqldump each time (full dump is done once nightly). (Thanks to Markus Bengts for the bug fix.)
+* Added monit monitoring daemon: monitors mysqld, apache, memcached, mongrels, system load and free drive space
 * Enabled postfix by default, mail is delivered to admin user (or use new :admin_mail_forward_address option in deploy.rb to set an email address)
 * Apache now supports SSL, set :ec2onrails[:enable_ssl] = true to enable and upload ssl cert & key (there is also a self-signed cert generated for each instance on first startup)
 * Now installing rubygems from source instead of using Ubuntu package, updated to 1.1.0
@@ -16,6 +16,7 @@
 * upgrade_packages task now does "safe upgrade" instead of "full upgrade"
 * Now requires Capistrano 2.3.0
 * Doesn't try to load db config if no db 
+* RubyGems 1.1.1
 
 
 == 0.9.7 2008-03-03

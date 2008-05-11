@@ -31,9 +31,11 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   alien
   apache2
   aptitude
+  bison
   ca-certificates
   cron
   curl
+  flex
   gcc
   gnupg
   irb
@@ -46,6 +48,7 @@ require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
   libopenssl-ruby
   libreadline-ruby
   libruby
+  libssl-dev
   libyaml-ruby
   libzlib-ruby
   logrotate
@@ -218,8 +221,17 @@ task :install_gems => [:check_if_root, :install_kernel_modules] do |t|
   end
 end
 
+desc "Compile and install monit"
+task :install_monit => [:check_if_root, :install_packages] do |t|
+  unless_completed(t) do
+    run_chroot "sh -c 'cd /tmp && wget http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
+    run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
+    run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ && make && make install'"
+  end
+end
+
 desc "Configure the image"
-task :configure => [:check_if_root, :install_gems] do |t|
+task :configure => [:check_if_root, :install_gems, :install_monit] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version::STRING}")
@@ -247,6 +259,8 @@ task :configure => [:check_if_root, :install_gems] do |t|
       rm_rf "#{@fs_dir}/var/log/#{f}"
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
+    
+    run "echo '/dev/sda2 /mnt ext3 rw 0 0' >> #{@fs_dir}/etc/mtab"
     
     touch "#{@fs_dir}/ec2onrails-first-boot"
     

@@ -30,13 +30,13 @@ def start(role, service, prog_name = service)
   # start service if not running:
   unless (system("pidof -x #{prog_name}"))
     run "sh /etc/init.d/#{service} start"
+    run "sleep 30 && monit -g #{role} monitor all" # give the service 30 seconds to start before attempting to monitor it
   end
-  run "monit -g #{role} monitor all"
 end
 
 def stop(role, service, prog_name = service)
-  run "monit -g #{role} unmonitor all"
   if (system("pidof -x #{prog_name}"))
+    run "monit -g #{role} unmonitor all"
     result = run("sh /etc/init.d/#{service} stop")
   end  
   # make start script non-executable in case of reboot

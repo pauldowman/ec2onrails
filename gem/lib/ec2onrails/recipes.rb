@@ -51,7 +51,7 @@ Capistrano::Configuration.instance.load do
     make_admin_role_for(name)
     all_non_admin_role_names << name
     all_admin_role_names << "#{name.to_s}_admin".to_sym
-  end  
+  end
   
   after "deploy:symlink", "ec2onrails:server:set_roles"
   
@@ -63,7 +63,7 @@ Capistrano::Configuration.instance.load do
     DESC
     task :start, :roles => :app_admin do
       run_init_script("mongrel", "start")
-      sudo "monit -g app monitor all"
+      sudo "sleep 30 && monit -g app monitor all" # give the service 30 seconds to start before attempting to monitor it
     end
     
     desc <<-DESC
@@ -71,7 +71,7 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :stop, :roles => :app_admin do
-      sudo "monit -g app unmonitor all && sleep 5"
+      sudo "monit -g app unmonitor all"
       run_init_script("mongrel", "stop")
     end
     
