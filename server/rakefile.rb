@@ -259,9 +259,7 @@ task :configure => [:check_if_root, :install_gems, :install_monit] do |t|
       rm_rf "#{@fs_dir}/var/log/#{f}"
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
-    
-    run "echo '/dev/sda2 /mnt ext3 rw 0 0' >> #{@fs_dir}/etc/mtab"
-    
+        
     touch "#{@fs_dir}/ec2onrails-first-boot"
     
     # TODO find out the most correct solution here, there seems to be a bug in
