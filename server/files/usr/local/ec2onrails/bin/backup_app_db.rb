@@ -59,12 +59,13 @@ begin
   else
     # Full backup
     file = "#{@temp_dir}/dump.sql.gz"
-    unless ARGV.flags.noreset
-      @mysql.execute_sql "reset master"
-      @mysql.dump file
-      @s3.store_file file
-      @s3.delete_files("mysql-bin")
+    if ARGV.flags.noreset
+      @mysql.dump(file, false)
+    else
+      @mysql.dump(file, true)
     end
+    @s3.store_file file
+    @s3.delete_files("mysql-bin")
   end
 ensure
   FileUtils.rm_rf(@temp_dir)

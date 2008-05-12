@@ -54,6 +54,7 @@ Capistrano::Configuration.instance.load do
   end
   
   after "deploy:symlink", "ec2onrails:server:set_roles"
+  after "deploy:cold", "ec2onrails:db:init_backup"
   
   # override default start/stop/restart tasks
   namespace :deploy do
@@ -136,8 +137,6 @@ Capistrano::Configuration.instance.load do
       server.set_rails_env
       server.restart_services
       deploy.setup
-      server.set_roles
-      sudo "monit -g app unmonitor all"
       db.create
     end
     
@@ -197,12 +196,24 @@ Capistrano::Configuration.instance.load do
       task :create, :roles => :db do
         on_rollback { drop }
         load_config
+        # Make sure the MySQL server has been started, just in case the db role 
+        # hasn't been set, e.g. when called from ec2onrails:setup.
+        # (But don't enable monitoring on it.)
+        start
         run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
         run %{mysql -u root -e "grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        # Do a full backup of the newly-created db so the automatic incremental backups make sense
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb"
+      end
+      
+      desc <<-DESC
+        Make sure the MySQL server has been started, just in case the db role 
+        hasn't been set, e.g. when called from ec2onrails:setup.
+        (But don't enable monitoring on it.)
+      DESC
+      task :start, :roles => :db_admin do
+        sudo "chmod a+x /etc/init.d/mysql"
+        sudo "/etc/init.d/mysql start"
       end
       
       desc <<-DESC
@@ -250,6 +261,14 @@ Capistrano::Configuration.instance.load do
       task :restore, :roles => :db do
         run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
       end
+      
+      desc <<-DESC
+        Initialize the default backup folder on S3 (i.e. do a full backup of
+        the newly-created db so the automatic incremental backups make sense).
+      DESC
+      task :init_backup, :roles => :db do
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb"
+      end
     end
     
     namespace :server do
@@ -275,12 +294,12 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
         Change the default value of RAILS_ENV on the server. Technically
         this changes the server's mongrel config to use a different value
-        for "environment". The value is specified in :rails_env
+        for "environment". The value is specified in :rails_env.
+        Be sure to do deploy:restart after this.
       DESC
       task :set_rails_env, :roles => all_admin_role_names do
         rails_env = fetch(:rails_env, "production")
         sudo "/usr/local/ec2onrails/bin/set_rails_env #{rails_env}"
-        deploy.restart
       end
       
       desc <<-DESC

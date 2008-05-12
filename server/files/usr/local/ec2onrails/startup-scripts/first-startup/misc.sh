@@ -20,3 +20,5 @@
 
 
 chmod 777 /tmp
+
+cp /etc/hosts /etc/hosts.original

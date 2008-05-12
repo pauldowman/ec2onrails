@@ -19,4 +19,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+mkdir -p /mnt/mysql_data/tmp
+chown -R mysql:mysql /mnt/mysql_data/
 cp -rp /var/lib/mysql/mysql /mnt/mysql_data/

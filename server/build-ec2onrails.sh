@@ -19,23 +19,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This is a script to prepare an Amazon public Fedora AMI to build EC2 on Rails.
-# It's intended to run on an Amazon public x86_64 AMI: ami-36ff1a5f
+# This script runs the EC2 on Rails rakefile, it's meant to be called by
+# Eric Hammond's Ubuntu build script: http://alestic.com/
 
-#/etc/init.d/httpd stop
-#/etc/init.d/mysqld stop
 
-yum -y install busybox
-ln -s /sbin/busybox /bin/ar
+if [ -z `which rake` ] ; then
+  (
+  cd /tmp
+  wget http://rubyforge.org/frs/download.php/19879/rake-0.7.3.tgz
+  tar xvf rake-0.7.3.tgz
+  cd rake-0.7.3
+  ruby install.rb
+  )
+fi
 
-cd /tmp
+cd `dirname $0`
 
-wget http://rubyforge.org/frs/download.php/19879/rake-0.7.3.tgz
-
-tar xvf rake-0.7.3.tgz
-cd rake-0.7.3
-ruby install.rb
-
-echo
-echo "Now run 'rake'"
-echo
+if [ $(uname -m) = 'x86_64' ]; then
+  export ARCH=x86_64
+  rake
+else
+  rake
+fi

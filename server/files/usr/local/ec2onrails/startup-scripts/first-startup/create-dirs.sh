@@ -18,8 +18,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function make_dir() {
-  mkdir $1
+make_dir() {
+  mkdir -p $1
   if [ $2 ] ; then
     chown $2 $1
   fi

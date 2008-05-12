@@ -51,9 +51,12 @@ module Ec2onrails
       cmd += " -p'#{@password}' " unless @password.nil?
       Utils.run cmd
     end
-  
-    def dump(out_file)
-      cmd = "mysqldump --single-transaction --flush-logs --master-data=2 --delete-master-logs --opt -u#{@user} "
+    
+    def dump(out_file, reset_logs)
+      cmd = "mysqldump --quick --single-transaction -u#{@user} "
+      if reset_logs
+        cmd += " --flush-logs --master-data=2 --delete-master-logs "
+      end
       cmd += " -p'#{@password}' " unless @password.nil?
       cmd += " #{@database} | gzip > #{out_file}"
       Utils.run cmd    

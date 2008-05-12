@@ -52,17 +52,10 @@ fi
 echo "--> Clearing apt cache..."
 aptitude clean
 
-echo "--> Setting runlevel to 1 and pausing for 10 seconds..."
-runlevel --set=1
-sleep 10
-
 touch /ec2onrails-first-boot || fail
 
 echo "--> Clearing sensitive files..."
 rm -f /root/{.bash_history,.lesshst}
-
-echo "--> Deleting /etc/udev/rules.d/70-persistent-net.rules..."
-rm -f /etc/udev/rules.d/70-persistent-net.rules
 
 echo "--> Creating image..."
 ec2-bundle-vol -e "/root/.ssh,/home/app/.ssh,/home/admin/.ssh,/tmp,/mnt" -d /mnt -k "$EC2_PRIVATE_KEY" -c "$EC2_CERT" -u "$AWS_ACCOUNT_ID" || fail "ec2-bundle-vol failed"
