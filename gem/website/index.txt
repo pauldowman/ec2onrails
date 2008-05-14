@@ -32,10 +32,10 @@ Features of the EC2 image:
 * MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
 * Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
-* Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552
+* Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (Base image built with "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
 * Supports multiple instances
 * Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application's script directory
-* Local SMTP server
+* Local SMTP server (postfix)
 
 
 h2. Using the image
