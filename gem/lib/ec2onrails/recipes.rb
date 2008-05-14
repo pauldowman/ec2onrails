@@ -263,8 +263,9 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
-        Initialize the default backup folder on S3 (i.e. do a full backup of
-        the newly-created db so the automatic incremental backups make sense).
+        [internal] Initialize the default backup folder on S3 (i.e. do a full
+        backup of the newly-created db so the automatic incremental backups 
+        make sense).
       DESC
       task :init_backup, :roles => :db do
         run "/usr/local/ec2onrails/bin/backup_app_db.rb"
@@ -432,6 +433,7 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
+        Set the email address that mail to the admin user forwards to.
       DESC
       task :set_admin_mail_forward_address, :roles => all_admin_role_names do
         put cfg[:admin_mail_forward_address], "/home/admin/.forward"
