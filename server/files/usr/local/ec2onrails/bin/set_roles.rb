@@ -126,6 +126,8 @@ if in_role(:web)
     end
   end
   start(:web, "apache2")
+  # Force apache to reload config files in case it was already running and app hosts changed.
+  run "/etc/init.d/apache2 reload"
 else
   puts "Stopping web role..."
   stop(:web, "apache2")
@@ -134,12 +136,17 @@ end
 # app role:
 if in_role(:app)
   puts "Starting app role..."
-  # edit /etc/hosts, need db_primary address & db_slave address
-  db_primary_addr = @roles[:db_primary][0]
-  puts "db_primary has ip address: #{db_primary_addr}"
   
-  run("cp /etc/hosts.original /etc/hosts")
-  run("echo '\n#{db_primary_addr}\tdb_primary\n' >> /etc/hosts")
+  if @roles[:db_primary]
+    # edit /etc/hosts, need db_primary address & db_slave address
+    db_primary_addr = @roles[:db_primary][0]
+    puts "db_primary has ip address: #{db_primary_addr}"
+    
+    # TODO just use ruby here...
+    run("cp /etc/hosts.original /etc/hosts")
+    run("echo '\n#{db_primary_addr}\tdb_primary\n' >> /etc/hosts")
+  end
+  
   start(:app, "mongrel", "mongrel_rails")
 else
   puts "Stopping app role..."
