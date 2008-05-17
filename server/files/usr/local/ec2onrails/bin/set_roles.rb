@@ -108,10 +108,10 @@ end
 if in_role(:db_primary)
   puts "Starting db_primary role..."
   # increase caches, etc if no other roles exist?
-  start(:db_primary, "mysql")
+  start(:db_primary, "mysql", "mysqld")
 else
   puts "Stopping db_primary role..."
-  stop(:db_primary, "mysql")
+  stop(:db_primary, "mysql", "mysqld")
 end
 
 # web role:
