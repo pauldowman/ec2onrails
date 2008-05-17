@@ -12,6 +12,7 @@
 * Increased default memcache size to 128m, and memcache now listens on all interfaces for clustered use
 * Tuned MySQL setting defaults for better performance
 * Base image now built with Eric Hammond's EC2 Ubuntu script: http://alestic.com/
+* restore_db_and_deploy task now runs migrations after restoring db
 * upgrade_packages task now does "safe upgrade" instead of "full upgrade"
 * Now requires Capistrano 2.3.0
 * Bug fix: database backup script now exits cleanly instead of failing if instance is not in database role

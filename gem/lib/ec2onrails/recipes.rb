@@ -147,8 +147,8 @@ Capistrano::Configuration.instance.load do
       db.recreate
       deploy.update_code
       deploy.symlink
-      # don't need to migrate because we're restoring the db
       db.restore
+      deploy.migrations
     end
     
     namespace :ec2 do
