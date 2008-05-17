@@ -62,6 +62,7 @@ begin
     if ARGV.flags.noreset
       @mysql.dump(file, false)
     else
+      @mysql.execute_sql "reset master" # to reset the log file numbering
       @mysql.dump(file, true)
     end
     @s3.store_file file
