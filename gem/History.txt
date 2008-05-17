@@ -2,23 +2,24 @@
 
 * ami-XXXX (32-bit) and ami-XXXX (64-bit)
 * This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
-* Incremental database backups instead of doing a full mysqldump each time (full dump is done once nightly). (Thanks to Markus Bengts for the bug fix.)
+* Incremental database backups instead of doing a full mysqldump each time (full dump is done once nightly). (Thanks to Markus Bengts for the bug fix)
 * Added monit monitoring daemon: monitors mysqld, apache, memcached, mongrels, system load and free drive space
-* Enabled postfix by default, mail is delivered to admin user (or use new ec2onrails[:admin_mail_forward_address] option in deploy.rb to set an email address)
+* Enabled postfix by default, mail is delivered to admin user (or use new ec2onrails[:admin_mail_forward_address] option in deploy.rb to forward admin mail to an email address)
 * Apache now supports SSL, set :ec2onrails[:enable_ssl] = true to enable and upload ssl cert & key (there is also a self-signed cert generated for each instance on first startup)
-* Now installing rubygems from source instead of using Ubuntu package, updated to 1.1.1
+* Now installing latest rubygems (version 1.1.1) from source instead of using Ubuntu package
 * Apache now denies access to any file in a directory named .svn, to protect the subversion info of those who deploy with Capistrano "checkout" method
 * Added force-proxy-request-1.0 and proxy-nokeepalive for proxy requests to mongrel to fix occasional "proxy: error reading status line from remote server" error (mongrel doesn't support keep-alive anyway), see apache bug #37770
 * Increased default memcache size to 128m, and memcache now listens on all interfaces for clustered use
 * Tuned MySQL setting defaults for better performance
-* Database backup script now exits cleanly instead of failing if instance is not in database role
-* Database backup and restore scripts now exit if already backing up or restoring.
 * Base image now built with Eric Hammond's EC2 Ubuntu script: http://alestic.com/
-* Fixed a bug with /dev/sda2 (/mnt) being incorrectly mounted
 * upgrade_packages task now does "safe upgrade" instead of "full upgrade"
 * Now requires Capistrano 2.3.0
-* Doesn't try to load db config if no db
-* Reload apache config when setting roles to find new app hosts.
+* Bug fix: database backup script now exits cleanly instead of failing if instance is not in database role
+* Bug fix: Database backup and restore scripts now exit if already backing up or restoring.
+* Bug fix: some Ubuntu package repositories were missing from the list of repos.
+* Bug fix: EC2 ephemeral store and swap volumes were not correctly mounted
+* Bug fix: Database capistrano tasks don't try to load database config if there are no hosts in the "db" role (with :primary => true, slave roles not yet supported)
+* Bug fix: Reload apache config when setting roles to find new app hosts.
 
 
 == 0.9.7 2008-03-03
