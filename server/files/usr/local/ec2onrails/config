@@ -17,10 +17,10 @@ export JAVA_HOME="/usr/lib/jvm/java-6-sun"
 # Set the bash prompt to include the rails environment name
 case "$TERM" in
 xterm-color)
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]-\[\033[01;35m\]`rails_env`\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]-\[\033[01;35m\]`/usr/local/ec2onrails/bin/rails_env`\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
     ;;
 *)
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h-`rails_env`:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h-`/usr/local/ec2onrails/bin/rails_env`:\w\$ '
     ;;
 esac
 
