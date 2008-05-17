@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #    This file is part of EC2 on Rails.
 #    http://rubyforge.org/projects/ec2onrails/

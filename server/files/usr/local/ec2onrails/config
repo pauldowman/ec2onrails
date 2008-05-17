@@ -26,5 +26,5 @@ esac
 
 # Set some useful aliases
 alias app="pushd /mnt/app/current && sudo su app && popd"
-alias log="tail -f /mnt/app/current/log/`rails_env`.log"
+alias log="tail -f /mnt/app/current/log/`/usr/local/ec2onrails/bin/rails_env`.log"
 alias logs="tail -f /mnt/app/current/log/*.log /mnt/log/apache2/*.log /mnt/log/syslog"
