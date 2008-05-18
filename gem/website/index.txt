@@ -25,14 +25,14 @@ Features of the EC2 image:
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
 * "monit":http://www.tildeslash.com/monit/ system monitoring
-* Ubuntu 7.10 "Gutsy" with "Xen versions of standard libs":http://wiki.xensource.com/xenwiki/XenSpecificGlibc ("libc6-xen":http://packages.ubuntu.com/gutsy/libs/libc6-xen package).
+* Ubuntu 7.10 "Gutsy", base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 * SSL support
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
 * MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
 * Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
-* Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (Base image built with "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
+* Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (the EC2 on Rails script is run from "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
 * Supports multiple instances
 * Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application's script directory
 * Local SMTP server (postfix)

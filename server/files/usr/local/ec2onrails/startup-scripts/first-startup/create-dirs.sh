@@ -25,8 +25,6 @@ make_dir() {
   fi
 }
 
-make_dir /tmp
-
 make_dir /mnt/app app:app
 
 make_dir /mnt/log

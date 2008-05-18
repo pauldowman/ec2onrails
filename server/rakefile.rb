@@ -139,6 +139,8 @@ desc "Configure the image"
 task :configure => [:install_gems, :install_monit] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
+    sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
+
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version::STRING}")
     
     run_chroot "a2enmod deflate"
@@ -151,7 +153,7 @@ task :configure => [:install_gems, :install_monit] do |t|
     run_chroot "/usr/sbin/adduser admin adm"
     run_chroot "/usr/sbin/addgroup sudoers"
     
-    File.open("#{@fs_dir}/usr/local/sbin/get-credentials.sh", 'a') do |f|
+    File.open("#{@fs_dir}/usr/local/sbin/ec2-get-credentials", 'a') do |f|
       f << <<-END
         mkdir -p -m 700 /home/app/.ssh
         cp /root/.ssh/authorized_keys /home/app/.ssh

@@ -6,12 +6,12 @@
 * Added monit monitoring daemon: monitors mysqld, apache, memcached, mongrels, system load and free drive space
 * Enabled postfix by default, mail is delivered to admin user (or use new ec2onrails[:admin_mail_forward_address] option in deploy.rb to forward admin mail to an email address)
 * Apache now supports SSL, set :ec2onrails[:enable_ssl] = true to enable and upload ssl cert & key (there is also a self-signed cert generated for each instance on first startup)
+* Base image now built with Eric Hammond's EC2 Ubuntu script: http://alestic.com/ (using svn revision 44)
 * Now installing latest rubygems (version 1.1.1) from source instead of using Ubuntu package
 * Apache now denies access to any file in a directory named .svn, to protect the subversion info of those who deploy with Capistrano "checkout" method
 * Added force-proxy-request-1.0 and proxy-nokeepalive for proxy requests to mongrel to fix occasional "proxy: error reading status line from remote server" error (mongrel doesn't support keep-alive anyway), see apache bug #37770
 * Increased default memcache size to 128m, and memcache now listens on all interfaces for clustered use
 * Tuned MySQL setting defaults for better performance
-* Base image now built with Eric Hammond's EC2 Ubuntu script: http://alestic.com/
 * restore_db_and_deploy task now runs migrations after restoring db
 * upgrade_packages task now does "safe upgrade" instead of "full upgrade"
 * Now requires Capistrano 2.3.0
