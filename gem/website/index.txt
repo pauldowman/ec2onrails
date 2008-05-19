@@ -65,8 +65,11 @@ to the instance defined in your Capistrano "db" role.
 
 h4. 4. Start up one or more instances of the image.
 
-Soon there will be a Capistrano task to do this for you. In the meantime I'm not going to lie, this part is complicated
-the first time. Read the 
+There is nothing EC2 on Rails-specific here yet (though soon there will be a Capistrano task to do this for you), 
+if you've started EC2 instances before you can skip this section. Otherwise, I'm not going to lie, this part is complicated
+the first time.
+
+Read the 
 "running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html
 in Amazon's getting started guide.
 
@@ -85,7 +88,7 @@ password-based logins are disabled. You log in with your own
 Most basic things can be configured automatically by the Capistrano tasks, but if you want to 
 you can login by ssh as a user named "admin" (has sudo ability) or as "app" (the user 
 that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
-use the app user use to deploy the app, and the admin user for server admin tasks 
+use the app user to deploy the app, and the admin user for server admin tasks 
 that require sudo.
 
 Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. 
@@ -95,11 +98,11 @@ If you're using multiple instances, be sure to allow them network access to each
 
 h4. 5. Copy your public key from the server to keep Capistrano happy
 
-Technically all you should need to connect to the server is the private key file, the public key is on the server. 
-But for some reason 
+This is a workaround for a quirk in Capistrano. Technically all you should need to connect to the server is the private 
+key file, the public key is on the server. But for some reason 
 "Capistrano requires that you have both the public key and the private key files together on the client":http://groups.google.com/group/capistrano/browse_thread/thread/1102208ff925d18.
 
-From within the root of your rails app do:
+There is a Capistrano task that tries to fix this for you. From within the root of your rails app do:
 
 <pre>cap ec2onrails:get_public_key_from_server</pre>
 
@@ -107,6 +110,8 @@ Note, this will only work if you have an external ssh command in the path, it wo
 
 
 h4. 6. Deploy the app with Capistrano
+
+Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, this is the only thing you'll need to do from now on.
 
 <pre>
 cap ec2onrails:setup

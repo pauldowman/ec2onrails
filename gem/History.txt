@@ -1,3 +1,10 @@
+== 0.9.9 xxx-xx-xx
+
+* ami-xxx (32-bit) and ami-xxx (64-bit)
+* This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
+*
+
+
 == 0.9.8 2007-05-19
 
 * ami-b657b2df (32-bit) and ami-8957b2e0 (64-bit)
