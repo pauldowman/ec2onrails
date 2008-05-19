@@ -196,9 +196,6 @@ Capistrano::Configuration.instance.load do
       task :create, :roles => :db do
         on_rollback { drop }
         load_config
-        # Make sure the MySQL server has been started, just in case the db role 
-        # hasn't been set, e.g. when called from ec2onrails:setup.
-        # (But don't enable monitoring on it.)
         start
         run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
         run %{mysql -u root -e "grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}

@@ -15,11 +15,12 @@
 * restore_db_and_deploy task now runs migrations after restoring db
 * upgrade_packages task now does "safe upgrade" instead of "full upgrade"
 * Now requires Capistrano 2.3.0
-* Bug fix: database backup script now exits cleanly instead of failing if instance is not in database role
+* Bug fix: #20040: installing or upgrading packages no longer breaks - /etc/apt/sources.list is now correct
+* Bug fix: #19808: Capistrano database tasks don't try to load database config if there are no hosts in the "db" role (with :primary => true, slave roles not yet supported)
+* Bug fix: #19791: MySQL no longer fails after rebundling due to missing /mnt/mysql_data
+* Bug fix: #14555: Syslog messages about unacknowledged DHCP requests is no longer occurring
 * Bug fix: Database backup and restore scripts now exit if already backing up or restoring.
-* Bug fix: some Ubuntu package repositories were missing from the list of repos.
 * Bug fix: EC2 ephemeral store and swap volumes were not correctly mounted
-* Bug fix: Database capistrano tasks don't try to load database config if there are no hosts in the "db" role (with :primary => true, slave roles not yet supported)
 * Bug fix: Reload apache config when setting roles to find new app hosts.
 
 
