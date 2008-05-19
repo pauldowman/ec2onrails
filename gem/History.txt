@@ -1,6 +1,6 @@
-== 0.9.8 XXXX-XX-XX
+== 0.9.8 2007-05-19
 
-* ami-XXXX (32-bit) and ami-XXXX (64-bit)
+* ami-b657b2df (32-bit) and ami-8957b2e0 (64-bit)
 * This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
 * Incremental database backups instead of doing a full mysqldump each time (full dump is done once nightly). (Thanks to Markus Bengts for the bug fix)
 * Added monit monitoring daemon: monitors mysqld, apache, memcached, mongrels, system load and free drive space

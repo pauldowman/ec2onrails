@@ -16,7 +16,7 @@ _Deploying a simple rails app is simple, and complex customization (if required)
 Features of the EC2 image:
 
 * Ready to deploy a Rails app with little or no configuration of the server required
-* Automatic backup of MySQL database to S3 (full backup nightly + incremental using binary logs every 10 minutes)
+* Automatic backup of MySQL database to S3 (full backup nightly + incremental backup using binary logs every 10 minutes)
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
@@ -25,7 +25,7 @@ Features of the EC2 image:
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
 * "monit":http://www.tildeslash.com/monit/ system monitoring
-* Ubuntu 7.10 "Gutsy", base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
+* Ubuntu 7.10 "Gutsy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 * SSL support
 * Amazon AMI tools installed
 * A script to rebundle a customized version of the image in one step if required
