@@ -210,7 +210,9 @@ Capistrano::Configuration.instance.load do
       DESC
       task :start, :roles => :db_admin do
         sudo "chmod a+x /etc/init.d/mysql"
-        sudo "/etc/init.d/mysql start"
+        # The mysql init script can fail on the first startup if mysql takes too long 
+        # to create the logfiles, so try again
+        sudo "/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)"
       end
       
       desc <<-DESC
@@ -444,7 +446,7 @@ Capistrano::Configuration.instance.load do
       task :enable_ssl, :roles => :web_admin do
         sudo "a2enmod ssl"
         sudo "a2ensite default-ssl"
-        sudo "/etc/init.d/apache2 restart"
+        run_init_script("apache2", "restart")
       end
     end
     

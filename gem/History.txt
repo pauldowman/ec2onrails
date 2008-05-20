@@ -1,8 +1,9 @@
-== 0.9.9 xxx-xx-xx
+== 0.9.8.1 2007-05-20
 
-* ami-xxx (32-bit) and ami-xxx (64-bit)
+* ami-b657b2df (32-bit) and ami-8957b2e0 (64-bit) (same AMI's as 0.9.8, this is an update to the RubyGem only)
 * This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
-*
+* Bug fix: if :ec2onrails[:enable_ssl] = true the setup task fails due to /etc/init.d/apache2 not executable
+* Bug fix: retry the the first mysqld startup, because on first startup sometimes the /etc/init.d/mysql startup script thinks it failed because mysqld took too long to physically write the logs full.
 
 
 == 0.9.8 2007-05-19
