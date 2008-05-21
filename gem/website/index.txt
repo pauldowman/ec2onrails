@@ -35,7 +35,7 @@ Features of the EC2 image:
 * Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (the EC2 on Rails script is run from "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
 * Supports multiple instances
 * Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application's script directory
-* Local SMTP server (postfix)
+* Local "Postfix":http://www.postfix.org/ SMTP server (only available from within the instance, not listening on external network interfaces)
 
 
 h2. Using the image
