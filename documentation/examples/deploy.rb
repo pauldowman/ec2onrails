@@ -2,9 +2,6 @@
 
 set :application, "yourapp"
 
-#set :deploy_via, :copy       # optional, see Capistrano docs for details
-#set :copy_strategy, :export  # optional, see Capistrano docs for details
-
 set :repository, "http://svn.foo.com/svn/#{application}/trunk"
 
 # NOTE: for some reason Capistrano requires you to have both the public and
@@ -12,7 +9,9 @@ set :repository, "http://svn.foo.com/svn/#{application}/trunk"
 # extension ".pub".
 ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/your-ec2-key"]
 
-# Your EC2 instances
+# Your EC2 instances. Use the ec2-xxx....amazonaws.com hostname, not
+# any other name (in case you have your own DNS alias) or it won't
+# be able to resolve to the internal IP address.
 role :web,      "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
@@ -20,7 +19,8 @@ role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 
 set :rails_env, "production"
 
-# EC2 on Rails config
+# EC2 on Rails config. Many of these can be omitted if not needed, check
+# the documentation.
 set :ec2onrails_config, {
   # S3 bucket and subdir used by the ec2onrails:db:restore task. The subdir
   # is probably just "database"
