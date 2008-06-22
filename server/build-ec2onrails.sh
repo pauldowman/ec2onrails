@@ -24,6 +24,7 @@
 
 
 if [ -z `which rake` ] ; then
+  echo "Installing rake..."
   (
   cd /tmp
   wget http://rubyforge.org/frs/download.php/19879/rake-0.7.3.tgz

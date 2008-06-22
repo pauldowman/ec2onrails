@@ -8,10 +8,16 @@ EC2 on Rails is an Ubuntu Linux server image for
 that's ready to run a standard Ruby on Rails application with little or no customization. 
 It's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
 
-If you have an EC2 account and a public keypair you're five minutes away from deploying
+If you have an EC2 account and can start EC2 instances you're five minutes away from deploying
 your Rails app.
 
-_Deploying a simple rails app is simple, and complex customization (if required) is possible._
+EC2 on Rails is opinionated software: the opinion is that for the majority of rails apps the server setup can be generalized
+and shared the same way as the web application framework itself. For most people (Twitter, this isn't for you) 
+the server image can be treated the same way as other shared libraries. And if the day comes when your needs are
+unique enough that EC2 on Rails can't be configured to work for you then you can bundle your own image from it
+or fork the build source and customize it. 
+
+But until then, why spend your time configuring servers?
 
 Features of the EC2 image:
 
@@ -20,7 +26,7 @@ Features of the EC2 image:
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
-* Ruby on Rails 2.0.2 and 1.2.6
+* Ruby on Rails 2.1.0, 2.0.2 and 1.2.6
 * Ruby 1.8.6
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
@@ -28,7 +34,6 @@ Features of the EC2 image:
 * Ubuntu 7.10 "Gutsy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 * SSL support
 * Amazon AMI tools installed
-* A script to rebundle a customized version of the image in one step if required
 * MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
 * Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
@@ -92,7 +97,8 @@ use the app user to deploy the app, and the admin user for server admin tasks
 that require sudo.
 
 Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. 
-Be sure that you haven't allowed public access to any ports other than TCP 22 and TCP 80.
+Be sure that you haven't allowed public access to any ports other than TCP 22 and TCP 80
+(and possibly TCP 443 if you're going to enable HTTPS).
 If you're using multiple instances, be sure to allow them network access to each other.
 
 
@@ -111,7 +117,8 @@ Note, this will only work if you have an external ssh command in the path, it wo
 
 h4. 6. Deploy the app with Capistrano
 
-Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, this is the only thing you'll need to do from now on.
+Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, 
+this is the only thing you'll need to do from now on.
 
 <pre>
 cap ec2onrails:setup
@@ -124,87 +131,12 @@ create your database.
 
 That's it, your app is now running on EC2!!
 
-h2. Capistrano tasks
-
-I'll post full documentation for the Capistrano tasks soon, in the meantime here's a brief summary:
-
-Server config tasks. These run as the admin user. You can specify lists of
-gems and Ubuntu packages to be installed. The deploy_files task uploads
-files to the server (they will be owned by root). It's intended mainly for
-customized config files for new packages installed via the install_packages
-task.
-* <code>cap ec2onrails:server:deploy_files</code>
-* <code>cap ec2onrails:server:set_timezone</code>
-* <code>cap ec2onrails:server:upgrade_gems</code>
-* <code>cap ec2onrails:server:upgrade_packages</code>
-* <code>cap ec2onrails:server:install_gems</code>
-* <code>cap ec2onrails:server:install_packages</code>
-* <code>cap ec2onrails:server:upgrade_and_install_all</code>
-* <code>cap ec2onrails:server:restart_services</code>
-* <code>cap ec2onrails:server:set_roles</code>
-- Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).
-For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
-are running. Eventually this will customize settings for the running services also. Note that
-an instance can have more than one role. If there's only one instance it will have all roles.
-
-Database management tasks: archive and restore can operate on any specified S3 bucket. 
-For example, I use this to restore the current production data (from my actual production backup
-bucket) onto a staging server that has the current production version of my
-app. I then deploy the new version which tests migrations exactly as they'll
-run on the production server.
-* <code>cap ec2onrails:db:archive</code>
-* <code>cap ec2onrails:db:restore</code>
-* <code>cap ec2onrails:db:create</code>
-* <code>cap ec2onrails:db:drop</code>
-* <code>cap ec2onrails:db:recreate</code>
-* <code>cap ec2onrails:db:set_root_password</code>
-
-* <code>cap ec2onrails:ami_ids</code>
-- Shows the AMI id's of the images that match the current version of the gem.
-
-* <code>cap ec2onrails:setup</code>
-- This is a convenience task to get a new instance completely set up in one
-step, everything except deploying the app.
-
-* <code>cap ec2onrails:restore_db_and_deploy</code>
-- Another convenience task to recreate the db, restore data to it from an s3
-bucket and deploy the app, useful to set up a staging server.
-
-To get a full list of the Capistrano tasks at any time type <code>cap -T</code> from with your rails app root.
-
-
-h2. Saving your own customized version of the image.
-
-I'm trying to make the image configurable enough that you won't need to do this, but 
-if you want to save a customized version of the image, there is a script to do it: 
-<code>/usr/local/ec2onrails/bin/rebundle.sh</code>. It takes a long time and there 
-are long periods with no output so you might want to hit a key once in a while 
-(or set "ServerAliveInterval 60" in your ssh_config file) to avoid being disconnected 
-while it's running.
-
-It expects a directory, /mnt/aws-config, that contains a config file and your AWS 
-access identifiers. The contents of the directory are the following three files:
-
-* cert-XXXX.pem and pk-XXXX.pem. These are the X.509 certificate and private key files from your Amazon access key identifiers.
-* A file named config. It's contents should look like the following:
-
-<pre>
-AWS_ACCOUNT_ID=1234-1234-1234
-KEY_FILE_NAME=pk-XXXX.pem
-CERT_FILE_NAME=cert-XXXX.pem
-AWS_ACCESS_KEY_ID=ABC0123
-AWS_SECRET_ACCESS_KEY=abc0123abc0123abc0123
-BUCKET_BASE_NAME=a-string-identifier
-</pre>
-
 
 h2. Building the image
 
 Building the image is not required, most people will simply use the prebuilt public
-image, but there is also a Rake build script that builds the image, and optionally bundles 
-and uploads it to S3. 
-It should run on any Linux system, including one of the stock Fedora-based Amazon public AMI's 
-(it is tested on "Amazon's FC6 x86_64 image":http://developer.amazonwebservices.com/connect/entry.jspa?externalID=994&categoryID=101).
+image, but there is also a build script that builds the image, and optionally bundles 
+and uploads it to S3. It's called by with "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 
 
 h2. Mailing lists

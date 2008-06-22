@@ -17,9 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This script is meant to be run by Eric Hammond's Ubuntu build script:
-# http://alestic.com/
-# There is a bash script wrapper: build-ec2onrails.sh
+# This script is meant to be run by build-ec2onrails.sh, which is run by
+# Eric Hammond's Ubuntu build script: http://alestic.com/
 # e.g.:
 # bash /mnt/ec2ubuntu-build-ami --script /mnt/ec2onrails/server/build-ec2onrails.sh ...
 
@@ -28,7 +27,6 @@
 require "rake/clean"
 require 'yaml'
 require 'erb'
-#require 'EC2'
 require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
 
 if `whoami`.strip != 'root'
@@ -45,6 +43,7 @@ end
   curl
   flex
   gcc
+  git-core
   irb
   less
   libdbm-ruby
@@ -86,6 +85,7 @@ end
   "mongrel_cluster",
   "optiflag",
   "rails",
+  "rails -v 2.0.2",
   "rails -v 1.2.6",
   "rake"
 ]
@@ -93,7 +93,7 @@ end
 @build_root = "/mnt/build"
 @fs_dir = "#{@build_root}/ubuntu"
 
-@version = Ec2onrails::VERSION
+@version = [Ec2onrails::VERSION::MAJOR, Ec2onrails::VERSION::MINOR, Ec2onrails::VERSION::TINY].join('.')
 
 task :default => :configure
 
@@ -131,7 +131,7 @@ task :install_monit => [:install_packages] do |t|
   unless_completed(t) do
     run_chroot "sh -c 'cd /tmp && wget http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
-    run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ && make && make install'"
+    run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ --localstatedir=/var/run && make && make install'"
   end
 end
 
@@ -141,7 +141,7 @@ task :configure => [:install_gems, :install_monit] do |t|
     sh("cp -r files/* #{@fs_dir}")
     sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
 
-    replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version::STRING}")
+    replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
     
     run_chroot "a2enmod deflate"
     run_chroot "a2enmod proxy_balancer"

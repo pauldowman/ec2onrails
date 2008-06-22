@@ -64,7 +64,8 @@ Capistrano::Configuration.instance.load do
     DESC
     task :start, :roles => :app_admin do
       run_init_script("mongrel", "start")
-      sudo "sleep 30 && monit -g app monitor all" # give the service 30 seconds to start before attempting to monitor it
+      run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
+      sudo "monit -g app monitor all"
     end
     
     desc <<-DESC
@@ -169,7 +170,7 @@ Capistrano::Configuration.instance.load do
         unless hostnames_for_role(:db, :primary => true).empty?
           db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env.to_s]
           cfg[:db_name] = db_config['database']
-          cfg[:db_user] = db_config['username']
+          cfg[:db_user] = db_config['username'] || db_config['user'] 
           cfg[:db_password] = db_config['password']
           cfg[:db_host] = db_config['host']
           cfg[:db_socket] = db_config['socket']
@@ -197,6 +198,11 @@ Capistrano::Configuration.instance.load do
         on_rollback { drop }
         load_config
         start
+        
+        # For some reason the default db on Hardy contains users with '' as the name.
+        # This causes authentication problems when connecting from localhost
+        run %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
+        
         run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
         run %{mysql -u root -e "grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
@@ -204,7 +210,7 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
-        Make sure the MySQL server has been started, just in case the db role 
+        [internal] Make sure the MySQL server has been started, just in case the db role 
         hasn't been set, e.g. when called from ec2onrails:setup.
         (But don't enable monitoring on it.)
       DESC
@@ -212,7 +218,7 @@ Capistrano::Configuration.instance.load do
         sudo "chmod a+x /etc/init.d/mysql"
         # The mysql init script can fail on the first startup if mysql takes too long 
         # to create the logfiles, so try again
-        sudo "/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)"
+        sudo "sh -c '/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)'"
       end
       
       desc <<-DESC
@@ -246,10 +252,10 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
         Dump the MySQL database to the S3 bucket specified by \
         ec2onrails_config[:archive_to_bucket]. The filename will be \
-        "app-<timestamp>.sql.gz".
+        "database-archive/<timestamp>/dump.sql.gz".
       DESC
       task :archive, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --noreset --bucket #{cfg[:archive_to_bucket]} --dir database-#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -435,7 +441,7 @@ Capistrano::Configuration.instance.load do
         Set the email address that mail to the admin user forwards to.
       DESC
       task :set_admin_mail_forward_address, :roles => all_admin_role_names do
-        put cfg[:admin_mail_forward_address], "/home/admin/.forward"
+        put cfg[:admin_mail_forward_address], "/home/admin/.forward" if cfg[:admin_mail_forward_address]
       end
 
       desc <<-DESC

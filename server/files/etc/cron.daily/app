@@ -2,4 +2,4 @@
 
 test -e /mnt/app/current/script/daily || exit 0
 cd /mnt/app/current
-/usr/local/ec2onrails/bin/rails_env sudo -u app script/daily
+sudo -u app /usr/local/ec2onrails/bin/rails_env script/daily

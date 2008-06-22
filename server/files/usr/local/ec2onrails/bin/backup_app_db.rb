@@ -32,7 +32,7 @@ module CommandLineArgs extend OptiFlagSet
   optional_flag "bucket"
   optional_flag "dir"
   optional_switch_flag "incremental"
-  optional_switch_flag "noreset"
+  optional_switch_flag "reset"
   and_process!
 end
 
@@ -41,7 +41,7 @@ bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir || "database"
 @s3 = Ec2onrails::S3Helper.new(bucket, dir)
 @mysql = Ec2onrails::MysqlHelper.new
-@temp_dir = "/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir}"
+@temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
   exit
@@ -59,12 +59,7 @@ begin
   else
     # Full backup
     file = "#{@temp_dir}/dump.sql.gz"
-    if ARGV.flags.noreset
-      @mysql.dump(file, false)
-    else
-      @mysql.execute_sql "reset master" # to reset the log file numbering
-      @mysql.dump(file, true)
-    end
+    @mysql.dump(file, ARGV.flags.reset)
     @s3.store_file file
     @s3.delete_files("mysql-bin")
   end

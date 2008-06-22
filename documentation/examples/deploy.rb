@@ -22,13 +22,13 @@ set :rails_env, "production"
 # EC2 on Rails config. Many of these can be omitted if not needed, check
 # the documentation.
 set :ec2onrails_config, {
-  # S3 bucket and subdir used by the ec2onrails:db:restore task. The subdir
-  # is probably just "database"
+  # S3 bucket and "subdir" used by the ec2onrails:db:restore task
   :restore_from_bucket => "your-bucket",
   :restore_from_bucket_subdir => "database",
   
-  # S3 bucket used by the ec2onrails:db:archive task
+  # S3 bucket and "subdir" used by the ec2onrails:db:archive task
   :archive_to_bucket => "your-other-bucket",
+  :archive_to_bucket_subdir => "db-archive/#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}",
   
   # Set a root password for MySQL. Run "cap ec2onrails:db:set_root_password"
   # to enable this. This is optional, and after doing this the
