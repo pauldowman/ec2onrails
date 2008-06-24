@@ -3,4 +3,4 @@
 
 # Full backup every day at 05:01, reset the binary logs.
 # First kill any incremental backup that happens to be in progress
-1 5 * * *  root  killall -q -u root backup_app_db.rb && /usr/local/ec2onrails/bin/backup_app_db.rb --reset
+1 5 * * *  root  killall -q -u root backup_app_db.rb ; /usr/local/ec2onrails/bin/backup_app_db.rb --reset
