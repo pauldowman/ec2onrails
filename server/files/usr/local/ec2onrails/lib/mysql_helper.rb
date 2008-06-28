@@ -53,7 +53,7 @@ module Ec2onrails
     end
     
     def dump(out_file, reset_logs)
-      cmd = "mysqldump --quick --single-transaction -u#{@user} "
+      cmd = "mysqldump --quick --single-transaction --create-options -u#{@user} "
       if reset_logs
         cmd += " --flush-logs --master-data=2 --delete-master-logs "
       end
