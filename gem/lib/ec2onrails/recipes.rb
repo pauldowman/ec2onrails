@@ -273,7 +273,7 @@ Capistrano::Configuration.instance.load do
         make sense).
       DESC
       task :init_backup, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
       end
     end
     
