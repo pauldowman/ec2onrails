@@ -1,4 +1,5 @@
 # This is a sample Capistrano config file for EC2 on Rails.
+# It should be edited and customized.
 
 set :application, "yourapp"
 
@@ -17,16 +18,22 @@ role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
 role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 
+# Whatever you set here will be taken set as the default RAILS_ENV value
+# on the server. Your app and your hourly/daily/weekly/monthly scripts
+# will run with RAILS_ENV set to this value.
 set :rails_env, "production"
 
-# EC2 on Rails config. Many of these can be omitted if not needed, check
-# the documentation.
+# EC2 on Rails config. 
+# NOTE: Some of these should be omitted if not needed.
 set :ec2onrails_config, {
   # S3 bucket and "subdir" used by the ec2onrails:db:restore task
   :restore_from_bucket => "your-bucket",
   :restore_from_bucket_subdir => "database",
   
   # S3 bucket and "subdir" used by the ec2onrails:db:archive task
+  # This does not affect the automatic backup of your MySQL db to S3, it's
+  # just for manually archiving a db snapshot to a different bucket if 
+  # desired.
   :archive_to_bucket => "your-other-bucket",
   :archive_to_bucket_subdir => "db-archive/#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}",
   
@@ -35,13 +42,16 @@ set :ec2onrails_config, {
   # ec2onrails:db:drop task won't work, but be aware that MySQL accepts 
   # connections on the public network interface (you should block the MySQL
   # port with the firewall anyway). 
+  # If you don't care about setting the mysql root password then remove this.
   :mysql_root_password => "your-mysql-root-password",
   
   # Any extra Ubuntu packages to install if desired
+  # If you don't want to install extra packages then remove this.
   :packages => ["logwatch", "imagemagick"],
   
   # Any extra RubyGems to install if desired: can be "gemname" or if a 
   # particular version is desired "gemname -v 1.0.1"
+  # If you don't want to install extra rubygems then remove this
   :rubygems => ["rmagick", "rfacebook -v 0.9.7"],
   
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
@@ -53,12 +63,18 @@ set :ec2onrails_config, {
   # ec2onrails:server:install_packages task. Subdirectories and files inside
   # here will be placed in the same structure relative to the root of the
   # server's filesystem. 
+  # If you don't need to deploy customized config files to the server then
+  # remove this.
   :server_config_files_root => "../server_config",
   
-  # If config files are deployed, some services might need to be restarted
+  # If config files are deployed, some services might need to be restarted.
+  # If you don't need to deploy customized config files to the server then
+  # remove this.
   :services_to_restart => %w(apache2 postfix sysklogd),
   
-  # Set an email address to forward admin mail messages to
+  # Set an email address to forward admin mail messages to. If you don't
+  # want to receive mail from the server (e.g. monit alert messages) then
+  # remove this.
   :admin_mail_forward_address => "you@yourdomain.com",
   
   # Set this if you want SSL to be enabled on the web server. The SSL cert 
