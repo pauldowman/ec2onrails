@@ -1,3 +1,21 @@
+== 0.9.9 2008-07-01
+
+* ami-c9bc58a0 (32-bit) and ami-cbbc58a2 (64-bit)
+* This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
+* Updated to Ubuntu 8.04 "Hardy"
+* Added new required option to :ec2onrails_config in deploy.rb: ec2onrails_config[:archive_to_bucket_subdir] is used by the ec2onrails:db:archive Capistrano task. See http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb
+* Database backup script parameters changed, now takes --reset to reset the binary logs, no longer takes --no-reset (not resetting the binary logs is now the default)
+* Database backup script no longer resets binary log file numbering
+* Now includes Rails 2.1.0 (still includes 2.0.2 and 1.2.6)
+* Incremental database backup frequency increased to every 5 minutes since it's very inexpensive to do
+* No longer randomize passwords on startup since they're disabled already
+* Installed git-core package
+* MySQL backup and restore scripts now use /mnt/tmp instead of /tmp for temp files in case database dump files are huge
+* MySQL backup now uses --create-options option on mysqldump to preserve MySQL-specific create table options
+* Built with ec2ubuntu build script version 68 (http://alestic.com)
+* Updated Capistrano tasks to work with Capistrano 2.4.3
+
+
 == 0.9.8.1 2008-05-20
 
 * ami-b657b2df (32-bit) and ami-8957b2e0 (64-bit) (same AMI's as 0.9.8, this is an update to the RubyGem only)

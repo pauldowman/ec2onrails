@@ -11,8 +11,9 @@ It's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_ap
 If you have an EC2 account and can start EC2 instances you're five minutes away from deploying
 your Rails app.
 
-EC2 on Rails is opinionated software: the opinion is that for the majority of rails apps the server setup can be generalized
-and shared the same way as the web application framework itself. For most people (Twitter, this isn't for you) 
+EC2 on Rails is "opinionated software":http://gettingreal.37signals.com/ch04_Make_Opinionated_Software.php:
+the opinion is that for many rails apps the server setup can be generalized
+and shared the same way as the web application framework itself. For many people (Twitter, this isn't for you) 
 the server image can be treated the same way as other shared libraries. And if the day comes when your needs are
 unique enough that EC2 on Rails can't be configured to work for you then you can bundle your own image from it
 or fork the build source and customize it. 
@@ -22,7 +23,7 @@ But until then, why spend your time configuring servers?
 Features of the EC2 image:
 
 * Ready to deploy a Rails app with little or no configuration of the server required
-* Automatic backup of MySQL database to S3 (full backup nightly + incremental backup using binary logs every 10 minutes)
+* Automatic backup of MySQL database to S3 (full backup nightly + incremental backup using binary logs every 5 minutes)
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
@@ -30,23 +31,28 @@ Features of the EC2 image:
 * Ruby 1.8.6
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
-* "monit":http://www.tildeslash.com/monit/ system monitoring
-* Ubuntu 7.10 "Gutsy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
+* "monit":http://www.tildeslash.com/monit/ configured to monitor apache, mongrel, mysql, memcached, drive space and system load
+* Ubuntu 8.04 LTS "Hardy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 * SSL support
 * Amazon AMI tools installed
 * MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
 * Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
 * Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (the EC2 on Rails script is run from "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
-* Supports multiple instances
+* Can be used as a clustered Rails app running on multiple instances
 * Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application's script directory
-* Local "Postfix":http://www.postfix.org/ SMTP server (only available from within the instance, not listening on external network interfaces)
+* Local "Postfix":http://www.postfix.org/ SMTP mail server (only available from within the instance, not listening on external network interfaces)
 
 
 h2. Using the image
 
 This documentation will be improved soon, for now hopefully this covers the basics. 
-For the AMI id's of the current images see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt.
+
+The current AMI id's are:
+* ami-c9bc58a0 (32-bit)
+* ami-cbbc58a2 (64-bit)
+
+_I will keep these images for as long as possible, they will not be deleted for at least a few years._
 
 
 h4. 1. Install the gem
@@ -62,24 +68,23 @@ and
 "s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml
 in the config folder.
 
-Be sure to customize those files and read the comments.
+_Be sure to customize those files and read the comments._
 
-Also, if you're using a separate instance for the database, use the hostname "db_primary"
-in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve
+Also, use the hostname "db_primary" in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve
 to the instance defined in your Capistrano "db" role.
 
 h4. 4. Start up one or more instances of the image.
 
 There is nothing EC2 on Rails-specific here yet (though soon there will be a Capistrano task to do this for you), 
 if you've started EC2 instances before you can skip this section. Otherwise, I'm not going to lie, this part is complicated
-the first time.
+and will take a lot more than 5 minutes the first time.
 
 Read the 
 "running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html
 in Amazon's getting started guide.
 
-For the AMI id's of the current images see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt
-or do <code>cap ec2onrails:ami_ids</code> from within the app that you configured in the previous step.
+For the AMI id's of the current images do <code>cap ec2onrails:ami_ids</code> from within the app that you 
+configured in the previous step (they're also listed earlier on this page).
 
 _NOTE: Only use the images that match the current version of the gem._
 
@@ -96,7 +101,7 @@ that the app runs as, does not have sudo ability). The Capistrano tasks automati
 use the app user to deploy the app, and the admin user for server admin tasks 
 that require sudo.
 
-Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. 
+IMPORTANT: Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. 
 Be sure that you haven't allowed public access to any ports other than TCP 22 and TCP 80
 (and possibly TCP 443 if you're going to enable HTTPS).
 If you're using multiple instances, be sure to allow them network access to each other.
@@ -132,18 +137,65 @@ create your database.
 That's it, your app is now running on EC2!!
 
 
+h2. Capistrano tasks
+
+"Capistrano":http://capify.org is the most commonly used Rails deployment tool. It comes with many standard "tasks",
+and the EC2 on Rails gem includes Capistrano tasks specifically for configuring the server instance.
+
+Capistrano is run from the command-line using the "cap" command, with a task name given as an argument.
+
+h3. Commonly-used tasks
+
+You'll mostly need just the following Capistrano tasks:
+
+* <code>cap ec2onrails:ami_ids</code>
+Shows the AMI id's of the images that match the current version of the gem.
+
+* <code>cap ec2onrails:setup</code>
+This task configures a newly-launched instance. This is the first thing you should do after
+starting a new instance. It can be run more than once without ill effect. After running 
+"cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
+
+* <code>cap ec2onrails:server:set_roles</code>
+Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).
+Run this after starting or stopping instances.
+For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
+are running. Eventually this will customize settings for the running services also. Note that
+an instance can have more than one role. If there's only one instance it will have all roles.
+
+Note that due to the way that Capistrano works all tasks are run
+against all hosts that are currently defined in the deploy.rb file.
+So if you start a new instance then add it to your deploy.rb you will need to run 
+"cap ec2onrails:setup" again which will be run on all existing instances.
+
+
+h3. Database management tasks
+
+* <code>cap ec2onrails:db:archive</code>
+Archive the MySQL database to the bucket specified in your deploy.rb. This is for archiving a snapshot of your
+database into any S3 bucket. For example, you might want to do this before deploying.
+
+* <code>cap ec2onrails:db:restore</code>
+Restore the MySQL database from the bucket specified in your deploy.rb
+For example, I use this to restore the current production data (from my actual production backup
+bucket) onto a staging server that has the current production version of my
+app. I then deploy the new version which tests migrations exactly as they'll
+run on the production server.
+
+To get a full list of the Capistrano tasks at any time type <code>cap -T</code> from with your rails app root.
+
 h2. Building the image
 
 Building the image is not required, most people will simply use the prebuilt public
-image, but there is also a build script that builds the image, and optionally bundles 
-and uploads it to S3. It's called by with "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
+image, but there is also a build script that builds the image. It's meant to be called by
+"Eric Hammond's EC2 Ubuntu script":http://alestic.com/.
 
 
 h2. Mailing lists
 
 There are two Google groups, one for 
 "announcements":http://groups.google.com/group/ec2-on-rails-announce
-and one for 
+(usually just new release announcements) and one for 
 "discussion":http://groups.google.com/group/ec2-on-rails-discuss.
 
 
