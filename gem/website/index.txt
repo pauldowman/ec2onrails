@@ -52,7 +52,7 @@ The current AMI id's are:
 * ami-c9bc58a0 (32-bit)
 * ami-cbbc58a2 (64-bit)
 
-_I will keep these images for as long as possible, they will not be deleted for at least a few years._
+_I will keep these images available for as long as possible, they will not be deleted for at least a few years._
 
 
 h4. 1. Install the gem
