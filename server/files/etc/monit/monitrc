@@ -3,7 +3,7 @@ set logfile syslog facility log_daemon
 set mailserver localhost
 set mail-format {
   from: admin@localhost
-  subject: $HOST: $SERVICE $EVENT at $DATE
+  subject: $HOST: $SERVICE $EVENT
 }
 set alert admin@localhost only on { connection, exec, nonexist, resource, timeout }
 set httpd port 2812
