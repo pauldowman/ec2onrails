@@ -2,8 +2,7 @@ h2. EC2 on Rails
 
 h3. Deploy a Ruby on Rails app on EC2 in five minutes
 
-For more information see "The EC2 on Rails main page":http://ec2onrails.rubyforge.org
+Main page: "http://ec2onrails.rubyforge.org":http://ec2onrails.rubyforge.org
 
-The source lives on Github at "pauldowman/ec2onrails":https://github.com/pauldowman/ec2onrails, 
-feel free to fork it, make changes and send me patches or pull requests.
+Code on Github: "https://github.com/pauldowman/ec2onrails":https://github.com/pauldowman/ec2onrails
 
