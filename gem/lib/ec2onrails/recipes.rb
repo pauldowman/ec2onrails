@@ -168,12 +168,12 @@ Capistrano::Configuration.instance.load do
       DESC
       task :load_config do
         unless hostnames_for_role(:db, :primary => true).empty?
-          db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env.to_s]
-          cfg[:db_name] = db_config['database']
-          cfg[:db_user] = db_config['username'] || db_config['user'] 
-          cfg[:db_password] = db_config['password']
-          cfg[:db_host] = db_config['host']
-          cfg[:db_socket] = db_config['socket']
+          db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env.to_s] || {}
+          cfg[:db_name] ||= db_config['database']
+          cfg[:db_user] ||= db_config['username'] || db_config['user'] 
+          cfg[:db_password] ||= db_config['password']
+          cfg[:db_host] ||= db_config['host']
+          cfg[:db_socket] ||= db_config['socket']
         
           if (cfg[:db_host].nil? || cfg[:db_host].empty?) && (cfg[:db_socket].nil? || cfg[:db_socket].empty?)
               raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with either 'host: hostname' or 'socket: /var/run/mysqld/mysqld.sock'."
