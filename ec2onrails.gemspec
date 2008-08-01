@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
              "test/test_app/test/test_helper.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://ec2onrails.rubyforge.org}
-  s.rdoc_options = ["--main", "README.txt"]
+  s.rdoc_options = ["--main", "README.rdoc"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{ec2onrails}
   s.rubygems_version = %q{1.2.0}
