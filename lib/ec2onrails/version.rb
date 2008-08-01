@@ -20,7 +20,7 @@ module Ec2onrails #:nodoc:
   module VERSION #:nodoc:
     MAJOR = 0
     MINOR = 9
-    TINY  = 9
+    TINY  = 10
     # GEM_UPDATE  = 0
     # STRING = [MAJOR, MINOR, TINY, GEM_UPDATE].join('.')
     STRING = [MAJOR, MINOR, TINY].join('.')
