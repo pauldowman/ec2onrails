@@ -56,7 +56,7 @@ set :ec2onrails_config, {
   
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
   # details
-  :timezone => "Canada/Eastern",
+  :timezone => "UTC",
   
   # Files to deploy to the server (they'll be owned by root). It's intended
   # mainly for customized config files for new packages installed via the 
