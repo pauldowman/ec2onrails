@@ -1,0 +1,343 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link rel="stylesheet" href="stylesheets/screen.css" type="text/css" media="screen" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>
+      EC2 on Rails
+  </title>
+  <script src="javascripts/rounded_corners_lite.inc.js" type="text/javascript"></script>
+<style>
+
+</style>
+  <script type="text/javascript">
+    window.onload = function() {
+      settings = {
+          tl: { radius: 10 },
+          tr: { radius: 10 },
+          bl: { radius: 10 },
+          br: { radius: 10 },
+          antiAlias: true,
+          autoPad: true,
+          validTags: ["div"]
+      }
+      var versionBox = new curvyCorners(settings, document.getElementById("version"));
+      versionBox.applyCornersToAll();
+    }
+  </script>
+</head>
+<body>
+<div id="main">
+
+    <h1>EC2 on Rails</h1>
+    <div id="version" class="clickable" onclick='document.location = "http://rubyforge.org/projects/ec2onrails"; return false'>
+      <p>Get Version</p>
+      <a href="http://rubyforge.org/projects/ec2onrails" class="numbers">0.9.10</a>
+    </div>
+    <h2>Deploy a Ruby on Rails app on <span class="caps">EC2</span> in five minutes</h2>
+
+
+	<p><span class="caps">EC2</span> on Rails is an Ubuntu Linux server image for 
+<a href="http://www.amazon.com/b/ref=sc_fe_l_2/102-6342260-7987311?ie=UTF8&#38;node=201590011&#38;no=3435361">Amazon&#8217;s <span class="caps">EC2</span> hosting service</a>
+that&#8217;s ready to run a standard Ruby on Rails application with little or no customization. 
+It&#8217;s a Ruby on Rails <a href="http://en.wikipedia.org/wiki/Virtual_appliance">virtual appliance</a>.</p>
+
+
+	<p>If you have an <span class="caps">EC2</span> account and can start <span class="caps">EC2</span> instances you&#8217;re five minutes away from deploying
+your Rails app.</p>
+
+
+	<p><span class="caps">EC2</span> on Rails is <a href="http://gettingreal.37signals.com/ch04_Make_Opinionated_Software.php">opinionated software</a>:
+the opinion is that for many rails apps the server setup can be generalized
+and shared the same way as the web application framework itself. For many people (Twitter, this isn&#8217;t for you) 
+the server image can be treated the same way as other shared libraries. And if the day comes when your needs are
+unique enough that <span class="caps">EC2</span> on Rails can&#8217;t be configured to work for you then you can bundle your own image from it
+or fork the build source and customize it.</p>
+
+
+	<p>But until then, why spend your time configuring servers?</p>
+
+
+	<p>Features of the <span class="caps">EC2</span> image:</p>
+
+
+	<ul>
+	<li>Ready to deploy a Rails app with little or no configuration of the server required</li>
+		<li>Automatic backup of MySQL database to S3 (full backup nightly + incremental backup using binary logs every 5 minutes)</li>
+		<li>Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)</li>
+		<li>Mongrel_cluster behind Apache 2.2, configured according to 
+  <a href="http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/">Coda Hale&#8217;s excellent guide</a></li>
+		<li>Ruby on Rails 2.1.0, 2.0.2 and 1.2.6</li>
+		<li>Ruby 1.8.6</li>
+		<li>MySQL 5</li>
+		<li><a href="http://www.danga.com/memcached/">memcached</a></li>
+		<li><a href="http://www.tildeslash.com/monit/">monit</a> configured to monitor apache, mongrel, mysql, memcached, drive space and system load</li>
+		<li>Ubuntu 8.04 <span class="caps">LTS</span> &#8220;Hardy&#8221; base image built using <a href="http://alestic.com/">Eric Hammond&#8217;s <span class="caps">EC2</span> Ubuntu script</a></li>
+		<li><span class="caps">SSL</span> support</li>
+		<li>Amazon <span class="caps">AMI</span> tools installed</li>
+		<li>MySQL, Apache, and syslog configured to use /mnt for data and logging so you don&#8217;t fill up <span class="caps">EC2</span>&#8217;s small root filesystem</li>
+		<li>Automatically archives Rails and Apache logs to S3 nightly.</li>
+		<li>32-bit and 64-bit images available (supports all instance types, small to extra large).</li>
+		<li>Created using a build file, full source is <a href="http://rubyforge.org/scm/?group_id=4552">available</a> (the <span class="caps">EC2</span> on Rails script is run from <a href="http://alestic.com/">Eric Hammond&#8217;s <span class="caps">EC2</span> Ubuntu script</a>)</li>
+		<li>Can be used as a clustered Rails app running on multiple instances</li>
+		<li>Automatically runs hourly, daily, weekly and monthly scripts if they exist in Rails application&#8217;s script directory</li>
+		<li>Local <a href="http://www.postfix.org/">Postfix</a> SMTP mail server (only available from within the instance, not listening on external network interfaces)</li>
+	</ul>
+
+
+	<h2>Using the image</h2>
+
+
+	<p>This documentation will be improved soon, for now hopefully this covers the basics.</p>
+
+
+The current <span class="caps">AMI</span> id&#8217;s are:
+	<ul>
+	<li>ami-c9bc58a0 (32-bit)</li>
+		<li>ami-cbbc58a2 (64-bit)</li>
+	</ul>
+
+
+	<p><em>I will keep these images available for as long as possible, they will not be deleted for at least a few years.</em></p>
+
+
+	<h4>1. Install the gem</h4>
+
+
+<pre>sudo gem install ec2onrails</pre>
+
+	<h4>2. Add the config files to your Rails app</h4>
+
+
+	<p>Put <a href="http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile">Capfile</a> 
+in the root of your rails folder, and put
+<a href="http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb">deploy.rb</a> 
+and
+<a href="http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml">s3.yml</a>
+in the config folder.</p>
+
+
+	<p><em>Be sure to customize those files and read the comments.</em></p>
+
+
+	<p>Also, use the hostname &#8220;db_primary&#8221; in your database.yml file. After running &#8220;cap ec2onrails:server:set_roles&#8221; it will resolve
+to the instance defined in your Capistrano &#8220;db&#8221; role.</p>
+
+
+	<h4>4. Start up one or more instances of the image.</h4>
+
+
+	<p>There is nothing <span class="caps">EC2</span> on Rails-specific here yet (though soon there will be a Capistrano task to do this for you), 
+if you&#8217;ve started <span class="caps">EC2</span> instances before you can skip this section. Otherwise, I&#8217;m not going to lie, this part is complicated
+and will take a lot more than 5 minutes the first time.</p>
+
+
+	<p>Read the 
+<a href="http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html">running an instance section</a>
+in Amazon&#8217;s getting started guide.</p>
+
+
+	<p>For the <span class="caps">AMI</span> id&#8217;s of the current images do <code>cap ec2onrails:ami_ids</code> from within the app that you 
+configured in the previous step (they&#8217;re also listed earlier on this page).</p>
+
+
+	<p><em><span class="caps">NOTE</span>: Only use the images that match the current version of the gem.</em></p>
+
+
+	<p>Please see the <a href="http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt">change log</a> for release notes, and 
+see the <a href="http://rubyforge.org/tracker/?atid=17558&#38;group_id=4552&#38;func=browse">list of open issues</a>.</p>
+
+
+	<p>As is <a href="http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html">standard for public <span class="caps">AMI</span>&#8217;s</a>, 
+password-based logins are disabled. You log in with your own 
+<a href="http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html">public/private keypair</a>.</p>
+
+
+	<p>Most basic things can be configured automatically by the Capistrano tasks, but if you want to 
+you can login by ssh as a user named &#8220;admin&#8221; (has sudo ability) or as &#8220;app&#8221; (the user 
+that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
+use the app user to deploy the app, and the admin user for server admin tasks 
+that require sudo.</p>
+
+
+	<p><span class="caps">IMPORTANT</span>: Double-check <a href="http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html">your firewall settings</a>. 
+Be sure that you haven&#8217;t allowed public access to any ports other than <span class="caps">TCP 22</span> and <span class="caps">TCP 80</span>
+(and possibly <span class="caps">TCP 443</span> if you&#8217;re going to enable <span class="caps">HTTPS</span>).
+If you&#8217;re using multiple instances, be sure to allow them network access to each other.</p>
+
+
+	<h4>5. Copy your public key from the server to keep Capistrano happy</h4>
+
+
+	<p>This is a workaround for a quirk in Capistrano. Technically all you should need to connect to the server is the private 
+key file, the public key is on the server. But for some reason 
+<a href="http://groups.google.com/group/capistrano/browse_thread/thread/1102208ff925d18">Capistrano requires that you have both the public key and the private key files together on the client</a>.</p>
+
+
+	<p>There is a Capistrano task that tries to fix this for you. From within the root of your rails app do:</p>
+
+
+<pre>cap ec2onrails:get_public_key_from_server</pre>
+
+	<p>Note, this will only work if you have an external ssh command in the path, it won&#8217;t work for most Windows users.</p>
+
+
+	<h4>6. Deploy the app with Capistrano</h4>
+
+
+	<p>Now that the gem is installed, your deploy.rb is configured and you can start and stop <span class="caps">EC2</span> instances, 
+this is the only thing you&#8217;ll need to do from now on.</p>
+
+
+<pre>
+cap ec2onrails:setup
+cap deploy:cold
+</pre>
+
+	<p>Yes, it&#8217;s that easy! The setup task will set the server&#8217;s timezone, install any 
+gems and Ubuntu packages that you specified in the config file, and 
+create your database.</p>
+
+
+	<p>That&#8217;s it, your app is now running on <span class="caps">EC2</span>!!</p>
+
+
+	<h2>Capistrano tasks</h2>
+
+
+	<p><a href="http://capify.org">Capistrano</a> is the most commonly used Rails deployment tool. It comes with many standard &#8220;tasks&#8221;,
+and the <span class="caps">EC2</span> on Rails gem includes Capistrano tasks specifically for configuring the server instance.</p>
+
+
+	<p>Capistrano is run from the command-line using the &#8220;cap&#8221; command, with a task name given as an argument.</p>
+
+
+	<h3>Commonly-used tasks</h3>
+
+
+	<p>You&#8217;ll mostly need just the following Capistrano tasks:</p>
+
+
+	<ul>
+	<li><code>cap ec2onrails:ami_ids</code>
+Shows the <span class="caps">AMI</span> id&#8217;s of the images that match the current version of the gem.</li>
+	</ul>
+
+
+	<ul>
+	<li><code>cap ec2onrails:setup</code>
+This task configures a newly-launched instance. This is the first thing you should do after
+starting a new instance. It can be run more than once without ill effect. After running 
+&#8220;cap ec2onrails:setup&#8221; the next thing to do is run &#8220;cap deploy:cold&#8221;</li>
+	</ul>
+
+
+	<ul>
+	<li><code>cap ec2onrails:server:set_roles</code>
+Customizes each instance for it&#8217;s role(s) (as defined in your Capistrano deploy.rb file).
+Run this after starting or stopping instances.
+For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
+are running. Eventually this will customize settings for the running services also. Note that
+an instance can have more than one role. If there&#8217;s only one instance it will have all roles.</li>
+	</ul>
+
+
+	<p>Note that due to the way that Capistrano works all tasks are run
+against all hosts that are currently defined in the deploy.rb file.
+So if you start a new instance then add it to your deploy.rb you will need to run 
+&#8220;cap ec2onrails:setup&#8221; again which will be run on all existing instances.</p>
+
+
+	<h3>Database management tasks</h3>
+
+
+	<ul>
+	<li><code>cap ec2onrails:db:archive</code>
+Archive the MySQL database to the bucket specified in your deploy.rb. This is for archiving a snapshot of your
+database into any S3 bucket. For example, you might want to do this before deploying.</li>
+	</ul>
+
+
+	<ul>
+	<li><code>cap ec2onrails:db:restore</code>
+Restore the MySQL database from the bucket specified in your deploy.rb
+For example, I use this to restore the current production data (from my actual production backup
+bucket) onto a staging server that has the current production version of my
+app. I then deploy the new version which tests migrations exactly as they&#8217;ll
+run on the production server.</li>
+	</ul>
+
+
+	<p>To get a full list of the Capistrano tasks at any time type <code>cap -T</code> from with your rails app root.</p>
+
+
+	<h2>Building the image</h2>
+
+
+	<p>Building the image is not required, most people will simply use the prebuilt public
+image, but there is also a build script that builds the image. It&#8217;s meant to be called by
+<a href="http://alestic.com/">Eric Hammond&#8217;s <span class="caps">EC2</span> Ubuntu script</a>.</p>
+
+
+	<h2>Mailing lists</h2>
+
+
+	<p>There are two Google groups, one for 
+<a href="http://groups.google.com/group/ec2-on-rails-announce">announcements</a>
+(usually just new release announcements) and one for 
+<a href="http://groups.google.com/group/ec2-on-rails-discuss">discussion</a>.</p>
+
+
+	<h2>Comments</h2>
+
+
+	<p>Comments are welcome. Send an email to <a href="http://pauldowman.com/contact/">Paul Dowman</a> 
+or to the <a href="http://groups.google.com/group/ec2-on-rails-discuss">Google group</a>.
+If you find bugs please file them 
+<a href="http://rubyforge.org/tracker/?atid=17558&#38;group_id=4552&#38;func=browse">here</a> 
+or send me an <a href="http://pauldowman.com/contact/">email</a>.</p>
+
+
+	<h2>Change log</h2>
+
+
+	<p>See the <a href="http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt">change log</a>.</p>
+
+
+	<h2>How to submit patches</h2>
+
+
+Pleae read the <a href="http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/">8 steps for fixing other people&#8217;s code</a>.
+The source code can be checked out anonymously using: 
+<pre>
+svn checkout http://ec2onrails.rubyforge.org/svn/trunk ec2onrails
+</pre>
+
+	<p>Patches can be submitted to the <a href="http://rubyforge.org/tracker/?atid=17560&#38;group_id=4552&#38;func=browse">RubyForge Tracker</a> 
+or <a href="http://pauldowman.com/contact/">emailed directly to me</a> .</p>
+
+
+	<h2>License</h2>
+
+
+	<p>This code is free to use under the terms of the <span class="caps">GPL</span> v2.</p>
+
+
+	<p>If you find <span class="caps">EC2</span> on Rails useful please <a href="http://www.workingwithrails.com/person/10131-paul-dowman">recommend Paul Dowman</a>
+at Working With Rails.</p>
+    <p class="coda">
+      <a href="http://pauldowman.com/contact/">Paul Dowman</a>, 30th July 2008<br>
+      Theme extended from <a href="http://rb2js.rubyforge.org/">Paul Battley</a>
+    </p>
+</div>
+
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-2759652-1";
+urchinTracker();
+</script>
+
+</body>
+</html>
