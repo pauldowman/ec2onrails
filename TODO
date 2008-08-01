@@ -1,0 +1,18 @@
+here are a list of upcoming changes or ones I'm thinking about
+
+FUTURE CHANGES
+[ ] do not change the Capify file.  This is an issue if you want to use ec2 for staging but something else (engineyard) for production.  The issue is that require 'ec2onrails/recipes' cannot be called until after the deploy file has been run because of some loading dependencies.  SO, is it possible to not have this behavior, or is this making a mnt out of a mole-hill?
+
+
+
+POSSIBLE CHANGES
+[ ] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  )
+
+
+QUESTIONS
+* during setup, what do you choose for Postfix configurations?  ANSWER:
+
+* why install php5?  ANSWER: 
+
+
+
