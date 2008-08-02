@@ -3,6 +3,7 @@ here are a list of upcoming changes or ones I'm thinking about
 FUTURE CHANGES
 [ ] do not change the Capify file.  This is an issue if you want to use ec2 for staging but something else (engineyard) for production.  The issue is that require 'ec2onrails/recipes' cannot be called until after the deploy file has been run because of some loading dependencies.  SO, is it possible to not have this behavior, or is this making a mnt out of a mole-hill?
 
+[ ] be able to save an ami file after cap ec2onrails:setup is run... this way you can just launch more instances of that specific ami file (can we automate this? )
 
 
 POSSIBLE CHANGES
@@ -14,5 +15,5 @@ QUESTIONS
 
 * why install php5?  ANSWER: 
 
-
+* WHO runs the script/migration?  App or db?  ANSWER: the (primary)-db does.  This make sense in that you don't want every app instance running a rake db:migration.  This means that the db role needs to be fully setup to handle rake db:migration, meaning the /etc/hosts file needs to contain db_primary as an alias to 127.0.0.1
 

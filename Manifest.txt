@@ -1,7 +1,7 @@
 History.txt
 COPYING
 Manifest.txt
-README.rdoc
+README.textile
 Rakefile
 ec2onrails.gemspec
 config/hoe.rb

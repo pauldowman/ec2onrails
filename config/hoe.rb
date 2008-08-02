@@ -35,7 +35,7 @@ VERS = Ec2onrails::VERSION::STRING + (REV ? ".#{REV}" : "")
 RDOC_OPTS = ['--quiet', '--title', 'ec2onrails documentation',
     "--opname", "index.html",
     "--line-numbers", 
-    "--main", "README",
+    "--main", "README.textile",
     "--inline-source"]
 
 class Hoe
