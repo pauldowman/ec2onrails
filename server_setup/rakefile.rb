@@ -27,7 +27,7 @@
 require "rake/clean"
 require 'yaml'
 require 'erb'
-require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
+require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
 
 if `whoami`.strip != 'root'
   raise "Sorry, this buildfile must be run as root."
@@ -53,6 +53,7 @@ end
   libreadline-ruby
   libruby
   libssl-dev
+  libxml2-dev
   libyaml-ruby
   libzlib-ruby
   logrotate
@@ -80,6 +81,7 @@ end
 @rubygems = [
   "amazon-ec2",
   "aws-s3",
+  "libxml-ruby",
   "memcache-client",
   "mongrel",
   "mongrel_cluster",
