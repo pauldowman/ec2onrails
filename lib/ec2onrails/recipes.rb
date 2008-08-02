@@ -344,6 +344,7 @@ Capistrano::Configuration.instance.load do
         using the 'ec2onrails:server:deploy_files' task.
       DESC
       task :install_packages, :roles => all_admin_role_names do
+        sudo "aptitude -q update"
         if cfg[:packages] && cfg[:packages].any?
           run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{cfg[:packages].join(' ')}"
         end
