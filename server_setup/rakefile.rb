@@ -53,7 +53,6 @@ end
   libreadline-ruby
   libruby
   libssl-dev
-  libxml2-dev
   libyaml-ruby
   libzlib-ruby
   logrotate
@@ -81,7 +80,6 @@ end
 @rubygems = [
   "amazon-ec2",
   "aws-s3",
-  "libxml-ruby",
   "memcache-client",
   "mongrel",
   "mongrel_cluster",
