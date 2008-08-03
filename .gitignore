@@ -1,2 +1,2 @@
-gem/pkg/*
-gem/tmp/*
+pkg/*
+tmp/*
