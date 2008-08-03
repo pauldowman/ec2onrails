@@ -296,6 +296,16 @@ Capistrano::Configuration.instance.load do
         sudo "cp /tmp/roles.yml /etc/ec2onrails"
         sudo "/usr/local/ec2onrails/bin/set_roles.rb"
       end
+      
+      desc <<-DESC
+        In conjunction with the ec2onrails:server:set_roles task, this \
+        starts and/or stops the relevant services depending upon what \
+        role the server is in
+      DESC
+      task :restart_services, :roles => all_admin_role_names do
+        sudo "/usr/local/ec2onrails/bin/init_services.rb"
+      end
+      
 
       desc <<-DESC
         Change the default value of RAILS_ENV on the server. Technically
