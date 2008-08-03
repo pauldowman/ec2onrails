@@ -7,10 +7,10 @@ Gem::Specification.new do |s|
   s.date = %q{2008-08-01}
   s.description = %q{Client-side libraries (Capistrano tasks) for managing and deploying to EC2 on Rails servers.}
   s.email = %q{paul@pauldowman.com}
-  s.extra_rdoc_files = ["History.txt", 
+  s.extra_rdoc_files = ["CHANGELOG", 
                         "Manifest.txt", 
                         "website/index.txt"]
-  s.files = ["History.txt", 
+  s.files = ["CHANGELOG", 
              "COPYING", 
              "Manifest.txt", 
              "README.textile", 

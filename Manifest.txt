@@ -1,11 +1,15 @@
-History.txt
 COPYING
+CHANGELOG
 Manifest.txt
 README.textile
 Rakefile
-ec2onrails.gemspec
+TODO
 config/hoe.rb
 config/requirements.rb
+documentation/examples/Capfile
+documentation/examples/deploy.rb
+documentation/examples/s3.yml
+ec2onrails.gemspec
 lib/ec2onrails.rb
 lib/ec2onrails/capistrano_utils.rb
 lib/ec2onrails/recipes.rb

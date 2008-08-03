@@ -1,0 +1,159 @@
+== 0.9.9 2008-07-01
+
+* ami-c9bc58a0 (32-bit) and ami-cbbc58a2 (64-bit)
+* This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
+* Updated to Ubuntu 8.04 "Hardy"
+* Added new required option to :ec2onrails_config in deploy.rb: ec2onrails_config[:archive_to_bucket_subdir] is used by the ec2onrails:db:archive Capistrano task. See http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb
+* Database backup script parameters changed, now takes --reset to reset the binary logs, no longer takes --no-reset (not resetting the binary logs is now the default)
+* Database backup script no longer resets binary log file numbering
+* Now includes Rails 2.1.0 (still includes 2.0.2 and 1.2.6)
+* Incremental database backup frequency increased to every 5 minutes since it's very inexpensive to do
+* No longer randomize passwords on startup since they're disabled already
+* Installed git-core package
+* MySQL backup and restore scripts now use /mnt/tmp instead of /tmp for temp files in case database dump files are huge
+* MySQL backup now uses --create-options option on mysqldump to preserve MySQL-specific create table options
+* Built with ec2ubuntu build script version 68 (http://alestic.com)
+* Updated Capistrano tasks to work with Capistrano 2.4.3
+
+
+== 0.9.8.1 2008-05-20
+
+* ami-b657b2df (32-bit) and ami-8957b2e0 (64-bit) (same AMI's as 0.9.8, this is an update to the RubyGem only)
+* This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
+* Bug fix: if :ec2onrails[:enable_ssl] = true the setup task fails due to /etc/init.d/apache2 not executable
+* Bug fix: retry if needed on the first mysqld startup, because on first startup sometimes the /etc/init.d/mysql startup script thinks it failed because mysqld took too long to physically write the logs full.
+
+
+== 0.9.8 2008-05-19
+
+* ami-b657b2df (32-bit) and ami-8957b2e0 (64-bit)
+* This is another test release, still not intended to be production-ready. Look for version 1.0. Almost there!!
+* Incremental database backups instead of doing a full mysqldump each time (full dump is done once nightly). (Thanks to Markus Bengts for the bug fix)
+* Added monit monitoring daemon: monitors mysqld, apache, memcached, mongrels, system load and free drive space
+* Enabled postfix by default, mail is delivered to admin user (or use new ec2onrails[:admin_mail_forward_address] option in deploy.rb to forward admin mail to an email address)
+* Apache now supports SSL, set :ec2onrails[:enable_ssl] = true to enable and upload ssl cert & key (there is also a self-signed cert generated for each instance on first startup)
+* Base image now built with Eric Hammond's EC2 Ubuntu script: http://alestic.com/ (using svn revision 44)
+* Now installing latest rubygems (version 1.1.1) from source instead of using Ubuntu package
+* Apache now denies access to any file in a directory named .svn, to protect the subversion info of those who deploy with Capistrano "checkout" method
+* Added force-proxy-request-1.0 and proxy-nokeepalive for proxy requests to mongrel to fix occasional "proxy: error reading status line from remote server" error (mongrel doesn't support keep-alive anyway), see apache bug #37770
+* Increased default memcache size to 128m, and memcache now listens on all interfaces for clustered use
+* Tuned MySQL setting defaults for better performance
+* restore_db_and_deploy task now runs migrations after restoring db
+* upgrade_packages task now does "safe upgrade" instead of "full upgrade"
+* Now requires Capistrano 2.3.0
+* Bug fix: #20040: installing or upgrading packages no longer breaks - /etc/apt/sources.list is now correct
+* Bug fix: #19808: Capistrano database tasks don't try to load database config if there are no hosts in the "db" role (with :primary => true, slave roles not yet supported)
+* Bug fix: #19791: MySQL no longer fails after rebundling due to missing /mnt/mysql_data
+* Bug fix: #14555: Syslog messages about unacknowledged DHCP requests is no longer occurring
+* Bug fix: Database backup and restore scripts now exit if already backing up or restoring.
+* Bug fix: EC2 ephemeral store and swap volumes were not correctly mounted
+* Bug fix: Reload apache config when setting roles to find new app hosts.
+
+
+== 0.9.7 2008-03-03
+
+* ami-5c0aef35 (32-bit) and ami-540aef3d (64-bit)
+* memcached installed, and capistrano tasks now support a new role named "memcache". Memcached won't run on hosts that aren't in the "memcache" role.
+* New Capistrano task ec2onrails:get_public_key_from_server to copy the public key file from the server before first use.
+* cap ec2onrails:server:install_gems can now install a specific version of a gem instead of the latest (use "gemname -v version" instead of "gemname" in deploy.rb)
+* Now automatically runs hourly, daily, weekly and monthly scripts in current application's script directory, they run as "app" user, with $RAILS_ENV set.
+* Support for different named rails environments (e.g. "production", "staging1", "staging2"), the current environment name is defined in /etc/mongrel_cluster/app.yml
+* s3.yml now supports multiple sections for different rails environment names
+* cap ec2onrails:server:upgrade_gems now does "gem update --system"
+* Added admin user to adm group to allow read access to syslog without using sudo
+* Added "sudoers" group, if you add named administrator accounts, add them to this group
+* Set PATH and RUBYLIB in /etc/environment, removed and disabled $HOME/.ssh/environment because it's no longer necessary
+* Fixed bug #16423: "hostname defined in deploy.rb shouldn't have to match what the instance thinks it's hostname is"
+* Removed rfacebook gem
+
+
+== 0.9.6 2007-12-21
+
+* ami-e620c58f (32-bit) and ami-f920c590 (64-bit)
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0. Soon!!
+* Fixed server:install_gems task, issue #16006
+* Fixed db:set_root_password task for Capistrano 2.1, issue #15256
+* Fixed apache config to remove warning on restart, issue #16213
+* Now includes Rails 2.0.1 as well as 1.2.6
+* Removed dependency on tar for server:deploy_files task, now using all-ruby tar lib
+* Rotate logs (including rails production.log) and archive to S3 daily
+* Symlink all log files in /mnt/log from /var/log so that programs (e.g. logwatch) that expect them to be in /var/log still work
+* New script to archive any file to s3
+* New command-line flags on s3 archive & restore scripts
+
+
+== 0.9.5 2007-10-28
+
+* ami-86c025ef (32-bit) and ami-99c025f0 (64-bit)
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed rebundling.
+* Generates new ssh keys on first startup
+
+
+== 0.9.4 2007-10-25
+
+* ami-ecc12485 (32-bit) and ami-efc12486 (64-bit)
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* _The rebundling doesn't seem to be working._ I'll fix that in a new version. Details at http://rubyforge.org/tracker/?func=detail&aid=15047&group_id=4552&atid=17558
+* Ubuntu 7.10/Gutsy
+* Experimental multiple instance support.
+** *Mongrel & MySQL now listen on all ports.* Be sure your firewall settings are correct, and set a MySQL root password.
+* RDoc and RI not generated for installed gems.
+* No longer upgrades packages & gems on ec2onrails:server:setup task.
+* 32-bit and 64-bit images.
+* EC2 AMI tools version 2007-08-29.
+* NTP removed, it's no longer needed under Xen.
+* MySQL data dir dirs now under /mnt.
+* syslog now logs to /mnt/log.
+* Build now cleans apt cache, image is now 1/2 the size.
+
+
+== 0.9.3 2007-10-06
+
+* ami-a3f91cca
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* There is now a rubygem available with Capistrano tasks.
+* "admin" user added, server admin cap tasks run as this user
+* MySQL settings tweaked to reflect large amount of RAM available on EC2 instances.
+* Fixed missing /etc/mongrel_cluster
+* Installed more ruby standard lib packages
+
+
+== 0.9.2 2007-09-13
+
+* ami-0cf61365
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed missing kernel modules
+
+
+== 0.9.1 2007-09-11
+
+* ami-99f712f0
+* This is another test release, still not intended to be production-ready until it's tested more thoroughly. Look for version 1.0.
+* Fixed permissions on /var/lib/dhcp3
+
+
+== 0.9.0 2007-09-07
+
+* ami-bdf411d4
+* First release built with new rake build script, this is a test release, not intended to be production-ready until it's tested more thoroughly.
+* Amazon EC2 API tools (java-based) no longer installed by default because they're not used on most servers. They're needed only for registering a rebundled image so there's now a script to install them: /usr/local/ec2-on-rails/install_ec2_api_tools.sh. The ruby-based EC2 image tools are still installed.
+* Removed "http://packages.ubuntu.com/feisty/libs/sun-java6-jre":Java and it's massive list of dependencies because it was only needed for the EC2 API tools. This saved a huge amount of space.
+* Removed ImageMagick, RMagick and hpricot due to popular demand. There will soon be cap2 tasks to customize which packages and gems are installed.
+
+
+== 0.8.1 2007-07-29
+
+* ami-b79a7fde
+* Fixed S3 backup cron job.
+* Added script to restore data from S3 (/usr/local/aws/bin/restore_app_db.rb). This is useful when setting up a staging server to test your deployment, you can have it set up with a copy of your production data to test your migrations.
+* Rewrite rule now allows images/css on maintenance page
+* Added empty /etc/apache2/sites-available/app.custom for custom Apache configuration in a separate file (so it can be deployed by rsync more easily).
+* Added ImageMagick, RMagick and hpricot due to popular demand.
+
+
+== 0.8.0 2007-06-20
+
+* ami-4e907527
+* Initial release.
+

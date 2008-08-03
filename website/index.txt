@@ -88,7 +88,7 @@ configured in the previous step (they're also listed earlier on this page).
 
 _NOTE: Only use the images that match the current version of the gem._
 
-Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt for release notes, and 
+Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG for release notes, and 
 see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
 As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, 
@@ -210,7 +210,7 @@ or send me an "email":http://pauldowman.com/contact/.
 
 h2. Change log
 
-See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt.
+See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG.
 
 
 h2. How to submit patches
