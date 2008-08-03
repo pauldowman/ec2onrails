@@ -1,0 +1,76 @@
+#!/bin/sh
+
+#This is a start script for nginx. Tested on Unbuntu Edge. 
+#Should work on Ubuntu, Debian and probably a few other Linux distros.
+#Change DAEMON and CONFIG_FILE  if neccessary
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+
+#Location of nginx binary. Change path as neccessary
+DAEMON=/usr/local/nginx/sbin/nginx
+#Location of configuration file. Change path as neccessary
+CONFIG_FILE=/usr/local/nginx/conf/nginx.conf
+
+
+DAEMON_OPTS="-c $CONFIG_FILE"
+NAME=nginx
+DESC="web server"
+PIDFILE=/var/run/$NAME.pid 
+SCRIPTNAME=/etc/init.d/$NAME
+
+
+#only run if binary can be found
+test -x $DAEMON || exit 0
+
+set -e
+
+#import init-functions
+. /lib/lsb/init-functions
+
+case "$1" in
+start)
+log_daemon_msg "Starting $DESC" $NAME
+if ! start-stop-daemon --start --quiet\
+    --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS ; then
+    log_end_msg 1
+    else
+    log_end_msg 0
+fi
+;;
+stop)
+log_daemon_msg "Stopping $DESC" $NAME
+if start-stop-daemon --quiet --stop --oknodo --retry 30\
+    --pidfile $PIDFILE --exec $DAEMON; then
+    rm -f $PIDFILE
+    log_end_msg 0
+    else
+    log_end_msg 1
+fi
+;;
+reload)
+log_daemon_msg "Reloading $DESC configuration" $NAME
+if start-stop-daemon --stop --signal 2 --oknodo --retry 30\
+    --quiet --pidfile $PIDFILE --exec $DAEMON; then
+    if start-stop-daemon --start --quiet  \
+        --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS ; then
+        log_end_msg 0
+        else
+        log_end_msg 1
+    fi
+    else
+    log_end_msg 1
+fi
+;;
+restart|force-reload)
+$0 stop
+sleep 1
+$0 start
+;;
+*)
+echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+exit 1
+;;
+esac
+
+exit 0
