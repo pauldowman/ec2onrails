@@ -40,16 +40,12 @@ end
 
 # web role:
 if in_role(:web)
-  #TODO: automate the selection between nginx and apache (or some other web proxy....)
-  # Force apache to reload config files in case it was already running and app hosts changed.
-  start(:web, "nginx") rescue nil
-  run("/etc/init.d/nginx reload") rescue nil
-  
-  start(:web, "apache2") rescue nil
-  run("/etc/init.d/apache2 reload") rescue nil
+  #we symlink the web_proxy we are using....
+  start(:web, "web_proxy")
+  run("/etc/init.d/web_proxy reload")
 else
-  stop(:web, "nginx") rescue nil
-  stop(:web, "apache2") rescue nil
+  stop(:web, "nginx")
+  stop(:web, "web_proxy")
 end
 
 

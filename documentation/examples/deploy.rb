@@ -54,6 +54,9 @@ set :ec2onrails_config, {
   # If you don't want to install extra rubygems then remove this
   :rubygems => ["rmagick", "rfacebook -v 0.9.7"],
   
+  # Defines the web proxy that will be used.  Choices are :apache or :nginx
+  :web_proxy_server => :apache
+  
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
   # details
   :timezone => "UTC",
@@ -70,12 +73,12 @@ set :ec2onrails_config, {
   # If config files are deployed, some services might need to be restarted.
   # If you don't need to deploy customized config files to the server then
   # remove this.
-  :services_to_restart => %w(apache2 postfix sysklogd),
+  :services_to_restart => %w(postfix sysklogd),
   
   # Set an email address to forward admin mail messages to. If you don't
   # want to receive mail from the server (e.g. monit alert messages) then
   # remove this.
-  :admin_mail_forward_address => "you@yourdomain.com",
+  :mail_forward_address => "you@yourdomain.com",
   
   # Set this if you want SSL to be enabled on the web server. The SSL cert 
   # and key files need to exist on the server, The cert file should be in

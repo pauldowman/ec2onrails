@@ -24,6 +24,6 @@
 # this is an ugly hack to make sure DHCP initialization is finished:
 sleep 15
 
-for SCRIPT in `ls /usr/local/ec2onrails/startup-scripts/every-startup` ; do
+for SCRIPT in `ls -I README /usr/local/ec2onrails/startup-scripts/every-startup` ; do
 	"/usr/local/ec2onrails/startup-scripts/every-startup/$SCRIPT"
 done

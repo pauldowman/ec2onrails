@@ -28,7 +28,7 @@ if [ -e $FILE ] ; then
 	# this is an ugly hack to make sure DHCP initialization is finished:
 	sleep 15
 
-	for SCRIPT in `ls /usr/local/ec2onrails/startup-scripts/first-startup` ; do
+	for SCRIPT in `ls -I README /usr/local/ec2onrails/startup-scripts/first-startup` ; do
 		"/usr/local/ec2onrails/startup-scripts/first-startup/$SCRIPT"
 	done
 	

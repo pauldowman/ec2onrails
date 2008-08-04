@@ -64,6 +64,10 @@ module Ec2onrails
       result = system(cmd)
       puts("*****ERROR: #{cmd} returned #{$?}") unless result
     end
+    
+    def sudo(cmd)
+      run("sudo #{cmd}")
+    end
 
     def get_address_metadata(type)
       address  = Net::HTTP.get('169.254.169.254', "/2007-08-29/meta-data/#{type}").strip

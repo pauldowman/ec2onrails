@@ -17,26 +17,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    This file helps spread the root key so we can log in/deploy using the 
+#    app user instead of root, but with the same ec2 key
 
-make_dir() {
-  mkdir -p $1
-  if [ $2 ] ; then
-    chown -R $2 $1
-  fi
-}
+#make sure we have the credentials
+/etc/init.d/ec2-get-credentials
 
-make_dir /mnt/app app:app
-
-#make sure it is setup to be able to be read/written by app user
-make-dir /etc/ec2onrails app:app
-
-make_dir /mnt/log
-# make_dir /mnt/log/apache2    www-data:www-data
-make_dir /mnt/log/fsck
-make_dir /mnt/log/mysql      mysql:mysql
-
-make_dir /mnt/mysql_data     mysql:mysql
-make_dir /mnt/mysql_data/tmp mysql:mysql
-
-make_dir /mnt/tmp
-chmod 777 /mnt/tmp
+mkdir -p -m 700 /home/app/.ssh
+cp /root/.ssh/authorized_keys /home/app/.ssh
+chown -R app:app /home/app/.ssh

@@ -1,0 +1,5 @@
+These files are called by /etc/init.d/ec2-first-startup.
+
+They are launched via rcS.d, meaning they will be launched before OTHER
+Ec2 scripts, like ec2-get-credentials... so if need some of those scripts
+run before, call them manually

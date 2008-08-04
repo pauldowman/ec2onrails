@@ -58,7 +58,7 @@ echo "--> Clearing sensitive files..."
 rm -f /root/{.bash_history,.lesshst}
 
 echo "--> Creating image..."
-ec2-bundle-vol -e "/root/.ssh,/home/app/.ssh,/home/admin/.ssh,/tmp,/mnt" -d /mnt -k "$EC2_PRIVATE_KEY" -c "$EC2_CERT" -u "$AWS_ACCOUNT_ID" || fail "ec2-bundle-vol failed"
+ec2-bundle-vol -e "/root/.ssh,/home/app/.ssh,/tmp,/mnt" -d /mnt -k "$EC2_PRIVATE_KEY" -c "$EC2_CERT" -u "$AWS_ACCOUNT_ID" || fail "ec2-bundle-vol failed"
 
 echo "--> Uploading image to $NEW_BUCKET_NAME"
 ec2-upload-bundle -b "$NEW_BUCKET_NAME" -m /mnt/image.manifest.xml -a "$AWS_ACCESS_KEY_ID" -s "$AWS_SECRET_ACCESS_KEY" || fail "ec2-upload-bundle failed"

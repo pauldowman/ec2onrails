@@ -1,7 +1,0 @@
-# Rotate Rails application logs
-/mnt/app/current/log/*.log {
-  daily
-  missingok
-  dateext
-  copytruncate
-}

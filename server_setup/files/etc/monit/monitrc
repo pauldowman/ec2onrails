@@ -2,10 +2,10 @@ set daemon 60
 set logfile syslog facility log_daemon 
 set mailserver localhost
 set mail-format {
-  from: admin@localhost
+  from: app@localhost
   subject: $HOST: $SERVICE $EVENT
 }
-set alert admin@localhost only on { connection, exec, nonexist, resource, timeout }
+set alert app@localhost only on { connection, exec, nonexist, resource, timeout }
 set httpd port 2812
 #  address localhost
   allow localhost

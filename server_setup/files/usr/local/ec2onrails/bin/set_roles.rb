@@ -30,24 +30,27 @@ pp roles
 if in_role(:web)
   puts "setting up reverse proxy for web role.  starting port: #{web_starting_port} up to #{web_starting_port + web_num_instances - 1}"
 
-  # Currently creating the config files for both apach and nginx.
-  File.open("/etc/ec2onrails/balancer_members", "w") do |f|
-    roles[:app].each do |address|
-      web_port_range.each do |port|
-        f << "BalancerMember http://#{address}:#{port}\n"
+  if system("which apache")
+    File.open("/etc/ec2onrails/balancer_members", "w") do |f|
+      roles[:app].each do |address|
+        web_port_range.each do |port|
+          f << "BalancerMember http://#{address}:#{port}\n"
+        end
+        f << "\n"
       end
-      f << "\n"
     end
   end
 
-  File.open("/etc/ec2onrails/nginx_upstream_members", "w") do |f|
-    f << "upstream mongrel{\n"
-    roles[:app].each do |address|
-      web_port_range.each do |port|
-        f << "\tserver #{address}:#{port};\n"
+  if system("which nginx")
+    File.open("/etc/ec2onrails/nginx_upstream_members", "w") do |f|
+      f << "upstream mongrel{\n"
+      roles[:app].each do |address|
+        web_port_range.each do |port|
+          f << "\tserver #{address}:#{port};\n"
+        end
       end
+      f << "fair;\n}\n"
     end
-    f << "fair;\n}\n"
   end
 end
 
@@ -67,4 +70,7 @@ Dir["/etc/monit/*.monitrc.erb"].each do |filename|
   file = ERB.new(IO.read(filename)).result(binding)
   File.open(filename.sub(/\.erb$/, ''), 'w'){|f| f << file}
 end
+
+#time to reload any changes made
+sudo "monit reload"
 

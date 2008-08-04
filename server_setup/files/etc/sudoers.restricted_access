@@ -1,0 +1,28 @@
+# /etc/sudoers
+#
+# This file MUST be edited with the 'visudo' command as root.
+#
+# See the man page for details on how to write a sudoers file.
+# Host alias specification
+
+# User alias specification
+
+# Cmnd alias specification
+
+# Defaults
+
+Defaults        !lecture,tty_tickets,!fqdn
+
+# User privilege specification
+root    ALL=(ALL) ALL
+
+# The 'app' user can NOT run sudo without a password, except when running monit.
+# This is safer, but slightly more of a hassle, than running with sudoers.full_access
+app ALL = NOPASSWD: /usr/local/bin/monit
+
+# If you add named administrator accounts, add them to the group 'sudoers'
+# to give them sudo access
+%sudoers  ALL=(ALL) ALL
+
+
+

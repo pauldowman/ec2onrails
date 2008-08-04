@@ -2,8 +2,12 @@
   daily
   missingok
   dateext
-  create 640 root adm
+  create 640 root app
+  compress
+  notifempty
   sharedscripts
+  extension gz
+  copytruncate
   postrotate
     if [ -f /var/run/apache2.pid ]; then
       /etc/init.d/apache2 reload > /dev/null

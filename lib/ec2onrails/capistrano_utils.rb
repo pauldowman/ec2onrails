@@ -10,17 +10,6 @@ module Ec2onrails
       sudo "sh -c 'if [ -x /etc/init.d/#{script} ] ; then /etc/init.d/#{script} #{arg}; fi'"
     end
     
-    def make_admin_role_for(role)
-      newrole = "#{role.to_s}_admin".to_sym
-      roles[role].each do |srv_def|
-        options = srv_def.options.dup
-        options[:user] = "admin"
-        options[:port] = srv_def.port
-        options[:no_release] = true
-        role newrole, srv_def.host, options
-      end
-    end
-    
     # return hostnames for the role named role_sym that has the specified options
     def hostnames_for_role(role_sym, options = {})
       role = roles[role_sym]

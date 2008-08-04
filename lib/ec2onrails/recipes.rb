@@ -35,6 +35,9 @@ Capistrano::Configuration.instance.load do
   end
   
   cfg = ec2onrails_config
+  
+  #:apache or :nginx
+  cfg[:web_proxy_server] ||= :apache
 
   set :ec2onrails_version, Ec2onrails::VERSION::STRING
   set :image_id_32_bit, Ec2onrails::VERSION::AMI_ID_32_BIT
@@ -43,17 +46,9 @@ Capistrano::Configuration.instance.load do
   set :use_sudo, false
   set :user, "app"
 
-  # make an "admin" role for each role, and create arrays containing
-  # the names of admin roles and non-admin roles for convenience
-  set :all_admin_role_names, []
-  set :all_non_admin_role_names, []
-  roles.keys.clone.each do |name|
-    make_admin_role_for(name)
-    all_non_admin_role_names << name
-    all_admin_role_names << "#{name.to_s}_admin".to_sym
-  end
-  
-  after "deploy:symlink", "ec2onrails:server:set_roles"
+  #in case any changes were made to the configs, like changing the number of mongrels
+  after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
+  # after "deploy:update_code", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup"
   
   # override default start/stop/restart tasks
@@ -62,7 +57,7 @@ Capistrano::Configuration.instance.load do
       Overrides the default Capistrano deploy:restart, uses \
       /etc/init.d/mongrel
     DESC
-    task :start, :roles => :app_admin do
+    task :start, :roles => :app do
       run_init_script("mongrel", "start")
       run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
       sudo "monit -g app monitor all"
@@ -72,7 +67,7 @@ Capistrano::Configuration.instance.load do
       Overrides the default Capistrano deploy:restart, uses \
       /etc/init.d/mongrel
     DESC
-    task :stop, :roles => :app_admin do
+    task :stop, :roles => :app do
       sudo "monit -g app unmonitor all"
       run_init_script("mongrel", "stop")
     end
@@ -81,7 +76,7 @@ Capistrano::Configuration.instance.load do
       Overrides the default Capistrano deploy:restart, uses \
       /etc/init.d/mongrel
     DESC
-    task :restart, :roles => :app_admin do
+    task :restart, :roles => :app do
       deploy.stop
       deploy.start
     end
@@ -128,12 +123,14 @@ Capistrano::Configuration.instance.load do
     desc <<-DESC
       Prepare a newly-started instance for a cold deploy.
     DESC
-    task :setup, :roles => all_admin_role_names do
-      server.set_admin_mail_forward_address
+    task :setup do
+      server.set_mail_forward_address
       server.set_timezone
       server.install_packages
       server.install_gems
       server.deploy_files
+      server.setup_web_proxy
+      server.set_roles
       server.enable_ssl if cfg[:enable_ssl]
       server.set_rails_env
       server.restart_services
@@ -214,7 +211,7 @@ Capistrano::Configuration.instance.load do
         hasn't been set, e.g. when called from ec2onrails:setup.
         (But don't enable monitoring on it.)
       DESC
-      task :start, :roles => :db_admin do
+      task :start, :roles => :db do
         sudo "chmod a+x /etc/init.d/mysql"
         # The mysql init script can fail on the first startup if mysql takes too long 
         # to create the logfiles, so try again
@@ -283,7 +280,7 @@ Capistrano::Configuration.instance.load do
         the appropriate settings for each role, and starts and/or stops the \
         relevant services.
       DESC
-      task :set_roles, :roles => all_admin_role_names do
+      task :set_roles do
         # TODO generate this based on the roles that actually exist so arbitrary new ones can be added
         roles = {
           :web =>        hostnames_for_role(:web),
@@ -294,26 +291,32 @@ Capistrano::Configuration.instance.load do
         roles_yml = YAML::dump(roles)
         put roles_yml, "/tmp/roles.yml"
         sudo "cp /tmp/roles.yml /etc/ec2onrails"
-        sudo "/usr/local/ec2onrails/bin/set_roles.rb"
+        #we want everyone to be able to read/write to it
+        sudo "chmod a+w /etc/ec2onrails/roles.yml"
+        granted_all_prefs = false
+        begin
+          granted_all_prefs = server.grant_sudo_access
+          sudo "/usr/local/ec2onrails/bin/set_roles.rb"
+        ensure
+          server.restrict_sudo_access if granted_all_prefs
+        end
       end
       
-      desc <<-DESC
-        In conjunction with the ec2onrails:server:set_roles task, this \
-        starts and/or stops the relevant services depending upon what \
-        role the server is in
-      DESC
-      task :restart_services, :roles => all_admin_role_names do
+      task :init_services do
         sudo "/usr/local/ec2onrails/bin/init_services.rb"
       end
       
-
+      task :setup_web_proxy, :roles => :web do
+        sudo "/usr/local/ec2onrails/bin/setup_web_proxy.rb --mode #{cfg[:web_proxy_server].to_s}"
+      end
+      
       desc <<-DESC
         Change the default value of RAILS_ENV on the server. Technically
         this changes the server's mongrel config to use a different value
         for "environment". The value is specified in :rails_env.
         Be sure to do deploy:restart after this.
       DESC
-      task :set_rails_env, :roles => all_admin_role_names do
+      task :set_rails_env do
         rails_env = fetch(:rails_env, "production")
         sudo "/usr/local/ec2onrails/bin/set_rails_env #{rails_env}"
       end
@@ -321,15 +324,15 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
         Upgrade to the newest versions of all Ubuntu packages.
       DESC
-      task :upgrade_packages, :roles => all_admin_role_names do
+      task :upgrade_packages do
         sudo "aptitude -q update"
-        run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y safe-upgrade"
+        sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y safe-upgrade'"
       end
       
       desc <<-DESC
         Upgrade to the newest versions of all rubygems.
       DESC
-      task :upgrade_gems, :roles => all_admin_role_names do
+      task :upgrade_gems do
         sudo "gem update --system --no-rdoc --no-ri"
         sudo "gem update --no-rdoc --no-ri" do |ch, str, data|
           ch[:data] ||= ""
@@ -349,14 +352,14 @@ Capistrano::Configuration.instance.load do
         Install extra Ubuntu packages. Set ec2onrails_config[:packages], it \
         should be an array of strings.
         NOTE: the package installation will be non-interactive, if the packages \
-        require configuration either log in as 'admin' and run \
+        require configuration either log in as 'root' and run \
         'dpkg-reconfigure packagename' or replace the package's config files \
         using the 'ec2onrails:server:deploy_files' task.
       DESC
-      task :install_packages, :roles => all_admin_role_names do
+      task :install_packages do
         sudo "aptitude -q update"
         if cfg[:packages] && cfg[:packages].any?
-          run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{cfg[:packages].join(' ')}"
+          sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{cfg[:packages].join(' ')}'"
         end
       end
       
@@ -364,7 +367,7 @@ Capistrano::Configuration.instance.load do
         Install extra rubygems. Set ec2onrails_config[:rubygems], it should \
         be with an array of strings.
       DESC
-      task :install_gems, :roles => all_admin_role_names do
+      task :install_gems do
         if cfg[:rubygems]
           cfg[:rubygems].each do |gem|
             sudo "gem install #{gem} --no-rdoc --no-ri" do |ch, str, data|
@@ -386,7 +389,7 @@ Capistrano::Configuration.instance.load do
         A convenience task to upgrade existing packages and gems and install \
         specified new ones.
       DESC
-      task :upgrade_and_install_all, :roles => all_admin_role_names do
+      task :upgrade_and_install_all do
         upgrade_packages
         upgrade_gems
         install_packages
@@ -402,7 +405,7 @@ Capistrano::Configuration.instance.load do
         directory and file as the value. For example 'Africa/Abidjan' or \
         'posix/GMT' or 'Canada/Eastern'.
       DESC
-      task :set_timezone, :roles => all_admin_role_names do
+      task :set_timezone do
         if cfg[:timezone]
           sudo "bash -c 'echo #{cfg[:timezone]} > /etc/timezone'"
           sudo "cp /usr/share/zoneinfo/#{cfg[:timezone]} /etc/localtime"
@@ -417,7 +420,7 @@ Capistrano::Configuration.instance.load do
         inside here will be placed within the same directory structure \
         relative to the root of the server's filesystem.
       DESC
-      task :deploy_files, :roles => all_admin_role_names do
+      task :deploy_files do
         if cfg[:server_config_files_root]
           begin
             filename = "config_files.tar"
@@ -430,7 +433,7 @@ Capistrano::Configuration.instance.load do
             sudo "tar xvf #{remote_file} -o -C /"
           ensure
             rm_rf local_file
-            run "rm -f #{remote_file}"
+            sudo "rm -f #{remote_file}"
           end
         end
       end
@@ -440,7 +443,7 @@ Capistrano::Configuration.instance.load do
         to an array of strings. It's assumed that each service has a script \
         in /etc/init.d
       DESC
-      task :restart_services, :roles => all_admin_role_names do
+      task :restart_services do
         if cfg[:services_to_restart] && cfg[:services_to_restart].any?
           cfg[:services_to_restart].each do |service|
             run_init_script(service, "restart")
@@ -449,10 +452,11 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
-        Set the email address that mail to the admin user forwards to.
+        Set the email address that mail to the app user forwards to.
       DESC
-      task :set_admin_mail_forward_address, :roles => all_admin_role_names do
-        put cfg[:admin_mail_forward_address], "/home/admin/.forward" if cfg[:admin_mail_forward_address]
+      task :set_mail_forward_address do
+        run "echo '#{cfg[:mail_forward_address]}' >> /home/app/.forward" if cfg[:mail_forward_address]
+        # put cfg[:admin_mail_forward_address], "/home/admin/.forward" if cfg[:admin_mail_forward_address]
       end
 
       desc <<-DESC
@@ -460,11 +464,43 @@ Capistrano::Configuration.instance.load do
         /etc/ssl/certs/default.pem and the SSL key file should be in
         /etc/ssl/private/default.key (use the deploy_files task).
       DESC
-      task :enable_ssl, :roles => :web_admin do
+      task :enable_ssl, :roles => :web do
+        #TODO: enable for nginx
         sudo "a2enmod ssl"
         sudo "a2ensite default-ssl"
-        run_init_script("apache2", "restart")
+        run_init_script("web_proxy", "restart")
       end
+      
+      desc <<-DESC
+        Restrict the main user's sudo access.
+        Defaults the user to only be able to \
+        sudo to monit
+      DESC
+      task :restrict_sudo_access do
+        sudo "cp /etc/sudoers.restricted_access /etc/sudoers"
+        # sudo "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
+      end
+
+      desc <<-DESC
+        Grant *FULL* sudo access to the main user.
+      DESC
+      task :grant_sudo_access do
+        old_user = fetch(:user)
+        begin
+          # need to cheet and temporarily set the user to ROOT so we
+          # can (re)grant full sudo access.  
+          # we can do this because the root and app user have the same
+          # ssh login preferences....
+          set :user, 'root'
+          sudo "cp /etc/sudoers.full_access /etc/sudoers"
+          # sudo "ln -sf /etc/sudoers.full_access /etc/sudoers"
+        ensure
+          changed = fetch(:user) != old_user
+          set :user, old_user
+          changed
+        end
+      end
+
     end
     
   end
