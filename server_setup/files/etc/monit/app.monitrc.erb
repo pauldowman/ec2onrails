@@ -1,4 +1,4 @@
-<% @port_range.each do |port_num| %>
+<% @web_port_range.each do |port_num| %>
 check process mongrel_<%= port_num %> with pidfile /mnt/app/shared/log/mongrel.<%= port_num %>.pid
   start program = "/usr/local/ec2onrails/bin/mongrel_start --only <%= port_num %>" 
   stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only <%= port_num %>" 
