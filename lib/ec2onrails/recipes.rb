@@ -134,6 +134,7 @@ Capistrano::Configuration.instance.load do
       server.enable_ssl if cfg[:enable_ssl]
       server.set_rails_env
       server.restart_services
+      db.optimize
       deploy.setup
       db.create
     end
@@ -272,6 +273,11 @@ Capistrano::Configuration.instance.load do
       task :init_backup, :roles => :db do
         run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
       end
+      
+      task :optimize, :roles => :db do
+        sudo "/usr/local/ec2onrails/bin/optimize_mysql.rb"
+      end
+      
     end
     
     namespace :server do
@@ -309,7 +315,7 @@ Capistrano::Configuration.instance.load do
       task :setup_web_proxy, :roles => :web do
         sudo "/usr/local/ec2onrails/bin/setup_web_proxy.rb --mode #{cfg[:web_proxy_server].to_s}"
       end
-      
+
       desc <<-DESC
         Change the default value of RAILS_ENV on the server. Technically
         this changes the server's mongrel config to use a different value
