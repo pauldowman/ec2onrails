@@ -9,7 +9,7 @@ FUTURE CHANGES
 
 [ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles.rb default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
 
-[ ] mysql optimizations
+[X] mysql optimizations
 
 [X] allow config to be able to flip between nginx and apache as proxy... 
 
