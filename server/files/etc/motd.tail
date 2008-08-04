@@ -3,7 +3,7 @@ EC2 on Rails
 !!VERSION!!
 http://rubyforge.org/projects/ec2onrails/
 
-Copyright 2007 Paul Dowman, http://pauldowman.com/
+Copyright 2008 Paul Dowman, http://pauldowman.com/
 
 Base AMI built using Eric Hammond's EC2 Ubuntu script: 
 http://alestic.com/
