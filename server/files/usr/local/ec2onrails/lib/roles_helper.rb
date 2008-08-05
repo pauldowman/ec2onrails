@@ -96,10 +96,13 @@ module Ec2onrails
       resolved
     end
 
-    def in_role(role)
+    def in_role?(role)
       return false unless roles[role]
       return roles[role].include?("127.0.0.1") 
     end
+    #to provide deprecated usage
+    alias :in_role :in_role?
+    
 
     def add_etc_hosts_entry(entry_name, entry_addr)
       host_file  = "/etc/hosts"

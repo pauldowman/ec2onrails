@@ -23,7 +23,7 @@ include Ec2onrails::RolesHelper
 
 
 # memcache role:
-if in_role(:memcache)
+if in_role?(:memcache)
   # increase memory size, etc if no other roles exist?
   start(:memcache, "memcached")
 else
@@ -31,7 +31,7 @@ else
 end
 
 # db primary role:
-if in_role(:db_primary)
+if in_role?(:db_primary)
   # increase caches, etc if no other roles exist?
   start(:db_primary, "mysql", "mysqld")
 else
@@ -39,7 +39,7 @@ else
 end
 
 # web role:
-if in_role(:web)
+if in_role?(:web)
   #we symlink the web_proxy we are using....
   start(:web, "web_proxy")
   run("/etc/init.d/web_proxy reload")
@@ -50,7 +50,7 @@ end
 
 
 # app role:
-if in_role(:app)
+if in_role?(:app)
   start(:app, "mongrel", "mongrel_rails")
 else
   stop(:app, "mongrel", "mongrel_rails")

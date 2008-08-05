@@ -27,7 +27,7 @@ pp roles
 
 
 # web role:
-if in_role(:web)
+if in_role?(:web)
   puts "setting up reverse proxy for web role.  starting port: #{web_starting_port} up to #{web_starting_port + web_num_instances - 1}"
 
   if system("which apache")
@@ -54,7 +54,7 @@ if in_role(:web)
   end
 end
 
-if in_role(:db_primary) || in_role(:app)
+if in_role?(:db_primary) || in_role?(:app)
   db_primary_addr = roles[:db_primary][0]
   add_etc_hosts_entry('db_primary', db_primary_addr)
 end
