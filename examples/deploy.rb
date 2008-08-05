@@ -55,7 +55,7 @@ set :ec2onrails_config, {
   :rubygems => ["rmagick", "rfacebook -v 0.9.7"],
   
   # Defines the web proxy that will be used.  Choices are :apache or :nginx
-  :web_proxy_server => :apache
+  :web_proxy_server => :apache,
   
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
   # details
