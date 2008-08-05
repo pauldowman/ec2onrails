@@ -55,9 +55,9 @@ avail_cores = 0 if avail_cores.nil? || avail_cores < 0
 
 
 mem_opt = nil
-mem_opt ||= 0.15 if local_roles.include?(:app) && local_roles.include?(:web) && local_roles.include?(:memcached)
-mem_opt ||= 0.25 if local_roles.include?(:app) && local_roles.include?(:memcached)
-mem_opt ||= 0.35 if local_roles.include?(:app) || local_roles.include?(:memcached)
+mem_opt ||= 0.15 if local_roles.include?(:app) && local_roles.include?(:web) && local_roles.include?(:memcache)
+mem_opt ||= 0.25 if local_roles.include?(:app) && local_roles.include?(:memcache)
+mem_opt ||= 0.35 if local_roles.include?(:app) || local_roles.include?(:memcache)
 mem_opt ||= 0.50 if local_roles.include?(:web)
 mem_opt ||= 0.70  #if only db, lets use a 70% ratio
 
@@ -214,11 +214,11 @@ configs['mysqld']['innodb_buffer_pool_size'] = if free_mem > 4096
                                                elsif free_mem > 1024
                                                  free_mem - 256
                                                elsif free_mem > 512
-                                                 free_mem - 128
+                                                 free_mem - 192
                                                elsif free_mem > 256
-                                                 free_mem  - 64
+                                                 free_mem  - 128
                                                else
-                                                 free_mem
+                                                 free_mem - 98
                                                end
 configs['mysqld']['innodb_buffer_pool_size'] = "#{configs['mysqld']['innodb_buffer_pool_size']}M"
 
