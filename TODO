@@ -49,6 +49,8 @@ FUTURE CHANGES
 
 [ ] preset defaults for the ec2onrails configs?
 
+[ ] right now cron has a task called 'app' in cron.daily, cron.hourly, cron.monthly, and cron.weekly.  BUT, these are run on every server.  we should probably provide some sort of mechanism so a user can specify particular jobs for particular roles
+
 [ ] consolidate all logs to /mnt/log, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
 
 POSSIBLE CHANGES

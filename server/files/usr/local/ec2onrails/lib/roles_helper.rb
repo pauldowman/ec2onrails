@@ -72,7 +72,7 @@ module Ec2onrails
     def get_address_metadata(type)
       address  = Net::HTTP.get('169.254.169.254', "/2007-08-29/meta-data/#{type}").strip
       raise "couldn't get instance data: #{type}" unless address =~ /\A\d+\.\d+\.\d+\.\d+\Z/
-      puts "#{type}: #{address}"
+      # puts "#{type}: #{address}"
       return address
     end
 
