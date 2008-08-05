@@ -19,11 +19,13 @@ include Ec2onrails::RolesHelper
 DEFAULT_CONFIG_LOC = "/etc/mysql/my.cnf"
 
 exit unless in_role(:db_primary)
+
 local_roles = roles.inject([]){|all_roles, role| all_roles << role.first if role.last.include?("127.0.0.1")}
 only_db_role = local_roles.size < 2
 
+
 #lets make a copy of the original...but do not overwrite if it already exists!
-FileUtils.copy(DEFAULT_CONFIG_LOC, "#{DEFAULT_CONFIG_LOC}.orig") unless File.exists?("#{DEFAULT_CONFIG_LOC}.orig")
+FileUtils.copy(DEFAULT_CONFIG_LOC, "#{DEFAULT_CONFIG_LOC}.pre_optimized") unless File.exists?("#{DEFAULT_CONFIG_LOC}.pre_optimized")
 
 
 ##### ************************** COMPUTE METRICS ************************** #####
@@ -69,6 +71,17 @@ end
 free_mem = (orig_free_mem * mem_opt).to_i
 
 @mysql = Ec2onrails::MysqlHelper.new
+         
+result = run("/etc/init.d/mysql start")
+  if result
+    puts <<-MSG
+****** WOOPS ******
+mysql was not successfully started up.  
+Not optimizing mysql config file
+MSG
+  exit 1
+  end
+
 num_connections = 100
 mysql_cmd = %{mysql -u #{@mysql.user} -e "select @@max_connections;"}
 mysql_cmd += " -p'#{@mysql.password}' " unless @mysql.password.nil?
@@ -96,11 +109,11 @@ end
 puts <<-MSG
 
 Optimizing mysql based off of these stats:
-  * sharing server with these roles: #{local_roles.inspect}
-  * num cores (est avail cores) : #{num_cores} (#{avail_cores})
-  * avail mem (mem for db)    : #{orig_free_mem} (#{free_mem})
-  * num database tables         : #{num_tables}
-  * max num conns               : #{num_connections}
+  * sharing server with these roles : #{local_roles.inspect}
+  * num cores (est avail cores)     : #{num_cores} (#{avail_cores})
+  * avail mem (mem for db)          : #{orig_free_mem} (#{free_mem})
+  * num database tables             : #{num_tables}
+  * max num conns                   : #{num_connections}
 MSG
 
 
@@ -119,7 +132,9 @@ modifying_keys = %w(thread_concurency thread_cache_size query_cache_size table_c
 
 original_values = modifying_keys.inject([]){|all, key| all << [key, configs['mysqld'][key.to_s]]}
 
-##### only turn on thread concurrency if there are some spare 'cores' available
+
+##### thread_concurency: only turn on thread concurrency if 
+#     there are some spare 'cores' available
 if avail_cores < 2
   configs['mysqld'].delete('thread_concurency')
 elsif
@@ -139,6 +154,7 @@ configs['mysqld']['thread_cache_size'] = if avail_cores > 6
                                            8
                                          end
 
+
 #### query_cache_size: Important for read-heavy db loads, but it gets expensive
 #    to maintain if it gets too large.
 configs['mysqld']['query_cache_size'] = if free_mem > 4096
@@ -153,12 +169,12 @@ configs['mysqld']['query_cache_size'] = if free_mem > 4096
 configs['mysqld']['query_cache_size'] = "#{configs['mysqld']['query_cache_size']}M"
 
 
-
 #### table_cache: Opening tables can be expensive, so this cache helps mitigate that.  
 # Each connection needs its own entry in the table cache, but this is less important for innodb 
 # heavy database (which most rails apps are).
 # based upont he observation that a cache size of 1024 is a good size for a db with a few hundred tables
 configs['mysqld']['table_cache'] = (num_connections * num_tables)/10
+
 
 #### key_buffer_size: Does not need to be very large because most rails 
 #    applications do not use MyISAM, or use if very little (usually to store
@@ -206,12 +222,15 @@ configs['mysqld']['innodb_buffer_pool_size'] = if free_mem > 4096
                                                end
 configs['mysqld']['innodb_buffer_pool_size'] = "#{configs['mysqld']['innodb_buffer_pool_size']}M"
 
+
 #### innodb_additional_mem_pool_size: This is not really needed as most OS's do a good job
 #    of allocating memory.
 configs['mysqld']['innodb_additional_mem_pool_size'] ||= '16M'
 
+
 #### innodb_log_buffer_size: This is flushed every second anyway, so 8-16M is generally ok
 configs['mysqld']['innodb_log_buffer_size'] ||= '12M'
+
 
 #### innodb_log_file_size: Help with heavy writes, 
 #    BUT if it is too large recovery times can be a lot longer
@@ -226,6 +245,7 @@ configs['mysqld']['innodb_log_file_size'] = if free_mem > 4096
                                             end
 configs['mysqld']['innodb_log_file_size'] = "#{configs['mysqld']['innodb_log_file_size']}M"
 ##### ****************** END Modifying MYSQL config file ****************** #####
+
 
 
 new_values = modifying_keys.inject([]){|all, key| all << [key, configs['mysqld'][key.to_s]]}
@@ -246,6 +266,10 @@ config_file_loc = DEFAULT_CONFIG_LOC
 #We need to shut down mysql BEFORE we move the new configs over...
 puts "\nCleanly stopping mysql to replace its config file."
 
+#make sure the mysql has time to startup before we shut it down again
+#TODO: can we improve this?
+sleep(5) 
+
 result = run("/etc/init.d/mysql stop")
 clean_stop = true
 if result
@@ -265,7 +289,7 @@ puts <<-MSG
 cleanly shutdown mysql.  Replacing config file:
    #{config_file_loc}
 The original config file can be found here:
-   #{DEFAULT_CONFIG_LOC}.orig
+   #{DEFAULT_CONFIG_LOC}.pre_optimized
 
 Starting mysql...
 MSG
@@ -278,7 +302,7 @@ File.open(DEFAULT_CONFIG_LOC, 'w') do |file|
   file << <<-MSG
 # This file is generated by '#{__FILE__}'
 # Based upon the default '#{DEFAULT_CONFIG_LOC}'
-# which is now saved at '#{DEFAULT_CONFIG_LOC}.orig'
+# which is now saved at '#{DEFAULT_CONFIG_LOC}.pre_optimized'
     
 # See file for comments:
 # #{__FILE__}
@@ -290,5 +314,26 @@ MSG
 end
 
 if clean_stop  
+  #before we can start, we need to move the old cache files...
+  old_logs = []
+  Dir.glob("/mnt/mysql_data/ib_logfile*").each do |f|
+    FileUtils.mv(f, f + "_old")
+    old_logs << "#{f}_old"
+  end
+  puts <<-MSG
+Moving the old mysql ib logfiles because we might have changed the
+default logfile cache size.  If mysql startups up successfully,
+these files can be removed:
+  #{old_logs.join("\n  ")}
+MSG
+
+
   result = run("/etc/init.d/mysql start")
+  if result
+    puts <<-MSG
+****** WOOPS ******
+mysql was not successfully started up.  
+Check syslog, as the culprit will be logged there.
+MSG
+  end
 end

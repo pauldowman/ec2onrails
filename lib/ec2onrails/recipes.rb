@@ -48,8 +48,7 @@ Capistrano::Configuration.instance.load do
 
   #in case any changes were made to the configs, like changing the number of mongrels
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
-  # after "deploy:update_code", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
-  after "deploy:cold", "ec2onrails:db:init_backup"
+  after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize"
   
   # override default start/stop/restart tasks
   namespace :deploy do
@@ -134,7 +133,6 @@ Capistrano::Configuration.instance.load do
       server.enable_ssl if cfg[:enable_ssl]
       server.set_rails_env
       server.restart_services
-      db.optimize
       deploy.setup
       db.create
     end
@@ -167,11 +165,12 @@ Capistrano::Configuration.instance.load do
       task :load_config do
         unless hostnames_for_role(:db, :primary => true).empty?
           db_config = YAML::load(ERB.new(File.read("config/database.yml")).result)[rails_env.to_s] || {}
-          cfg[:db_name] ||= db_config['database']
-          cfg[:db_user] ||= db_config['username'] || db_config['user'] 
+          cfg[:db_name]     ||= db_config['database']
+          cfg[:db_user]     ||= db_config['username'] || db_config['user'] 
           cfg[:db_password] ||= db_config['password']
-          cfg[:db_host] ||= db_config['host']
-          cfg[:db_socket] ||= db_config['socket']
+          cfg[:db_host]     ||= db_config['host']
+          cfg[:db_port]     ||= db_config['port']
+          cfg[:db_socket]   ||= db_config['socket']
         
           if (cfg[:db_host].nil? || cfg[:db_host].empty?) && (cfg[:db_socket].nil? || cfg[:db_socket].empty?)
               raise "ERROR: missing database config. Make sure database.yml contains a '#{rails_env}' section with either 'host: hostname' or 'socket: /var/run/mysqld/mysqld.sock'."
@@ -274,8 +273,21 @@ Capistrano::Configuration.instance.load do
         run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
       end
       
+      # do NOT run if the flag does not exist.  This is placed by a startup script
+      # and it is only run on the first-startup.  This means after the db has been
+      # optimized, this task will not work again.  
+      #
+      # Of course you can overload it or call the file directly
       task :optimize, :roles => :db do
-        sudo "/usr/local/ec2onrails/bin/optimize_mysql.rb"
+        if capture("test -e /tmp/optimize_db_flag && echo 'file exists'").strip == 'file exists'
+          begin
+            sudo "/usr/local/ec2onrails/bin/optimize_mysql.rb"
+          ensure
+            sudo "rm -rf /tmp/optimize_db_flag" #remove so we cannot run again
+          end
+        else
+          puts "skipping as it looks like this task has already been run"
+        end
       end
       
     end

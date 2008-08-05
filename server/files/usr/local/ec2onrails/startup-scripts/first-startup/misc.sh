@@ -22,3 +22,5 @@
 chmod 777 /tmp
 
 cp /etc/hosts /etc/hosts.original
+
+touch /tmp/optimize_db_flag

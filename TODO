@@ -10,7 +10,7 @@ FUTURE CHANGES
 [ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles.rb default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
 
 [X] mysql optimizations
-
+  
 [X] allow config to be able to flip between nginx and apache as proxy... 
 
 [ ] automatic firewall setup.  The hitch is can we find the amazon user_id automatically?
@@ -45,16 +45,19 @@ FUTURE CHANGES
     
 [ ] preload mysql timezone information
 
-[ ] set -y flag when installing/updating gems
+[X] set -y flag when installing/updating gems UPDATE: not needed... does it automatically for the other non-interactive flags we are using
 
 [ ] preset defaults for the ec2onrails configs?
 
-[ ] consolidate all logs to /mnt/logs, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
+[ ] consolidate all logs to /mnt/log, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
 
 POSSIBLE CHANGES
-[ ] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  ).  A few folks have branched ec2onrails into github before and they've all done this...
+[X] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  ).  A few folks have branched ec2onrails into github before and they've all done this...
 
 [ ] move to god from monit
+
+[ ] do not put users custom files up there until before deploy:cold?  Right now I'm pushing a lot of custom stuff out there into monit which is failing because the code it is supposed to monitor is not there yet.  will pushing it to "before 'deploy:cold' cause an issues"
+
 
 QUESTIONS
 * during setup, what do you choose for Postfix configurations?  ANSWER:
