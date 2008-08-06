@@ -279,7 +279,8 @@ Capistrano::Configuration.instance.load do
       #
       # Of course you can overload it or call the file directly
       task :optimize, :roles => :db do
-        if capture("test -e /tmp/optimize_db_flag && echo 'file exists'").strip == 'file exists'
+        found = capture("test -e /tmp/optimize_db_flag && echo 'file exists'") rescue false
+        if found
           begin
             sudo "/usr/local/ec2onrails/bin/optimize_mysql.rb"
           ensure
