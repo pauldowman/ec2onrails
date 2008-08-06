@@ -66,8 +66,8 @@ end
 
 
 # set the default to the current directory; makes it easier to 
-run "cd /mnt/app/current"
+Dir.chdir('/mnt/app/current')
 
+ENV['RAILS_ENV'] = curr_env
 run ARGV.flags.exec
-# run "sudo -u app -c \"#{ARGV.flags.exec}\""
 

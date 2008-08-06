@@ -301,10 +301,11 @@ Capistrano::Configuration.instance.load do
       task :set_roles do
         # TODO generate this based on the roles that actually exist so arbitrary new ones can be added
         roles = {
-          :web =>        hostnames_for_role(:web),
-          :app =>        hostnames_for_role(:app),
+          :web        => hostnames_for_role(:web),
+          :app        => hostnames_for_role(:app),
           :db_primary => hostnames_for_role(:db, :primary => true),
-          :memcache =>   hostnames_for_role(:memcache)
+          :db         => hostnames_for_role(:db),
+          :memcache   => hostnames_for_role(:memcache)
         }
         roles_yml = YAML::dump(roles)
         put roles_yml, "/tmp/roles.yml"
