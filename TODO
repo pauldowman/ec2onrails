@@ -28,7 +28,7 @@ FUTURE CHANGES
             - at this point, the app user ONLY has access to sudo to monit
         * provide cap tasks to restrict or grant full sudo access
 
-[ ] automatic and randomized initial mysql root password setup.  Place the root password in a text file only to be red by 'root' or 'admin'
+[ ] automatic and randomized initial mysql root password setup.  Place the root password in a text file only to be read by 'root', perhaps in /etc/ec2onrails/mysq_root_passwd
 
 [ ] multi-database setup.  Master -> n slave(s)
 
