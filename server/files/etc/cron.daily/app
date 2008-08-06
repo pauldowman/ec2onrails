@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #NOTE: you can also call 
-#      /usr/local/ec2onrails/bin/exec_if_in_role
+#      /usr/local/ec2onrails/bin/exec_runner
 #      to run a script under a specific role
 #      see the file for details
 test -e /mnt/app/current/script/daily || exit 0
