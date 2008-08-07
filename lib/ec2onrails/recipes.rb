@@ -305,7 +305,8 @@ Capistrano::Configuration.instance.load do
           :web        => hostnames_for_role(:web),
           :app        => hostnames_for_role(:app),
           :db_primary => hostnames_for_role(:db, :primary => true),
-          :db         => hostnames_for_role(:db),
+          # doing th ebelow can cause errors elsewhere unless :db is populated.
+          # :db         => hostnames_for_role(:db),
           :memcache   => hostnames_for_role(:memcache)
         }
         roles_yml = YAML::dump(roles)
