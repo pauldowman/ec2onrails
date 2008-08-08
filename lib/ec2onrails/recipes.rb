@@ -48,7 +48,7 @@ Capistrano::Configuration.instance.load do
 
   #in case any changes were made to the configs, like changing the number of mongrels
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
-  after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize"
+  after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
   
   # override default start/stop/restart tasks
   namespace :deploy do
