@@ -195,10 +195,11 @@ Here is how you go about setting it up:
 *Notes*
 * amazon-keypair is your amazon keypair, which in this case has has had the public and private keys copied into the ~/.ssh folder
 * we need to copy the ec2onrails source folder onto the image instance
-* HOST_PUBLIC_INSTANCE is the hostname of the instance that you will soon be creating.  run <code>ec2-describe-instances</code> to find this value.  It will look something like <pre>ec2-xxx-xxx-xxx-xxx.compute-x.amazonaws.com</pre>
+* HOST_PUBLIC_INSTANCE is the hostname of the instance that you will soon be creating.  run <code>ec2-describe-instances</code> to find this value.  It will look something like <code>ec2-xxx-xxx-xxx-xxx.compute-x.amazonaws.com</code>
 
 h4. Getting started...
-* launch one of Eric's default images (see "eric Hammond's":http://alestic.com/ page for the most recent ami-images): <code>ec2-run-instances ami-f51aff9c -k amazon-keypair</code> (for a 64-bit image, launch: <code>ec2-run-instances ami-f21aff9b -k amazon-keypair --instance-type m1.large</code>)
+
+* launch one of Eric's default images (see "Eric Hammond's":http://alestic.com/ page for the most recent ami-images): <code>ec2-run-instances ami-f51aff9c -k amazon-keypair</code> (for a 64-bit image, launch: <code>ec2-run-instances ami-f21aff9b -k amazon-keypair --instance-type m1.large</code>)
 * lets get your amazon keypair up onto the instance: <code>scp -i ~/.ssh/id_rsa-amazon-keypair ~/.ec2/{cert,pk}-*.pem root@HOST_PUBLIC_ADDRESS:/mnt/</code>
 * ditto for getting the ec2onrails server code up onto your new instance: <code>scp -rp -i ~/.ssh/id_rsa-amazon-keypair ~/your/copy/of/ec2onrails/. root@HOST_PUBLIC_ADDRESS:/mnt/ec2onrails</code>
 * time to log into your instance: <code>ssh -i ~/.ssh/id_rsa-amazon-keypair root@HOST_PUBLIC_ADDRESS</code>
