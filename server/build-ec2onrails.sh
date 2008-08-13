@@ -27,9 +27,9 @@ if [ -z `which rake` ] ; then
   echo "Installing rake..."
   (
   cd /tmp
-  wget http://rubyforge.org/frs/download.php/19879/rake-0.7.3.tgz
-  tar xvf rake-0.7.3.tgz
-  cd rake-0.7.3
+  wget http://rubyforge.org/frs/download.php/29752/rake-0.8.1.tgz
+  tar xvf rake-0.8.1.tgz
+  cd rake-0.8.1
   ruby install.rb
   )
 fi
