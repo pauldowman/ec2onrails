@@ -49,6 +49,7 @@ Capistrano::Configuration.instance.load do
   #in case any changes were made to the configs, like changing the number of mongrels
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
+  after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
   
   # override default start/stop/restart tasks
   namespace :deploy do
@@ -402,6 +403,18 @@ Capistrano::Configuration.instance.load do
                 puts data
               end
             end
+          end
+        end
+      end
+      
+      desc <<-DESC
+        Add extra gem sources to rubygems (to able to fetch gems from for example gems.github.com).
+        Set ec2onrails_config[:rubygems_sources], it should be with an array of strings.
+      DESC
+      task :add_gem_sources do
+        if cfg[:rubygems_sources]
+          cfg[:rubygems_sources].each do |gem_source|
+            sudo "gem sources -a #{gem_source}"
           end
         end
       end
