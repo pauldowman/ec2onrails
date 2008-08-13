@@ -39,6 +39,10 @@ module CommandLineArgs extend OptiFlagSet
   and_process!
 end
 
+# make the log directories even if they won't be used...
+# keeps logrotate configs easy
+sudo "mkdir -p -m 755 /mnt/log/apache2"
+sudo "mkdir -p -m 755 /mnt/log/nginx"
 
 case ARGV.flags.mode
 when 'apache'
@@ -55,7 +59,6 @@ when 'apache'
   
   
   sudo "rm -rf /var/log/apache2"
-  sudo "mkdir -p /mnt/log/apache2"
   sudo "ln -sf /mnt/log/apache2 /var/log/apache2"
   sudo "ln -sf /etc/init.d/apache2 /etc/init.d/web_proxy"
   sudo "ln -sf /mnt/log/apache2 /mnt/log/web_proxy"
@@ -91,8 +94,6 @@ when 'nginx'
        make && \
        sudo make install"
 
-  #setup directories:
-  run "sudo mkdir -p -m 755 /mnt/log/nginx"
   # run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
 
   #an init.d script is in the default server config... lets link it up
