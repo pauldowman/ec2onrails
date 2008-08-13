@@ -10,23 +10,12 @@ FUTURE CHANGES
 [ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles.rb default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
 
 [X] mysql optimizations
-  
-[X] allow config to be able to flip between nginx and apache as proxy... 
+
+[ ] hook memcached into nginx...
+
+[ ] hook ssl setup hooks for nginx
 
 [ ] automatic firewall setup.  The hitch is can we find the amazon user_id automatically?
-
-[X] remove the *_admin capistrano roles.  can we use admin for sudo access but continue to deploy and run under a user without sudo access?  It looks like we can if we add this to the recipes.rb file:
-        set :use_sudo, true
-        set :user, "app"
-        set :admin_runner, "admin"
-    UPDATE: this didn't work as then admin would need to behave as root... SO, here is what I did:
-        * remove _admin roles AND the admin user
-        * give app user full sudo access to begin with
-        * have /etc/sudoers -> /etc/sudoers.full_access
-        * after ec2onrails:setup, trigger ec2onrails:server:restrict_sudo_access
-            - flips /etc/sudoers -> /etc/sudoers.restricted_access
-            - at this point, the app user ONLY has access to sudo to monit
-        * provide cap tasks to restrict or grant full sudo access
 
 [ ] automatic and randomized initial mysql root password setup.  Place the root password in a text file only to be read by 'root', perhaps in /etc/ec2onrails/mysq_root_passwd
 
@@ -42,10 +31,12 @@ FUTURE CHANGES
 
 [ ] hook in pauls postfix changes to be able to use an external smtp provider.  make it configurable:
     http://pauldowman.com/2008/02/17/smtp-mail-from-ec2-web-server-setup/
+    also see this file for updates:
+    http://www.babbleon.co.uk/2008/05/email-with-ec2/ 
     
 [ ] preload mysql timezone information
 
-[X] set -y flag when installing/updating gems UPDATE: not needed... does it automatically for the other non-interactive flags we are using
+[ ] mysql optimizations are not calculating the num of cores avail correctly
 
 [ ] preset defaults for the ec2onrails configs?
 
@@ -53,9 +44,11 @@ FUTURE CHANGES
 
 [ ] consolidate all logs to /mnt/log, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
 
-POSSIBLE CHANGES
-[X] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  ).  A few folks have branched ec2onrails into github before and they've all done this...
+[ ] get all user-data and meta-data variables from the amazon image in a similar way to rightscale?  Makes it dead simple to use/manipulate that information
 
+[ ] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles.rb or init_services or something a bit higher`
+
+POSSIBLE CHANGES
 [ ] move to god from monit
 
 [ ] do not put users custom files up there until before deploy:cold?  Right now I'm pushing a lot of custom stuff out there into monit which is failing because the code it is supposed to monitor is not there yet.  will pushing it to "before 'deploy:cold' cause an issues"
@@ -67,3 +60,24 @@ QUESTIONS
 * why install php5?  ANSWER: Can't tell... seems to run fine without it, so removing it as a direct aptitude fetch (if it is a dependency somewhere else, it will get downloaded)
 
 * WHO runs the script/migration?  App or db?  ANSWER: the (primary-) db does.  This make sense in that you don't want every app instance running a rake db:migration.  This means that the db role needs to be fully setup to handle rake db:migration, meaning the /etc/hosts file needs to contain db_primary as an alias to 127.0.0.1
+
+
+COMPLETED
+[X] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  ).  A few folks have branched ec2onrails into github before and they've all done this...
+
+[X] set -y flag when installing/updating gems UPDATE: not needed... does it automatically for the other non-interactive flags we are using
+
+[X] remove the *_admin capistrano roles.  can we use admin for sudo access but continue to deploy and run under a user without sudo access?  It looks like we can if we add this to the recipes.rb file:
+        set :use_sudo, true
+        set :user, "app"
+        set :admin_runner, "admin"
+    UPDATE: this didn't work as then admin would need to behave as root... SO, here is what I did:
+        * remove _admin roles AND the admin user
+        * give app user full sudo access to begin with
+        * have /etc/sudoers -> /etc/sudoers.full_access
+        * after ec2onrails:setup, trigger ec2onrails:server:restrict_sudo_access
+            - flips /etc/sudoers -> /etc/sudoers.restricted_access
+            - at this point, the app user ONLY has access to sudo to monit
+        * provide cap tasks to restrict or grant full sudo access
+
+[X] allow config to be able to flip between nginx and apache as proxy... 

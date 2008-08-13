@@ -82,27 +82,41 @@ when 'nginx'
     
   run "cd #{nginx_dir}/nginx-0.6.32 && \
        ./configure \
+         --sbin-path=/usr/sbin \
+         --conf-path=/etc/nginx/nginx.conf \
+         --pid-path=/var/run/nginx.pid \
          --with-http_ssl_module \
+         --with-http_stub_status_module \
          --add-module=#{nginx_dir}/modules/nginx-upstream-fair && \
        make && \
        sudo make install"
 
   #setup directories:
   run "sudo mkdir -p -m 755 /mnt/log/nginx"
-  run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
+  # run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
 
   #an init.d script is in the default server config... lets link it up
   sudo "ln -sf /etc/init.d/nginx /etc/init.d/web_proxy"
   sudo "ln -sf /mnt/log/nginx /mnt/log/web_proxy"
-  sudo "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"  
-  
+  # sudo "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"  
+  # sudo "ln -sf /usr/local/nginx/conf /etc/nginx"
 else
   puts "The mode: #{ARGV.flags.mode} was not recognized.  Must be one of these #{["apache","nginx"].join(', ')}"
   exit 1
 end
-
-
-
+# 
+# 
+# ./configure --sbin-path=/usr/sbin 
+#             --conf-path=/etc/nginx/nginx.conf 
+#             --pid-path=/var/run/nginx.pid 
+#             --error-log-path=/var/log/nginx/error.log 
+#             --with-http_ssl_module
+#             --user=deploy --group=deploy
+# make && sudo make install
+# sudo mkdir -p /etc/nginx/apps
+# sudo /sbin/service httpd stop
+# sudo /sbin/chkconfig httpd off
+# 
 
 
 

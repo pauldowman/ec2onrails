@@ -8,7 +8,8 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 
 #Location of nginx binary. Change path as neccessary
-DAEMON=/usr/local/nginx/sbin/nginx
+DAEMON=/usr/sbin/nginx
+# DAEMON=/usr/local/nginx/sbin/nginx
 #Location of configuration file. Change path as neccessary
 CONFIG_FILE=/etc/nginx/nginx.conf
 # CONFIG_FILE=/usr/local/nginx/conf/nginx.conf
