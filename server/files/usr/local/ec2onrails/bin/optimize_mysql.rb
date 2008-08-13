@@ -20,7 +20,7 @@ DEFAULT_CONFIG_LOC = "/etc/mysql/my.cnf"
 
 exit unless in_role?(:db_primary)
 
-local_roles = roles.inject([]){|all_roles, role| all_roles << role.first if role.last.include?("127.0.0.1")}
+local_roles = roles.inject([]){|all_roles, role| all_roles << role.first if !all_roles.nil? && role.last.include?("127.0.0.1")}
 only_db_role = local_roles.size < 2
 
 
