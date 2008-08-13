@@ -73,7 +73,7 @@ _Be sure to customize those files and read the comments._
 Also, use the hostname "db_primary" in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve
 to the instance defined in your Capistrano "db" role.
 
-h4. 4. Start up one or more instances of the image.
+h4. 3. Start up one or more instances of the image.
 
 There is nothing EC2 on Rails-specific here yet (though soon there will be a Capistrano task to do this for you), 
 if you've started EC2 instances before you can skip this section. Otherwise, I'm not going to lie, this part is complicated
@@ -107,7 +107,7 @@ Be sure that you haven't allowed public access to any ports other than TCP 22 an
 If you're using multiple instances, be sure to allow them network access to each other.
 
 
-h4. 5. Copy your public key from the server to keep Capistrano happy
+h4. 4. Copy your public key from the server to keep Capistrano happy
 
 This is a workaround for a quirk in Capistrano. Technically all you should need to connect to the server is the private 
 key file, the public key is on the server. But for some reason 
@@ -120,7 +120,7 @@ There is a Capistrano task that tries to fix this for you. From within the root 
 Note, this will only work if you have an external ssh command in the path, it won't work for most Windows users.
 
 
-h4. 6. Deploy the app with Capistrano
+h4. 5. Deploy the app with Capistrano
 
 Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, 
 this is the only thing you'll need to do from now on.
