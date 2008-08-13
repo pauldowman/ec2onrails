@@ -105,21 +105,3 @@ else
   puts "The mode: #{ARGV.flags.mode} was not recognized.  Must be one of these #{["apache","nginx"].join(', ')}"
   exit 1
 end
-# 
-# 
-# ./configure --sbin-path=/usr/sbin 
-#             --conf-path=/etc/nginx/nginx.conf 
-#             --pid-path=/var/run/nginx.pid 
-#             --error-log-path=/var/log/nginx/error.log 
-#             --with-http_ssl_module
-#             --user=deploy --group=deploy
-# make && sudo make install
-# sudo mkdir -p /etc/nginx/apps
-# sudo /sbin/service httpd stop
-# sudo /sbin/chkconfig httpd off
-# 
-
-
-
-
-
