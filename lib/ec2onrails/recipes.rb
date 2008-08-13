@@ -252,7 +252,7 @@ Capistrano::Configuration.instance.load do
         "database-archive/<timestamp>/dump.sql.gz".
       DESC
       task :archive, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
+        sudo "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -261,7 +261,7 @@ Capistrano::Configuration.instance.load do
         expected to be the default, "mysqldump.sql.gz".
       DESC
       task :restore, :roles => :db do
-        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
+        sudo "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -270,7 +270,7 @@ Capistrano::Configuration.instance.load do
         make sense).
       DESC
       task :init_backup, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
+        sudo "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
       end
       
       # do NOT run if the flag does not exist.  This is placed by a startup script
