@@ -17,26 +17,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Some of the files will need to have additional permissions than the
+#    default settings, especially as the main app and deploy do not run
+#    under the user 'root' but instead under the user 'app'
+#
 
-make_dir() {
-  mkdir -p $1
-  if [ $2 ] ; then
-    chown -R $2 $1
-  fi
-}
 
-make_dir /mnt/app app:app
+chmod 777 /tmp
 
-#make sure it is setup to be able to be read/written by app user
-make_dir /etc/ec2onrails app:app
-
-make_dir /mnt/log
-# make_dir /mnt/log/apache2    www-data:www-data
-make_dir /mnt/log/fsck
-make_dir /mnt/log/mysql      mysql:mysql
-
-make_dir /mnt/mysql_data     mysql:mysql
-make_dir /mnt/mysql_data/tmp mysql:mysql
-
-make_dir /mnt/tmp
-chmod 777 /mnt/tmp
+#make sure the monitrc file has the correct permissions set
+chmod 700 /etc/monit/monitrc

@@ -19,11 +19,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-chmod 777 /tmp
-
 cp /etc/hosts /etc/hosts.original
 
 touch /tmp/optimize_db_flag
-
-#make sure the monitrc file has the correct permissions set
-chmod 700 /etc/monit/monitrc
