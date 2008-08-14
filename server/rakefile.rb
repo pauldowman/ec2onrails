@@ -113,7 +113,7 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz && tar zxf rubygems-1.2.0.tgz'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz && tar zxf rubygems-1.2.0.tgz'"
     run_chroot "sh -c 'cd /tmp/rubygems-1.2.0 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
@@ -127,7 +127,7 @@ end
 desc "Compile and install monit"
 task :install_monit => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ --localstatedir=/var/run && make && make install'"
   end
@@ -151,7 +151,7 @@ task :configure => [:install_gems, :install_monit] do |t|
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
     
-    touch "#{@fs_dir}/ec2onrails-first-boot"
+    run "touch #{@fs_dir}/ec2onrails-first-boot"
     
     # TODO find out the most correct solution here, there seems to be a bug in
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
