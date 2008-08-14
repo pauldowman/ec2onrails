@@ -94,8 +94,7 @@ when 'nginx'
        make && \
        sudo make install"
 
-  # run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
-
+  run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
   #an init.d script is in the default server config... lets link it up
   sudo "ln -sf /etc/init.d/nginx /etc/init.d/web_proxy"
   sudo "ln -sf /mnt/log/nginx /mnt/log/web_proxy"
