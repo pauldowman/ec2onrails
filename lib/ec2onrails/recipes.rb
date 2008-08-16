@@ -54,22 +54,26 @@ Capistrano::Configuration.instance.load do
   # override default start/stop/restart tasks
   namespace :deploy do
     desc <<-DESC
-      Overrides the default Capistrano deploy:restart, uses \
+      Overrides the default Capistrano deploy:start, uses \
       /etc/init.d/mongrel
     DESC
     task :start, :roles => :app do
-      run_init_script("mongrel", "start")
-      run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
-      sudo "monit -g app monitor all"
+      ec2onrails.server.allow_sudo do
+        run_init_script("mongrel", "start")
+        run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
+        sudo "monit -g app monitor all"
+      end
     end
     
     desc <<-DESC
-      Overrides the default Capistrano deploy:restart, uses \
+      Overrides the default Capistrano deploy:stop, uses \
       /etc/init.d/mongrel
     DESC
     task :stop, :roles => :app do
-      sudo "monit -g app unmonitor all"
-      run_init_script("mongrel", "stop")
+      ec2onrails.server.allow_sudo do
+        sudo "monit -g app unmonitor all"
+        run_init_script("mongrel", "stop")
+      end
     end
     
     desc <<-DESC
@@ -77,8 +81,10 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :restart, :roles => :app do
-      deploy.stop
-      deploy.start
+      ec2onrails.server.allow_sudo do
+        deploy.stop
+        deploy.start
+      end
     end
   end
   
@@ -253,7 +259,7 @@ Capistrano::Configuration.instance.load do
         "database-archive/<timestamp>/dump.sql.gz".
       DESC
       task :archive, :roles => :db do
-        sudo "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -262,7 +268,7 @@ Capistrano::Configuration.instance.load do
         expected to be the default, "mysqldump.sql.gz".
       DESC
       task :restore, :roles => :db do
-        sudo "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -271,7 +277,7 @@ Capistrano::Configuration.instance.load do
         make sense).
       DESC
       task :init_backup, :roles => :db do
-        sudo "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
       end
       
       # do NOT run if the flag does not exist.  This is placed by a startup script
@@ -312,20 +318,18 @@ Capistrano::Configuration.instance.load do
         }
         roles_yml = YAML::dump(roles)
         put roles_yml, "/tmp/roles.yml"
-        sudo "cp /tmp/roles.yml /etc/ec2onrails"
-        #we want everyone to be able to read/write to it
-        sudo "chmod a+w /etc/ec2onrails/roles.yml"
-        granted_all_prefs = false
-        begin
-          granted_all_prefs = server.grant_sudo_access
+        server.allow_sudo do
+          sudo "cp /tmp/roles.yml /etc/ec2onrails"
+          #we want everyone to be able to read to it
+          sudo "chmod a+r /etc/ec2onrails/roles.yml"
           sudo "/usr/local/ec2onrails/bin/set_roles.rb"
-        ensure
-          server.restrict_sudo_access if granted_all_prefs
         end
       end
       
       task :init_services do
-        sudo "/usr/local/ec2onrails/bin/init_services.rb"
+        server.allow_sudo do
+          sudo "/usr/local/ec2onrails/bin/init_services.rb"
+        end
       end
       
       task :setup_web_proxy, :roles => :web do
@@ -511,27 +515,44 @@ Capistrano::Configuration.instance.load do
         sudo to monit
       DESC
       task :restrict_sudo_access do
-        sudo "cp /etc/sudoers.restricted_access /etc/sudoers"
-        # sudo "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
+        sudo "cp -f /etc/sudoers.restricted_access /etc/sudoers"
+        # run "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
       end
 
       desc <<-DESC
         Grant *FULL* sudo access to the main user.
       DESC
       task :grant_sudo_access do
+        allow_sudo
+      end
+
+      @within_sudo = 0
+      def allow_sudo
+        @within_sudo += 1
         old_user = fetch(:user)
-        begin
-          # need to cheet and temporarily set the user to ROOT so we
-          # can (re)grant full sudo access.  
-          # we can do this because the root and app user have the same
-          # ssh login preferences....
-          set :user, 'root'
-          sudo "cp /etc/sudoers.full_access /etc/sudoers"
-          # sudo "ln -sf /etc/sudoers.full_access /etc/sudoers"
-        ensure
-          changed = fetch(:user) != old_user
-          set :user, old_user
-          changed
+        if @within_sudo > 1
+          yield if block_given?
+          true
+        elsif capture("ls -l /etc/sudoers /etc/sudoers.full_access | awk '{print $5}'").split.uniq.size == 1
+          yield if block_given?
+          false
+        else
+          begin
+            # need to cheet and temporarily set the user to ROOT so we
+            # can (re)grant full sudo access.  
+            # we can do this because the root and app user have the same
+            # ssh login preferences....
+            set :user, 'root'
+            sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
+            run "cp -f /etc/sudoers.full_access /etc/sudoers"
+            yield if block_given?
+          ensure
+            @within_sudo -= 1
+            server.restrict_sudo_access if block_given?
+            set :user, old_user
+            sessions.clear
+            true
+          end
         end
       end
 
@@ -539,3 +560,4 @@ Capistrano::Configuration.instance.load do
     
   end
 end
+
