@@ -48,8 +48,16 @@ FUTURE CHANGES
 
 [ ] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles.rb or init_services or something a bit higher`
 
+[ ] hook in encryption of backup archives
+
+[ ] hook in backup of server... or should we wait for persistent storage snapshots?  http://www.webmonkey.com/tutorial/Back_Up_a_Web_Server
+
+[ ] allow a non-standard ssh port (and make sure the firewall is setup correclty)
+
+[ ] should we go back to having a sudo user like 'admin' that we flip into when we need sudo access instead of root?
+
 POSSIBLE CHANGES
-[ ] move to god from monit
+[ ] move to god from monit.  One advantage is that right now, we don't use monit to send start/stop/restart signals to the underlying processes.  Monit does not always stop mongrel, and if mongrel doesn't restart monit doesn't go in with the oh-holy 'kill -9'.  So we unmonit mongrel, then use the /etc/init.d/mongrel stop to kill it.  This works (quite well actually) BUT it makes it tricky because if we limit sudo access to only monit, we cannot run the /etc/init.d/*.  It would be best if we provide sudo access to ONLY one process.  God, supposedly, doesn't have this issue.  So if we use god instead of monit, can we have god be responsible for restarts and what not?
 
 [ ] do not put users custom files up there until before deploy:cold?  Right now I'm pushing a lot of custom stuff out there into monit which is failing because the code it is supposed to monitor is not there yet.  will pushing it to "before 'deploy:cold' cause an issues"
 
