@@ -41,6 +41,7 @@ end
   ca-certificates
   cron
   curl
+  denyhosts           # security: ssh monitoring service
   flex
   gcc
   git-core
@@ -103,6 +104,7 @@ end
 desc "Use apt-get to install required packages inside the image's filesystem"
 task :install_packages do |t|
   unless_completed(t) do
+    #why is this commented out?
     #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
     run_chroot "apt-get install -y #{@packages.join(' ')}"
