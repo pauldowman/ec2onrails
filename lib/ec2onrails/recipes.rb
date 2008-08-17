@@ -203,8 +203,11 @@ Capistrano::Configuration.instance.load do
         load_config
         start
         
-        # For some reason the default db on Hardy contains users with '' as the name.
-        # This causes authentication problems when connecting from localhost
+        # remove the default test database
+        run %{mysql -u root -e "drop database test; flush privileges;"}
+        
+        # removing anonymous mysql accounts
+        run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
         run %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
         
         run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
