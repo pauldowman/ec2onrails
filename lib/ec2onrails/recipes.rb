@@ -60,7 +60,6 @@ Capistrano::Configuration.instance.load do
     task :start, :roles => :app do
       ec2onrails.server.allow_sudo do
         run_init_script("mongrel", "start")
-        run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
         sudo "monit -g app monitor all"
       end
     end

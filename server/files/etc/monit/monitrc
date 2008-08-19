@@ -5,7 +5,11 @@ set mail-format {
   from: app@localhost
   subject: $HOST: $SERVICE $EVENT
 }
-set alert app@localhost only on { connection, exec, nonexist, resource, timeout }
+set alert app@localhost only on { connection, exec, resource, timeout }
+
+#lets see if we can force monit NOT to send us emails after a reboot...but if it is non existent for awhile
+set alert app@localhost only on { nonexist } with reminder on 2 cycles
+
 set httpd port 2812
 #  address localhost
   allow localhost
