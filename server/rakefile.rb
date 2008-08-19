@@ -33,6 +33,15 @@ if `whoami`.strip != 'root'
   raise "Sorry, this buildfile must be run as root."
 end
 
+# package notes:
+# * aptitude:       much better package installation system, especially around 
+#                   upgrades and package dependencies
+# * denyhosts:      security program to monitor sshd abuses
+# * gcc:            libraries needed to compile c/c++ files from source
+# * nano/vim/less:  simle file editors and viewer
+# * git-core:       because we are all using git now, aren't we?
+# 
+  
 @packages = %w(
   adduser
   apache2
@@ -41,7 +50,7 @@ end
   ca-certificates
   cron
   curl
-  denyhosts           # security: ssh monitoring service
+  denyhosts
   flex
   gcc
   git-core
