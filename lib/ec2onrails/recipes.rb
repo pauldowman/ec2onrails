@@ -202,8 +202,8 @@ Capistrano::Configuration.instance.load do
         load_config
         start
         
-        # remove the default test database
-        run %{mysql -u root -e "drop database test; flush privileges;"}
+        # remove the default test database, though sometimes it doesn't exist (perhaps it isn't there anymore?)
+        run %{mysql -u root -e "drop database if exists test; flush privileges;"}
         
         # removing anonymous mysql accounts
         run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
