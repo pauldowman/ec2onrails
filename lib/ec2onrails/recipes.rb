@@ -47,6 +47,7 @@ Capistrano::Configuration.instance.load do
   set :user, "app"
 
   #in case any changes were made to the configs, like changing the number of mongrels
+  before "deploy:cold", "ec2onrails:grant_sudo_access"
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
   after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
@@ -225,7 +226,7 @@ Capistrano::Configuration.instance.load do
         records and probably add it to the :db role in your deploy.rb file \
         (see the ec2onrails sample deploy.rb file for additional information)
       DESC
-      task :move_to_ebs, :roles => :db, :only => { :primary => true } do
+      task :move_to_ebs, :roles => :db, :only => { :primary => true } do        
         # based off of Eric's work:
         # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
         # TODO:
@@ -234,6 +235,9 @@ Capistrano::Configuration.instance.load do
         #  * make sure if we have a predefined ebs_vol_id, that we error out with a nice msg IF the zones do not match
         #  * when we enable slaves and we setup ebs volumes on them, make it transparent to the user.  
         #    have the slave create a snapshot of the db.master volume, and then use that to mount from
+        #  * need to do a rollback that if the volume is created but something fails, lets uncreate it?
+        #    carefull though!  If it fails towards the end when information is copied over, it could cause information
+        #    to be lost!
         servers = find_servers_for_task(current_task)
         
         if servers.empty?
@@ -254,67 +258,94 @@ Capistrano::Configuration.instance.load do
           unless prev_created
             puts "creating new ebs volume...."
             size = ENV["SIZE"] || "10"
-            zone = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'"
-            instance_id = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'"
+            zone = (capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'") rescue '').strip
+            instance_id = (capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'") rescue '').strip
             cmd = "ec2-create-volume -s #{size} -z #{zone}"
             puts "running: #{cmd}"
             output = `#{cmd}`
             puts output
             vol_id = (output =~ /^VOLUME\t(.+?)\t/ && $1)
-            sleep(5)          
+            puts <<-MSG
+  Creating a new image:
+    * size:   #{size} GB
+    * zone:   #{zone}
+    * vol_id: #{vol_id}
+  NOTE: remember that vol_id
+MSG
+            sleep(2)          
           end
           cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id}"
           puts "running: #{cmd}"
           output = `#{cmd}`
           puts output
           sleep(5)
-          if prev_created
-            #assume that it is formated and what not.....
-            sudo "xfs_check /dev/sdh"
-          else
-            sudo "mkfs.xfs /dev/sdh" 
-          end
-          sudo "echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
-          sudo "mkdir /var/local"
-          mount "/var/local"
+          ec2onrails.server.allow_sudo do
+            # try to format the volume... if it is already formatted, lets run a check on
+            # it to make sure it is ok, and then continue on
+            # if errors, the device is busy...something else is going on here and it is already mounted... skip!
+            if prev_created
+              sudo "umount /var/local && xfs_check /dev/sdh" rescue nil 
+            else
+              sudo "mkfs.xfs /dev/sdh" rescue 
+                sudo "umount /var/local && xfs_check /dev/sdh" rescue nil
+            end
+            sudo "echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
+            sudo "mkdir -p /var/local"
+            sudo "mount \"/var/local\"" rescue nil #already mounted?
 
-          #ok, now lets move the mysql stuff off of /mnt -> /var/local
-          stop
-          sudo "mkdir -p /var/local/log"
-          #move the data over, but keep a symlink to the new location for backwards compatability
-          #and do not do it if /mnt/mysql_data has already been moved
-          sudo "test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/"
-          sudo "ln -fs /var/local/mysql_data /mnt"
+            #ok, now lets move the mysql stuff off of /mnt -> /var/local
+            stop rescue nil #already stopped
+            sudo "mkdir -p /var/local/log"
+            #move the data over, but keep a symlink to the new location for backwards compatability
+            #and do not do it if /mnt/mysql_data has already been moved
+            capture("sudo test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/") rescue false
+            sudo "ln -fs /var/local/mysql_data /mnt"
 
-          #but keep the tmpdir on mnt
-          sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
-          #move the logs over, but keep a symlink to the new location for backwards compatability
-          #and do not do it if the logs have already been moved
-          sudo "test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/"
-          sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
-          sudo "test -f /var/local/log/mysql/mysql-bin.index && \
-                perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index"
+            #but keep the tmpdir on mnt
+            sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
+            #move the logs over, but keep a symlink to the new location for backwards compatability
+            #and do not do it if the logs have already been moved
+            capture("sudo test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/") rescue false
+            sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
+            capture("sudo test -f /var/local/log/mysql/mysql-bin.index && \
+                  perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index") rescue false
 
-          sudo "cat > /etc/mysql/conf.d/mysql-ec2-ebs.cnf <<FILE
+            txt = <<-FILE
 [mysqld]
   datadir          = /var/local/mysql_data
   tmpdir           = /mnt/tmp/mysql
   log_bin          = /var/local/log/mysql/mysql-bin.log
   log_slow_queries = /var/local/log/mysql/mysql-slow.log
-FILE"
-          #keep a copy 
-          sudo "rsync -aR /etc/mysql /var/local/"
+FILE
+            put txt, '/etc/mysql/conf.d/mysql-ec2-ebs.cnf'
+            
+#             sudo "cat > /etc/mysql/conf.d/mysql-ec2-ebs.cnf <<FILE \
+# [mysqld] \
+#   datadir          = /var/local/mysql_data \
+#   tmpdir           = /mnt/tmp/mysql \
+#   log_bin          = /var/local/log/mysql/mysql-bin.log \
+#   log_slow_queries = /var/local/log/mysql/mysql-slow.log \
+# FILE"
+            #keep a copy 
+            sudo "rsync -aR /etc/mysql /var/local/"
 
-          #just put a README on the drive so we know what this volume is for!
-          sudo "cat > /var/local/VOLUME-README <<FILE
+            #just put a README on the drive so we know what this volume is for!
+            txt = <<-FILE
 This volume is setup to be used by Ec2onRails for primary MySql database persistence.
 RAILS_ENV: #{fetch(:rails_env, 'undefined')}
 DOMAIN:    #{fetch(:domain, 'undefined')}
 
 Modify this volume at your own risk
-FILE"
-
-
+FILE
+            put txt, '/var/local/VOLUME-README'
+#             sudo "cat > /var/local/VOLUME-README <<FILE \
+# This volume is setup to be used by Ec2onRails for primary MySql database persistence. \
+# RAILS_ENV: #{fetch(:rails_env, 'undefined')} \
+# DOMAIN:    #{fetch(:domain, 'undefined')} \
+# 
+# Modify this volume at your own risk \
+# FILE"            
+          end
 
           #update the list of ebs volumes
           #TODO: abstract this away into a helper method!!
@@ -326,7 +357,6 @@ FILE"
           #lets start it back up
           start  
         end
-
       end
       
       
@@ -336,15 +366,19 @@ FILE"
         (But don't enable monitoring on it.)
       DESC
       task :start, :roles => :db do
-        sudo "chmod a+x /etc/init.d/mysql"
-        # The mysql init script can fail on the first startup if mysql takes too long 
-        # to create the logfiles, so try again
-        sudo "sh -c '/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)'"
+        ec2onrails.server.allow_sudo do
+          sudo "chmod a+x /etc/init.d/mysql"
+          # The mysql init script can fail on the first startup if mysql takes too long 
+          # to create the logfiles, so try again
+          sudo "sh -c '/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)'"
+        end
       end
 
       task :stop, :roles => :db do
-        sudo "/etc/init.d/mysql stop"
-        sudo "chmod a-x /etc/init.d/mysql"  
+        ec2onrails.server.allow_sudo do
+          sudo "/etc/init.d/mysql stop"
+          sudo "chmod a-x /etc/init.d/mysql"  
+        end
       end
       
       
@@ -651,34 +685,37 @@ FILE"
 
       @within_sudo = 0
       def allow_sudo
-        @within_sudo += 1
-        old_user = fetch(:user)
-        if @within_sudo > 1
-          yield if block_given?
-          true
-        elsif capture("ls -l /etc/sudoers /etc/sudoers.full_access | awk '{print $5}'").split.uniq.size == 1
-          yield if block_given?
-          false
-        else
-          begin
-            # need to cheet and temporarily set the user to ROOT so we
-            # can (re)grant full sudo access.  
-            # we can do this because the root and app user have the same
-            # ssh login preferences....
-            #
-            # TODO:
-            #   do not escalate priv. to root...use another user like 'admin' that has full sudo access
-            set :user, 'root'
-            sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
-            run "cp -f /etc/sudoers.full_access /etc/sudoers"
+        begin
+          @within_sudo += 1
+          old_user = fetch(:user)
+          if @within_sudo > 1
             yield if block_given?
-          ensure
-            @within_sudo -= 1
-            server.restrict_sudo_access if block_given?
-            set :user, old_user
-            sessions.clear
             true
+          elsif capture("ls -l /etc/sudoers /etc/sudoers.full_access | awk '{print $5}'").split.uniq.size == 1
+            yield if block_given?
+            false
+          else
+            begin
+              # need to cheet and temporarily set the user to ROOT so we
+              # can (re)grant full sudo access.  
+              # we can do this because the root and app user have the same
+              # ssh login preferences....
+              #
+              # TODO:
+              #   do not escalate priv. to root...use another user like 'admin' that has full sudo access
+              set :user, 'root'
+              sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
+              run "cp -f /etc/sudoers.full_access /etc/sudoers"
+              yield if block_given?
+            ensure
+              server.restrict_sudo_access if block_given?
+              set :user, old_user
+              sessions.clear
+              true
+            end
           end
+        ensure
+          @within_sudo -= 1
         end
       end
 
