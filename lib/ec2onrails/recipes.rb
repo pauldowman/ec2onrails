@@ -284,17 +284,15 @@ Capistrano::Configuration.instance.load do
         sudo "mkdir -p /var/local/log"
         #move the data over, but keep a symlink to the new location for backwards compatability
         #and do not do it if /mnt/mysql_data has already been moved
-        sudo "test ! -d /var/local/mysql_data && \
-              mv /mnt/mysql_data /var/local/ && \
-              ln -s /var/local/mysql_data /mnt"
+        sudo "test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/"
+        sudo "ln -fs /var/local/mysql_data /mnt"
         
         #but keep the tmpdir on mnt
         sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
         #move the logs over, but keep a symlink to the new location for backwards compatability
         #and do not do it if the logs have already been moved
-        sudo "test ! -d /var/local/log/mysql_data && \
-              mv /mnt/log/mysql /var/local/log/ && \
-              ln -s /var/local/log/mysql /mnt/log/mysql"
+        sudo "test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/"
+        sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
         sudo "test -f /var/local/log/mysql/mysql-bin.index && \
               perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index"
         
@@ -307,6 +305,17 @@ Capistrano::Configuration.instance.load do
 EOM"
         #keep a copy 
         sudo "rsync -aR /etc/mysql /var/local/"
+
+        #just put a README on the drive so we know what this volume is for!
+        sudo "cat > /var/local/VOLUME-README <<EOM
+This volume is setup to be used by Ec2onRails for primary MySql database persistence.
+RAILS_ENV: #{fetch(:rails_env, 'undefined')}
+DOMAIN:    #{fetch(:domain, 'undefined')}
+
+Modify this volume at your own risk
+EOM"
+        
+        
         
         #update the list of ebs volumes
         #TODO: abstract this away into a helper method!!
