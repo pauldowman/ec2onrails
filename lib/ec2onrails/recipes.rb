@@ -248,84 +248,85 @@ Capistrano::Configuration.instance.load do
         #       the places where we do call it like that, we don't want to force a move to ebs, so....
         #       if the call frame is > 1 (ie, another task called it), do NOT force the ebs move
         no_force = task_call_frames.size > 1
-        prev_created = vol_id.nil?
-        
-        break if !prev_created && no_force
-
-        unless prev_created
-          puts "creating new ebs volume...."
-          size = ENV["SIZE"] || "10"
-          zone = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'"
-          instance_id = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'"
-          cmd = "ec2-create-volume -s #{size} -z #{zone}"
+        prev_created = !(vol_id.nil? || vol_id.strip.length == 0)
+        unless prev_created || no_force
+          # this is silly!  I should be able to break or return out of a block, but I can't ;
+          unless prev_created
+            puts "creating new ebs volume...."
+            size = ENV["SIZE"] || "10"
+            zone = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'"
+            instance_id = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'"
+            cmd = "ec2-create-volume -s #{size} -z #{zone}"
+            puts "running: #{cmd}"
+            output = `#{cmd}`
+            puts output
+            vol_id = (output =~ /^VOLUME\t(.+?)\t/ && $1)
+            sleep(5)          
+          end
+          cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id}"
           puts "running: #{cmd}"
           output = `#{cmd}`
           puts output
-          vol_id = (output =~ /^VOLUME\t(.+?)\t/ && $1)
-          sleep(5)          
-        end
-        cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id}"
-        puts "running: #{cmd}"
-        output = `#{cmd}`
-        puts output
-        sleep(5)
-        if prev_created
-          #assume that it is formated and what not.....
-          sudo "xfs_check /dev/sdh"
-        else
-          sudo "mkfs.xfs /dev/sdh" 
-        end
-        sudo "echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
-        sudo "mkdir /var/local"
-        mount "/var/local"
-        
-        #ok, now lets move the mysql stuff off of /mnt -> /var/local
-        stop
-        sudo "mkdir -p /var/local/log"
-        #move the data over, but keep a symlink to the new location for backwards compatability
-        #and do not do it if /mnt/mysql_data has already been moved
-        sudo "test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/"
-        sudo "ln -fs /var/local/mysql_data /mnt"
-        
-        #but keep the tmpdir on mnt
-        sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
-        #move the logs over, but keep a symlink to the new location for backwards compatability
-        #and do not do it if the logs have already been moved
-        sudo "test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/"
-        sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
-        sudo "test -f /var/local/log/mysql/mysql-bin.index && \
-              perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index"
-        
-        sudo "cat > /etc/mysql/conf.d/mysql-ec2-ebs.cnf <<EOM
+          sleep(5)
+          if prev_created
+            #assume that it is formated and what not.....
+            sudo "xfs_check /dev/sdh"
+          else
+            sudo "mkfs.xfs /dev/sdh" 
+          end
+          sudo "echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
+          sudo "mkdir /var/local"
+          mount "/var/local"
+
+          #ok, now lets move the mysql stuff off of /mnt -> /var/local
+          stop
+          sudo "mkdir -p /var/local/log"
+          #move the data over, but keep a symlink to the new location for backwards compatability
+          #and do not do it if /mnt/mysql_data has already been moved
+          sudo "test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/"
+          sudo "ln -fs /var/local/mysql_data /mnt"
+
+          #but keep the tmpdir on mnt
+          sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
+          #move the logs over, but keep a symlink to the new location for backwards compatability
+          #and do not do it if the logs have already been moved
+          sudo "test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/"
+          sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
+          sudo "test -f /var/local/log/mysql/mysql-bin.index && \
+                perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index"
+
+          sudo "cat > /etc/mysql/conf.d/mysql-ec2-ebs.cnf <<FILE
 [mysqld]
   datadir          = /var/local/mysql_data
   tmpdir           = /mnt/tmp/mysql
   log_bin          = /var/local/log/mysql/mysql-bin.log
   log_slow_queries = /var/local/log/mysql/mysql-slow.log
-EOM"
-        #keep a copy 
-        sudo "rsync -aR /etc/mysql /var/local/"
+FILE"
+          #keep a copy 
+          sudo "rsync -aR /etc/mysql /var/local/"
 
-        #just put a README on the drive so we know what this volume is for!
-        sudo "cat > /var/local/VOLUME-README <<EOM
+          #just put a README on the drive so we know what this volume is for!
+          sudo "cat > /var/local/VOLUME-README <<FILE
 This volume is setup to be used by Ec2onRails for primary MySql database persistence.
 RAILS_ENV: #{fetch(:rails_env, 'undefined')}
 DOMAIN:    #{fetch(:domain, 'undefined')}
 
 Modify this volume at your own risk
-EOM"
-        
-        
-        
-        #update the list of ebs volumes
-        #TODO: abstract this away into a helper method!!
-        ebs_info = capture("cat /etc/ec2onrails/ebs_info.yml") rescue nil
-        ebs_info = ebs_info.nil? ? {} : YAML::load(ebs_info)
-        ebs_info['/dev/sdh'] = vol_id
-        put(ebs_info.to_yaml, "/etc/ec2onrails/ebs_info.yml")
-        
-        #lets start it back up
-        start
+FILE"
+
+
+
+          #update the list of ebs volumes
+          #TODO: abstract this away into a helper method!!
+          ebs_info = capture("cat /etc/ec2onrails/ebs_info.yml") rescue nil
+          ebs_info = ebs_info.nil? ? {} : YAML::load(ebs_info)
+          ebs_info['/dev/sdh'] = vol_id
+          put(ebs_info.to_yaml, "/etc/ec2onrails/ebs_info.yml")
+
+          #lets start it back up
+          start  
+        end
+
       end
       
       
