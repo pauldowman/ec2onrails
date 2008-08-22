@@ -150,15 +150,15 @@ h3. Commonly-used tasks
 
 You'll mostly need just the following Capistrano tasks:
 
-* <code>cap ec2onrails:ami_ids</code>
+* *cap ec2onrails:ami_ids*
 Shows the AMI id's of the images that match the current version of the gem.
 
-* <code>cap ec2onrails:setup</code>
+* *cap ec2onrails:setup*
 This task configures a newly-launched instance. This is the first thing you should do after
 starting a new instance. It can be run more than once without ill effect. After running 
 "cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
 
-* <code>cap ec2onrails:db:move_to_ebs</code>
+* *cap ec2onrails:db:move_to_ebs*
 This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume.
 You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like
 <pre>cap ec2onrails:db:move_to_ebs SIZE=10</pre>
@@ -171,7 +171,7 @@ deploy.rb file like so:
 your MySQL over to EBS, but just make sure you keep track of the volume-id that is printed
 out by this task and use it to modify your deploy.rb file
 
-* <code>cap ec2onrails:server:set_roles</code>
+* *cap ec2onrails:server:set_roles*
 Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).
 Run this after starting or stopping instances.
 For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
