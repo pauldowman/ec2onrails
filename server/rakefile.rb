@@ -40,6 +40,7 @@ end
 # * gcc:            libraries needed to compile c/c++ files from source
 # * nano/vim/less:  simle file editors and viewer
 # * git-core:       because we are all using git now, aren't we?
+# * xfsprogs:       help with freezing and resizing of persistent volumes
 # 
   
 @packages = %w(
@@ -83,6 +84,7 @@ end
   unzip
   vim
   wget
+  xfsprogs
 )
 
 @rubygems = [

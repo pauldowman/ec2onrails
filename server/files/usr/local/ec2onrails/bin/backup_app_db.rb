@@ -35,34 +35,52 @@ module CommandLineArgs extend OptiFlagSet
   optional_switch_flag "reset"
   and_process!
 end
-
-# include the hostname in the bucket name so test instances don't accidentally clobber real backups
-bucket = ARGV.flags.bucket
-dir = ARGV.flags.dir || "database"
-@s3 = Ec2onrails::S3Helper.new(bucket, dir)
 @mysql = Ec2onrails::MysqlHelper.new
-@temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
-if File.exists?(@temp_dir)
-  puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
-  exit
-end
+# TODO:
 
-begin
-  FileUtils.mkdir_p @temp_dir
-  if ARGV.flags.incremental
-    # Incremental backup
-    @mysql.execute_sql "flush logs"
-    logs = Dir.glob("/mnt/log/mysql/mysql-bin.[0-9]*").sort
-    logs_to_archive = logs[0..-2] # all logs except the last
-    logs_to_archive.each {|log| @s3.store_file log}
-    @mysql.execute_sql "purge master logs to '#{File.basename(logs[-1])}'"
-  else
-    # Full backup
-    file = "#{@temp_dir}/dump.sql.gz"
-    @mysql.dump(file, ARGV.flags.reset)
-    @s3.store_file file
-    @s3.delete_files("mysql-bin")
+# if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
+#   #we have ebs enabled....
+#   @mysql.execute do |conn|
+#     conn.query <<-SQL
+#     FLUSH TABLES WITH READ LOCK;
+#     SHOW MASTER STATUS;
+#     SYSTEM xfs_freeze -f /vol"
+#     SQL
+#     
+#     `ec2-create-snapshot vol-VVVV1111`
+#     
+#   end
+# else
+  #not persisted, so lets push the binary log files to s3
+  # include the hostname in the bucket name so test instances don't accidentally clobber real backups
+  bucket = ARGV.flags.bucket
+  dir = ARGV.flags.dir || "database"
+  @s3 = Ec2onrails::S3Helper.new(bucket, dir)
+  @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
+  if File.exists?(@temp_dir)
+    puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
+    exit
   end
-ensure
-  FileUtils.rm_rf(@temp_dir)
-end
+
+  begin
+    FileUtils.mkdir_p @temp_dir
+    if ARGV.flags.incremental
+      # Incremental backup
+      @mysql.execute_sql "flush logs"
+      logs = Dir.glob("/mnt/log/mysql/mysql-bin.[0-9]*").sort
+      logs_to_archive = logs[0..-2] # all logs except the last
+      logs_to_archive.each {|log| @s3.store_file log}
+      @mysql.execute_sql "purge master logs to '#{File.basename(logs[-1])}'"
+    else
+      # Full backup
+      file = "#{@temp_dir}/dump.sql.gz"
+      @mysql.dump(file, ARGV.flags.reset)
+      @s3.store_file file
+      @s3.delete_files("mysql-bin")
+    end
+  ensure
+    FileUtils.rm_rf(@temp_dir)
+  end
+  
+# end
+

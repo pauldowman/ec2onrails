@@ -56,6 +56,25 @@ module Ec2onrails
       Utils.run cmd
     end
     
+    def execute
+      require "mysql"
+      
+      begin
+        # connect to the MySQL server
+        dbh = Mysql.real_connect("localhost", "#{@user}", "#{@password}", "#{@database}")
+        yield dbh
+      rescue Mysql::Error => e
+        puts "Error code: #{e.errno}"
+        puts "Error message: #{e.error}"
+        puts "Error SQLSTATE: #{e.sqlstate}" if e.respond_to?("sqlstate")
+      ensure
+        # disconnect from server
+        dbh.close if dbh
+      end
+      
+      
+    end
+    
     def dump(out_file, reset_logs)
       cmd = "mysqldump --quick --single-transaction --create-options -u#{@user} "
       if reset_logs

@@ -17,7 +17,9 @@ FUTURE CHANGES
 
 [ ] automatic firewall setup.  The hitch is can we find the amazon user_id automatically?
 
-[ ] automatic and randomized initial mysql root password setup.  Place the root password in a text file only to be read by 'root', perhaps in /etc/ec2onrails/mysq_root_passwd
+[ ] automatic and randomized initial mysql root password setup.  Place the root password in a text file only to be read by 'root', perhaps in /etc/ec2onrails/mysq_root_passwd.  'mysqladmin -u root -h localhost password subGen1us'
+
+[ ] rename the root username for mysql, like 'update user set user="mydbadmin" where user="root";'.  Make sure we do this at startup but also have a check that if a user is upgrading their server that this is switched
 
 [ ] multi-database setup.  Master -> n slave(s)
 
@@ -52,14 +54,24 @@ FUTURE CHANGES
 
 [ ] hook in backup of server... or should we wait for persistent storage snapshots?  http://www.webmonkey.com/tutorial/Back_Up_a_Web_Server
 
-[ ] allow a non-standard ssh port (and make sure the firewall is setup correclty)
+[ ] allow a non-standard ssh port (and make sure the firewall is setup correctly).  modify /etc/ssh/ssh_config, update /etc/services.  Also turn off root access...but only if we have another full sudo user like 'admin'
 
 [ ] should we go back to having a sudo user like 'admin' that we flip into when we need sudo access instead of root?
+
+[ ] install and setup an intrusion detection system.  Do we want to do something as simple fcheck(apt-get fcheck, run with fcheck -cadsxl, and add /mnt to its exclusion list?), or something more complex like snort or prelude?  fcheck is small, but simple; snort is quite complex and will either require its own capistrano role or live on the web role... plus it needs to be hooked into email and other notification paths to make it useful.
+
+[ ] make difficult security/hardening changes optional, especially if they will get in the way of getting up and running.  For example, do not install denyhosts by default...or disable it if the security_hardening flag == false
+
+[ ] hook in ebs, and use eric's writeup as the starting point:
+http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
 
 POSSIBLE CHANGES
 [ ] move to god from monit.  One advantage is that right now, we don't use monit to send start/stop/restart signals to the underlying processes.  Monit does not always stop mongrel, and if mongrel doesn't restart monit doesn't go in with the oh-holy 'kill -9'.  So we unmonit mongrel, then use the /etc/init.d/mongrel stop to kill it.  This works (quite well actually) BUT it makes it tricky because if we limit sudo access to only monit, we cannot run the /etc/init.d/*.  It would be best if we provide sudo access to ONLY one process.  God, supposedly, doesn't have this issue.  So if we use god instead of monit, can we have god be responsible for restarts and what not?
 
 [ ] do not put users custom files up there until before deploy:cold?  Right now I'm pushing a lot of custom stuff out there into monit which is failing because the code it is supposed to monitor is not there yet.  will pushing it to "before 'deploy:cold' cause an issues"
+
+[ ] possibly put /tmp on its own mnt point, and then lock it down in /etc/fstab. Modify tmp to something like this '/dev/hda2  /tmp  ext3  nodev,nosuid, noexec  0  0'
+this means nonone will be able to execute, or a bunch of other things, from within /tmp
 
 
 QUESTIONS

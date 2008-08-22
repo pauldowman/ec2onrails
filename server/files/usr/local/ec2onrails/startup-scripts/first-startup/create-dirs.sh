@@ -35,8 +35,5 @@ make_dir /mnt/log
 make_dir /mnt/log/fsck
 make_dir /mnt/log/mysql      mysql:mysql
 
-make_dir /mnt/mysql_data     mysql:mysql
-make_dir /mnt/mysql_data/tmp mysql:mysql
-
 make_dir /mnt/tmp
 chmod 777 /mnt/tmp

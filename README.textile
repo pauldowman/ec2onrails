@@ -23,7 +23,8 @@ But until then, why spend your time configuring servers?
 Features of the EC2 image:
 
 * Ready to deploy a Rails app with little or no configuration of the server required
-* Automatic backup of MySQL database to S3 (full backup nightly + incremental backup using binary logs every 5 minutes)
+* Optional Amazon Elastic Block Store (EBS) setup and support for MySQL database persistence.
+* Automatic backup of MySQL database to S3 (EBS enabled: hourly snapshots; Non-EBS enabled: full backup nightly + incremental backup using binary logs every 5 minutes if not using )
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
@@ -35,7 +36,8 @@ Features of the EC2 image:
 * Ubuntu 8.04 LTS "Hardy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 * SSL support
 * Amazon AMI tools installed
-* MySQL, Apache, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
+* Apache or Nginx web proxies
+* MySQL, Apache/Nginx, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
 * Automatically archives Rails and Apache logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
 * Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (the EC2 on Rails script is run from "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
@@ -155,6 +157,19 @@ Shows the AMI id's of the images that match the current version of the gem.
 This task configures a newly-launched instance. This is the first thing you should do after
 starting a new instance. It can be run more than once without ill effect. After running 
 "cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
+
+* <code>cap ec2onrails:db:move_to_ebs</code>
+This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume.
+You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like
+<pre>cap ec2onrails:db:move_to_ebs SIZE=10</pre>
+
+You should then specify your own volume (or the one created by this task) in your capistrano 
+deploy.rb file like so:
+<pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol => 'vol-12345abc'</pre>
+
+*NOTE* MySQL EBS is not enabled by default.  You may call this task at anytime to move
+your MySQL over to EBS, but just make sure you keep track of the volume-id that is printed
+out by this task and use it to modify your deploy.rb file
 
 * <code>cap ec2onrails:server:set_roles</code>
 Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).

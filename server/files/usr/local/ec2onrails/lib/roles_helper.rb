@@ -28,11 +28,11 @@ module Ec2onrails
     MONGREL_CONF_FILE = "/etc/mongrel_cluster/app.yml"
 
     def local_address
-      @local_address ||= get_address_metadata "local-ipv4"
+      @local_address ||= get_metadata "local-ipv4"
     end
 
     def public_address
-      @public_address ||= get_address_metadata "public-ipv4"
+      @public_address ||= get_metadata "public-ipv4"
     end
 
     def roles
@@ -69,11 +69,12 @@ module Ec2onrails
       run("sudo #{cmd}")
     end
 
-    def get_address_metadata(type)
-      address  = Net::HTTP.get('169.254.169.254', "/2007-08-29/meta-data/#{type}").strip
-      raise "couldn't get instance data: #{type}" unless address =~ /\A\d+\.\d+\.\d+\.\d+\Z/
+    def get_metadata(type)
+      data  = Net::HTTP.get('169.254.169.254', "/latest/meta-data/#{type}").strip
+      
+      raise "couldn't get instance data: #{type}" if data.nil? || data.strip.length == 0
       # puts "#{type}: #{address}"
-      return address
+      return data
     end
 
     def resolve(hostname)

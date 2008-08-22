@@ -141,6 +141,7 @@ Capistrano::Configuration.instance.load do
       server.restart_services
       deploy.setup
       db.create
+      db.move_to_ebs
     end
     
     desc <<-DESC
@@ -216,6 +217,110 @@ Capistrano::Configuration.instance.load do
       end
       
       desc <<-DESC
+        Move the MySQL database to Amazon's Elastic Block Store (EBS), \
+        which is a persistant data store for the cloud.
+        Pass in SIZE=<num in gigs, like 10> to set the size, otherwise it will \
+        default to 10 gigs.
+        NOTE: keep track of the volume ID, as you'll want to keep this for your \
+        records and probably add it to the :db role in your deploy.rb file \
+        (see the ec2onrails sample deploy.rb file for additional information)
+      DESC
+      task :move_to_ebs, :roles => :db, :only => { :primary => true } do
+        # based off of Eric's work:
+        # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
+        # TODO:
+        #  * right now we force it to hit only one server because what if the user enters an ebs_vol but has multiple servers?
+        #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol
+        #  * make sure if we have a predefined ebs_vol, that we error out with a nice msg IF the zones do not match
+        #  * when we enable slaves and we setup ebs volumes on them, make it transparent to the user.  
+        #    have the slave create a snapshot of the db.master volume, and then use that to mount from
+        servers = find_servers_for_task(current_task)
+        
+        if servers.empty?
+          raise Capistrano::NoMatchingServersError, "`#{task.fully_qualified_name}' is only run for servers matching #{task.options.inspect}, but no servers matched"
+        elsif servers.size > 1
+          raise Capistrano::Error, "`#{task.fully_qualified_name}' is can only be run on one server, not #{server.size}"
+        end
+        
+        vol_id = servers.first.options[:ebs_vol]
+
+        #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.move_to_ebs'
+        #       the places where we do call it like that, we don't want to force a move to ebs, so....
+        #       if the call frame is > 1 (ie, another task called it), do NOT force the ebs move
+        no_force = task_call_frames.size > 1
+        prev_created = vol_id.nil?
+        
+        break if !prev_created && no_force
+
+        unless prev_created
+          puts "creating new ebs volume...."
+          size = ENV["SIZE"] || "10"
+          zone = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'"
+          instance_id = run "/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'"
+          cmd = "ec2-create-volume -s #{size} -z #{zone}"
+          puts "running: #{cmd}"
+          output = `#{cmd}`
+          puts output
+          vol_id = (output =~ /^VOLUME\t(.+?)\t/ && $1)
+          sleep(5)          
+        end
+        cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id}"
+        puts "running: #{cmd}"
+        output = `#{cmd}`
+        puts output
+        sleep(5)
+        if prev_created
+          #assume that it is formated and what not.....
+          sudo "xfs_check /dev/sdh"
+        else
+          sudo "mkfs.xfs /dev/sdh" 
+        end
+        sudo "echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
+        sudo "mkdir /var/local"
+        mount "/var/local"
+        
+        #ok, now lets move the mysql stuff off of /mnt -> /var/local
+        stop
+        sudo "mkdir -p /var/local/log"
+        #move the data over, but keep a symlink to the new location for backwards compatability
+        #and do not do it if /mnt/mysql_data has already been moved
+        sudo "test ! -d /var/local/mysql_data && \
+              mv /mnt/mysql_data /var/local/ && \
+              ln -s /var/local/mysql_data /mnt"
+        
+        #but keep the tmpdir on mnt
+        sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
+        #move the logs over, but keep a symlink to the new location for backwards compatability
+        #and do not do it if the logs have already been moved
+        sudo "test ! -d /var/local/log/mysql_data && \
+              mv /mnt/log/mysql /var/local/log/ && \
+              ln -s /var/local/log/mysql /mnt/log/mysql"
+        sudo "test -f /var/local/log/mysql/mysql-bin.index && \
+              perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index"
+        
+        sudo "cat > /etc/mysql/conf.d/mysql-ec2-ebs.cnf <<EOM
+[mysqld]
+  datadir          = /var/local/mysql_data
+  tmpdir           = /mnt/tmp/mysql
+  log_bin          = /var/local/log/mysql/mysql-bin.log
+  log_slow_queries = /var/local/log/mysql/mysql-slow.log
+EOM"
+        #keep a copy 
+        sudo "rsync -aR /etc/mysql /var/local/"
+        
+        #update the list of ebs volumes
+        #TODO: abstract this away into a helper method!!
+        ebs_info = capture("cat /etc/ec2onrails/ebs_info.yml") rescue nil
+        ebs_info = ebs_info.nil? ? {} : YAML::load(ebs_info)
+        ebs_info['/dev/sdh'] = vol_id
+        put(ebs_info.to_yaml, "/etc/ec2onrails/ebs_info.yml")
+        
+        #lets start it back up
+        start
+      end
+      
+      
+      desc <<-DESC
         [internal] Make sure the MySQL server has been started, just in case the db role 
         hasn't been set, e.g. when called from ec2onrails:setup.
         (But don't enable monitoring on it.)
@@ -226,6 +331,12 @@ Capistrano::Configuration.instance.load do
         # to create the logfiles, so try again
         sudo "sh -c '/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)'"
       end
+
+      task :stop, :roles => :db do
+        sudo "/etc/init.d/mysql stop"
+        sudo "chmod a-x /etc/init.d/mysql"  
+      end
+      
       
       desc <<-DESC
         Drop the MySQL database. Assumes there is no MySQL root \
@@ -544,6 +655,9 @@ Capistrano::Configuration.instance.load do
             # can (re)grant full sudo access.  
             # we can do this because the root and app user have the same
             # ssh login preferences....
+            #
+            # TODO:
+            #   do not escalate priv. to root...use another user like 'admin' that has full sudo access
             set :user, 'root'
             sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
             run "cp -f /etc/sudoers.full_access /etc/sudoers"
