@@ -229,9 +229,9 @@ Capistrano::Configuration.instance.load do
         # based off of Eric's work:
         # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
         # TODO:
-        #  * right now we force it to hit only one server because what if the user enters an ebs_vol but has multiple servers?
-        #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol
-        #  * make sure if we have a predefined ebs_vol, that we error out with a nice msg IF the zones do not match
+        #  * right now we force it to hit only one server because what if the user enters an ebs_vol_id but has multiple servers?
+        #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol_id
+        #  * make sure if we have a predefined ebs_vol_id, that we error out with a nice msg IF the zones do not match
         #  * when we enable slaves and we setup ebs volumes on them, make it transparent to the user.  
         #    have the slave create a snapshot of the db.master volume, and then use that to mount from
         servers = find_servers_for_task(current_task)
@@ -242,7 +242,7 @@ Capistrano::Configuration.instance.load do
           raise Capistrano::Error, "`#{task.fully_qualified_name}' is can only be run on one server, not #{server.size}"
         end
         
-        vol_id = servers.first.options[:ebs_vol]
+        vol_id = servers.first.options[:ebs_vol_id]
 
         #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.move_to_ebs'
         #       the places where we do call it like that, we don't want to force a move to ebs, so....

@@ -15,8 +15,12 @@ ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/your-ec2-key"]
 # be able to resolve to the internal IP address.
 role :web,      "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
-role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
 role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
+role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
+#optinally, you can specify Amazon's EBS volume ID if the database is persisted 
+#via Amazon's EBS.  See the main README for more information.
+# example:
+# role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'
 
 # Whatever you set here will be taken set as the default RAILS_ENV value
 # on the server. Your app and your hourly/daily/weekly/monthly scripts

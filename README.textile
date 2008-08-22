@@ -165,7 +165,7 @@ You can call this task with the optional SIZE parameter defined (defaults to 10 
 
 You should then specify your own volume (or the one created by this task) in your capistrano 
 deploy.rb file like so:
-<pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol => 'vol-12345abc'</pre>
+<pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'</pre>
 
 *NOTE* MySQL EBS is not enabled by default.  You may call this task at anytime to move
 your MySQL over to EBS, but just make sure you keep track of the volume-id that is printed
