@@ -32,7 +32,6 @@ end
 
 # db primary role:
 if in_role?(:db_primary)
-  # increase caches, etc if no other roles exist?
   start(:db_primary, "mysql", "mysqld")
 else
   stop(:db_primary, "mysql", "mysqld")
@@ -41,11 +40,11 @@ end
 # web role:
 if in_role?(:web)
   #we symlink the web_proxy we are using....
-  start(:web, "web_proxy")
-  sleep(5)
-  run("/etc/init.d/web_proxy reload")
+  start(:web, "web_proxy", 'nginx apache')
+  # sleep(5)
+  # run("/etc/init.d/web_proxy reload")
 else
-  stop(:web, "web_proxy")
+  stop(:web, "web_proxy", 'nginx apache')
 end
 
 
