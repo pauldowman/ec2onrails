@@ -16,7 +16,13 @@ module Ec2onrails
       unless role
         return []
       end
-      role.select{|s| s.options == options}.collect{|s| s.host}
+      # make sure we match the server with all the passed in options, BUT the server can
+      # have additional options defined.  e.g.: :primary => true and :ebs_vol_id => 'vol-1234abcd'
+      # but we want to select the server where :primary => true
+      role.select{|s| 
+        match = true
+        options.each_pair{|k,v| match = false if s.options[k] != v}
+      }.collect{|s| s.host}
     end
     
     # Like the capture method, but does not print out error stream and swallows 

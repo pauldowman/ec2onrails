@@ -109,11 +109,13 @@ module Ec2onrails
       host_file  = "/etc/hosts"
       run("cp #{host_file}.original #{host_file}") unless File.exists?("#{host_file}.original")
       hosts = File.read(host_file)
-      unless hosts =~ /\s+#{entry_name}/
+      if hosts =~ /\s*.+?\s+#{entry_name}\s*$/
+        hosts.sub!(/\s*.+?\s+#{entry_name}\s*$/, "\n#{entry_addr}\t#{entry_name}\n")
+      else
         puts "adding '#{entry_addr}\t#{entry_name}' to /etc/hosts"
         hosts << "\n#{entry_addr}\t#{entry_name}\n" 
-        File.open(host_file, 'w') {|f| f.write(hosts) }
       end
+      File.open(host_file, 'w') {|f| f.write(hosts) }
     end      
 
     def web_starting_port

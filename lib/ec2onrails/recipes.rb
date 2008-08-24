@@ -220,8 +220,10 @@ Capistrano::Configuration.instance.load do
       desc <<-DESC
         Move the MySQL database to Amazon's Elastic Block Store (EBS), \
         which is a persistant data store for the cloud.
-        Pass in SIZE=<num in gigs, like 10> to set the size, otherwise it will \
+        OPTIONAL PARAMETERS:
+          * SIZE: Pass in num in gigs, like 10, to set the size, otherwise it will \
         default to 10 gigs.
+          * VOlUME_ID: The volume_id to use for the mysql database    
         NOTE: keep track of the volume ID, as you'll want to keep this for your \
         records and probably add it to the :db role in your deploy.rb file \
         (see the ec2onrails sample deploy.rb file for additional information)
@@ -229,17 +231,45 @@ Capistrano::Configuration.instance.load do
       task :move_to_ebs, :roles => :db, :only => { :primary => true } do        
         # based off of Eric's work:
         # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
+        #
+        # EXPLAINATION:
+        # There is a lot going on here!  At the end, the setup should be:
+        #   * create EBS volume if run outside of the ec2onrails:setup and 
+        #     VOLUME_ID is not passed in when the cap task is called
+        #   * EBS volume attached to /dev/sdh
+        #   * format to xfs if new or do a xfs_check if previously existed
+        #   * mounted on /var/local and update /etc/fstab
+        #   * move /mnt/mysql_data -> /var/local/mysql_data
+        #   * move /mnt/log/mysql  -> /var/local/log/mysql
+        #   * change mysql configs by writing /etc/mysql/conf.d/mysql-ec2-ebs.cnf 
+        #   * keep a copy of the mysql configs with the EBS volume, and if that volume is hooked into
+        #     another instance, make sure the mysql configs that go with that volume are symlinked to /etc/mysql
+        #   * update the file locations of the mysql binary logs in /mnt/log/mysql/mysql-bin.index
+        #   * symlink the moved folders to their old position... makes the move to EBS transparent
+        #   * Amazon doesn't contain EBS information in the meta-data API (yet).  So write
+        #     /etc/ec2onrails/ebs_info.yml
+        #     to contain the meta-data information that we need
+        #
+        # DESIGN CONSIDERATIONS
+        #   * only moving mysql data to EBS.  seems the most obvious, and if we move over other components
+        #     we will have to share that bandwidth (1 Gbps pipe to SAN).  So limiting to what we really need
+        #   * not moving all mysql logic over (tmp scratch space stays local).  Again, this is to limit
+        #     unnecessary bandwidth usage, PLUS, we are charged per million IO to EBS
+        #
         # TODO:
-        #  * be able to pass in a volume ID
-        #  * right now we force it to hit only one server because what if the user enters an ebs_vol_id but has multiple servers?
-        #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol_id
         #  * make sure if we have a predefined ebs_vol_id, that we error out with a nice msg IF the zones do not match
+        #  * right now we force this task to only be run on one server; that works for db :primary => true
+        #    But what is the best way to make this work if it needs to setup multiple servers (like db slaves)?
+        #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol_id
         #  * when we enable slaves and we setup ebs volumes on them, make it transparent to the user.  
         #    have the slave create a snapshot of the db.master volume, and then use that to mount from
         #  * need to do a rollback that if the volume is created but something fails, lets uncreate it?
         #    carefull though!  If it fails towards the end when information is copied over, it could cause information
         #    to be lost!
         #
+        
+        mysql_dir_root = '/var/local'
+        block_mnt      = '/dev/sdh'
         servers = find_servers_for_task(current_task)
         
         if servers.empty?
@@ -248,7 +278,7 @@ Capistrano::Configuration.instance.load do
           raise Capistrano::Error, "`#{task.fully_qualified_name}' is can only be run on one server, not #{server.size}"
         end
         
-        vol_id = servers.first.options[:ebs_vol_id] || ENV['VOlUME_ID']
+        vol_id = ENV['VOlUME_ID'] || servers.first.options[:ebs_vol_id]
 
         #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.move_to_ebs'
         #       the places where we do call it like that, we don't want to force a move to ebs, so....
@@ -256,10 +286,9 @@ Capistrano::Configuration.instance.load do
         no_force = task_call_frames.size > 1
         prev_created = !(vol_id.nil? || vol_id.empty?)
         #no vol_id was passed in, but perhaps it is already mounted...?
-        prev_created = true if !quiet_capture("mount | grep -inr '/var/local' || echo ''").empty?
+        prev_created = true if !quiet_capture("mount | grep -inr '#{mysql_dir_root}' || echo ''").empty?
 
-        unless no_force
-          # this is silly!  I should be able to break or return out of a block, but I can't :(
+        unless no_force && (vol_id.nil? || vol_id.empty?)
           zone = quiet_capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'")
           instance_id = quiet_capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'")
 
@@ -275,57 +304,66 @@ Capistrano::Configuration.instance.load do
             sleep(2)          
           end
           vol_id.strip! if vol_id
-          if quiet_capture("mount | grep -inr '/dev/sdh' || echo ''").empty?
-            #TODO: we need to check not if it is mounted but if it is attached..
-            #      what is a better way to do this?
-            cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id} 2>&1"
+          if quiet_capture("mount | grep -inr '#{block_mnt}' || echo ''").empty?
+            cmd = "ec2-attach-volume -d #{block_mnt} -i #{instance_id} #{vol_id} 2>&1"
             puts "running: #{cmd}"
             output = `#{cmd}`
             puts output
+            sleep(10)
           end
           
-          sleep(5)
           ec2onrails.server.allow_sudo do
             # try to format the volume... if it is already formatted, lets run a check on
             # it to make sure it is ok, and then continue on
             # if errors, the device is busy...something else is going on here and it is already mounted... skip!
             if prev_created
-              sudo "umount /var/local && xfs_check /dev/sdh" rescue nil 
+              quiet_capture("sudo umount #{mysql_dir_root}") #unmount if need to
+              sudo "xfs_check #{block_mnt}" rescue nil 
             else
-              sudo "mkfs.xfs /dev/sdh" rescue nil
+              sudo "mkfs.xfs #{block_mnt}" rescue nil
             end
-            sudo "grep -iqn '/var/local' /etc/fstab || echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
-            sudo "mkdir -p /var/local"
-            sudo "mount | grep -iqn '/var/local' || mount '/var/local'"
+            
+            # if not added to /etc/fstab, lets do so
+            sudo "sh -c \"grep -iqn '#{mysql_dir_root}' /etc/fstab || echo '#{block_mnt} #{mysql_dir_root} xfs noatime 0 0' >> /etc/fstab\""
+            sudo "mkdir -p #{mysql_dir_root}"
+            #if not already mounted, lets mount it
+            sudo "sh -c \"mount | grep -iqn '#{mysql_dir_root}' || mount '#{mysql_dir_root}'\""
 
-            #ok, now lets move the mysql stuff off of /mnt -> /var/local
+            #ok, now lets move the mysql stuff off of /mnt -> mysql_dir_root
             stop rescue nil #already stopped
-            sudo "mkdir -p /var/local/log"
+            sudo "mkdir -p #{mysql_dir_root}/log"
             #move the data over, but keep a symlink to the new location for backwards compatability
             #and do not do it if /mnt/mysql_data has already been moved
-            quiet_capture("sudo test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/")
-            sudo "ln -fs /var/local/mysql_data /mnt"
+            quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/mysql_data && mv /mnt/mysql_data #{mysql_dir_root}/'")
+            sudo "mv /mnt/mysql_data /mnt/mysql_data_old 2>/dev/null"
+            sudo "ln -fs #{mysql_dir_root}/mysql_data /mnt/mysql_data"
 
             #but keep the tmpdir on mnt
-            sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
+            sudo "sh -c 'mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql'"
             #move the logs over, but keep a symlink to the new location for backwards compatability
             #and do not do it if the logs have already been moved
-            quiet_capture("sudo test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/")
-            sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
-            quiet_capture("sudo test -f /var/local/log/mysql/mysql-bin.index && \
-                  perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index") rescue false
-
-            txt = <<-FILE
+            quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
+            sudo "mv /mnt/log/mysql /mnt/log/mysql_old 2>/dev/null"
+            sudo "ln -fs #{mysql_dir_root}/log/mysql /mnt/log/mysql"
+            quiet_capture("sudo sh -c \"test -f #{mysql_dir_root}/log/mysql/mysql-bin.index && \
+                  perl -pi -e 's%/mnt/log/%#{mysql_dir_root}/log/%' #{mysql_dir_root}/log/mysql/mysql-bin.index\"") rescue false
+            
+            if quiet_capture("test -d /var/local/etc/mysql && echo 'yes'").empty?
+              txt = <<-FILE
 [mysqld]
-  datadir          = /var/local/mysql_data
+  datadir          = #{mysql_dir_root}/mysql_data
   tmpdir           = /mnt/tmp/mysql
-  log_bin          = /var/local/log/mysql/mysql-bin.log
-  log_slow_queries = /var/local/log/mysql/mysql-slow.log
+  log_bin          = #{mysql_dir_root}/log/mysql/mysql-bin.log
+  log_slow_queries = #{mysql_dir_root}/log/mysql/mysql-slow.log
 FILE
-            put txt, '/etc/mysql/conf.d/mysql-ec2-ebs.cnf'
+              put txt, '/tmp/mysql-ec2-ebs.cnf'
+              sudo 'mv /tmp/mysql-ec2-ebs.cnf /etc/mysql/conf.d/mysql-ec2-ebs.cnf'
 
-            #keep a copy 
-            sudo "rsync -aR /etc/mysql /var/local/"
+              #keep a copy 
+              sudo "rsync -aR /etc/mysql #{mysql_dir_root}/"
+            end
+            # lets use the mysql configs on the EBS volume
+            sudo "mv /etc/mysql /etc/mysql.orig && ln -sf #{mysql_dir_root}/etc/mysql /etc/mysql"
 
             #just put a README on the drive so we know what this volume is for!
             txt = <<-FILE
@@ -335,18 +373,19 @@ DOMAIN:    #{fetch(:domain, 'undefined')}
 
 Modify this volume at your own risk
 FILE
-            put txt, '/var/local/VOLUME-README'
-          end
-
-          #update the list of ebs volumes
-          #TODO: abstract this away into a helper method!!
-          ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
-          ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
-          ebs_info['/var/local'] = {'block_loc' => '/dev/sdh', 'volume_id' => vol_id} 
-          put(ebs_info.to_yaml, "/etc/ec2onrails/ebs_info.yml")
-
-          #lets start it back up
-          start  
+      
+            put txt, "/tmp/VOLUME-README"
+            sudo "mv /tmp/VOLUME-README #{mysql_dir_root}/VOLUME-README"
+            #update the list of ebs volumes
+            #TODO: abstract this away into a helper method!!
+            ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
+            ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
+            ebs_info[mysql_dir_root] = {'block_loc' => block_mnt, 'volume_id' => vol_id} 
+            put(ebs_info.to_yaml, "/tmp/ebs_info.yml")
+            sudo "mv /tmp/ebs_info.yml /etc/ec2onrails/ebs_info.yml"
+            #lets start it back up
+            start  
+          end #end of sudo
         end
       end
       
@@ -664,8 +703,16 @@ FILE
         sudo to monit
       DESC
       task :restrict_sudo_access do
-        sudo "cp -f /etc/sudoers.restricted_access /etc/sudoers"
-        # run "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
+        old_user = fetch(:user)
+        begin
+          set :user, 'root'
+          sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
+          sudo "cp -f /etc/sudoers.restricted_access /etc/sudoers"
+          # run "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
+        ensure
+          set :user, old_user
+          sessions.clear
+        end
       end
 
       desc <<-DESC
@@ -698,6 +745,8 @@ FILE
               set :user, 'root'
               sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
               run "cp -f /etc/sudoers.full_access /etc/sudoers"
+              set :user, old_user
+              sessions.clear 
               yield if block_given?
             ensure
               server.restrict_sudo_access if block_given?
