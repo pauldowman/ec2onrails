@@ -318,9 +318,9 @@ Capistrano::Configuration.instance.load do
             # if errors, the device is busy...something else is going on here and it is already mounted... skip!
             if prev_created
               quiet_capture("sudo umount #{mysql_dir_root}") #unmount if need to
-              sudo "xfs_check #{block_mnt}" rescue nil 
+              sudo "xfs_check #{block_mnt}"
             else
-              sudo "mkfs.xfs #{block_mnt}" rescue nil
+              sudo "mkfs.xfs #{block_mnt}"  
             end
             
             # if not added to /etc/fstab, lets do so
