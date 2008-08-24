@@ -17,10 +17,9 @@ role :web,      "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
-#optinally, you can specify Amazon's EBS volume ID if the database is persisted 
-#via Amazon's EBS.  See the main README for more information.
-# example:
 # role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'
+# optinally, you can specify Amazon's EBS volume ID if the database is persisted 
+# via Amazon's EBS.  See the main README for more information.
 
 # Whatever you set here will be taken set as the default RAILS_ENV value
 # on the server. Your app and your hourly/daily/weekly/monthly scripts
@@ -31,6 +30,7 @@ set :rails_env, "production"
 # NOTE: Some of these should be omitted if not needed.
 set :ec2onrails_config, {
   # S3 bucket and "subdir" used by the ec2onrails:db:restore task
+  # NOTE: this only applies if you are not using EBS
   :restore_from_bucket => "your-bucket",
   :restore_from_bucket_subdir => "database",
   
@@ -38,6 +38,7 @@ set :ec2onrails_config, {
   # This does not affect the automatic backup of your MySQL db to S3, it's
   # just for manually archiving a db snapshot to a different bucket if 
   # desired.
+  # NOTE: this only applies if you are not using EBS
   :archive_to_bucket => "your-other-bucket",
   :archive_to_bucket_subdir => "db-archive/#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}",
   
@@ -60,6 +61,12 @@ set :ec2onrails_config, {
   
   # Defines the web proxy that will be used.  Choices are :apache or :nginx
   :web_proxy_server => :apache,
+  
+  # extra security measures are taken if this is true, BUT it makes initial
+  # experimentation and setup a bit tricky.  For example, if you do not
+  # have your ssh keys setup correctly, you will be locked out of your
+  # server after 3 attempts for upto 3 months.  
+  :harden_server => false,
   
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
   # details

@@ -142,6 +142,7 @@ Capistrano::Configuration.instance.load do
       server.restart_services
       deploy.setup
       db.create
+      server.harden_server
       db.move_to_ebs
     end
     
@@ -574,6 +575,30 @@ FILE
         sudo "aptitude -q update"
         if cfg[:packages] && cfg[:packages].any?
           sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{cfg[:packages].join(' ')}'"
+        end
+      end
+      
+      desc <<-DESC
+        Provide extra security measures.  Set ec2onrails_config[:harden_server] = true \
+        to allow the hardening of the server.
+        These security measures are those which can make initial setup and playing around
+        with Ec2onRails tricky.  For example, you can be logged out of your server forever
+      DESC
+      task :harden_server do
+        #NOTES: for those security features that will get in the way of ease-of-use
+        #       hook them in here
+        if cfg[:harden_server]
+          #lets install some extra packages:
+          # denyhosts: sshd security tool.  config file is already installed... 
+          #
+          security_pkgs = %w{denyhosts}
+          old_pkgs = cfg[:packages]
+          begin
+            cfg[:packages] = security_pkgs
+            install_packages
+          ensure
+            cfg[:packages] = old_pkgs
+          end
         end
       end
       

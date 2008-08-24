@@ -51,7 +51,6 @@ end
   ca-certificates
   cron
   curl
-  denyhosts
   flex
   gcc
   git-core
