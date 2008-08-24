@@ -47,7 +47,7 @@ Capistrano::Configuration.instance.load do
   set :user, "app"
 
   #in case any changes were made to the configs, like changing the number of mongrels
-  before "deploy:cold", "ec2onrails:grant_sudo_access"
+  before "deploy:cold", "ec2onrails:server:grant_sudo_access"
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
   after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
@@ -230,6 +230,7 @@ Capistrano::Configuration.instance.load do
         # based off of Eric's work:
         # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
         # TODO:
+        #  * be able to pass in a volume ID
         #  * right now we force it to hit only one server because what if the user enters an ebs_vol_id but has multiple servers?
         #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol_id
         #  * make sure if we have a predefined ebs_vol_id, that we error out with a nice msg IF the zones do not match
@@ -238,6 +239,7 @@ Capistrano::Configuration.instance.load do
         #  * need to do a rollback that if the volume is created but something fails, lets uncreate it?
         #    carefull though!  If it fails towards the end when information is copied over, it could cause information
         #    to be lost!
+        #
         servers = find_servers_for_task(current_task)
         
         if servers.empty?
@@ -246,38 +248,42 @@ Capistrano::Configuration.instance.load do
           raise Capistrano::Error, "`#{task.fully_qualified_name}' is can only be run on one server, not #{server.size}"
         end
         
-        vol_id = servers.first.options[:ebs_vol_id]
+        vol_id = servers.first.options[:ebs_vol_id] || ENV['VOlUME_ID']
 
         #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.move_to_ebs'
         #       the places where we do call it like that, we don't want to force a move to ebs, so....
         #       if the call frame is > 1 (ie, another task called it), do NOT force the ebs move
         no_force = task_call_frames.size > 1
-        prev_created = !(vol_id.nil? || vol_id.strip.length == 0)
-        unless prev_created || no_force
-          # this is silly!  I should be able to break or return out of a block, but I can't ;
+        prev_created = !(vol_id.nil? || vol_id.empty?)
+        #no vol_id was passed in, but perhaps it is already mounted...?
+        prev_created = true if !quiet_capture("mount | grep -inr '/var/local' || echo ''").empty?
+
+        unless no_force
+          # this is silly!  I should be able to break or return out of a block, but I can't :(
+          zone = quiet_capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'")
+          instance_id = quiet_capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'")
+
           unless prev_created
             puts "creating new ebs volume...."
             size = ENV["SIZE"] || "10"
-            zone = (capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'placement/availability-zone'") rescue '').strip
-            instance_id = (capture("/usr/local/ec2onrails/bin/ec2_meta_data.rb -key 'instance-id'") rescue '').strip
-            cmd = "ec2-create-volume -s #{size} -z #{zone}"
+            cmd = "ec2-create-volume -s #{size} -z #{zone} 2>&1"
             puts "running: #{cmd}"
             output = `#{cmd}`
             puts output
             vol_id = (output =~ /^VOLUME\t(.+?)\t/ && $1)
-            puts <<-MSG
-  Creating a new image:
-    * size:   #{size} GB
-    * zone:   #{zone}
-    * vol_id: #{vol_id}
-  NOTE: remember that vol_id
-MSG
+            puts "NOTE: remember that vol_id"
             sleep(2)          
           end
-          cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id}"
-          puts "running: #{cmd}"
-          output = `#{cmd}`
-          puts output
+          vol_id.strip! if vol_id
+          if quiet_capture("mount | grep -inr '/dev/sdh' || echo ''").empty?
+            #TODO: we need to check not if it is mounted but if it is attached..
+            #      what is a better way to do this?
+            cmd = "ec2-attach-volume -d /dev/sdh -i #{instance_id} #{vol_id} 2>&1"
+            puts "running: #{cmd}"
+            output = `#{cmd}`
+            puts output
+          end
+          
           sleep(5)
           ec2onrails.server.allow_sudo do
             # try to format the volume... if it is already formatted, lets run a check on
@@ -286,28 +292,27 @@ MSG
             if prev_created
               sudo "umount /var/local && xfs_check /dev/sdh" rescue nil 
             else
-              sudo "mkfs.xfs /dev/sdh" rescue 
-                sudo "umount /var/local && xfs_check /dev/sdh" rescue nil
+              sudo "mkfs.xfs /dev/sdh" rescue nil
             end
-            sudo "echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
+            sudo "grep -iqn '/var/local' /etc/fstab || echo \"/dev/sdh /var/local xfs noatime 0 0\" >> /etc/fstab"
             sudo "mkdir -p /var/local"
-            sudo "mount \"/var/local\"" rescue nil #already mounted?
+            sudo "mount | grep -iqn '/var/local' || mount '/var/local'"
 
             #ok, now lets move the mysql stuff off of /mnt -> /var/local
             stop rescue nil #already stopped
             sudo "mkdir -p /var/local/log"
             #move the data over, but keep a symlink to the new location for backwards compatability
             #and do not do it if /mnt/mysql_data has already been moved
-            capture("sudo test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/") rescue false
+            quiet_capture("sudo test ! -d /var/local/mysql_data && mv /mnt/mysql_data /var/local/")
             sudo "ln -fs /var/local/mysql_data /mnt"
 
             #but keep the tmpdir on mnt
             sudo "mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql"
             #move the logs over, but keep a symlink to the new location for backwards compatability
             #and do not do it if the logs have already been moved
-            capture("sudo test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/") rescue false
+            quiet_capture("sudo test ! -d /var/local/log/mysql_data && mv /mnt/log/mysql /var/local/log/")
             sudo "ln -fs /var/local/log/mysql /mnt/log/mysql"
-            capture("sudo test -f /var/local/log/mysql/mysql-bin.index && \
+            quiet_capture("sudo test -f /var/local/log/mysql/mysql-bin.index && \
                   perl -pi -e 's%/mnt/log/%/var/local/log/%' /var/local/log/mysql/mysql-bin.index") rescue false
 
             txt = <<-FILE
@@ -318,14 +323,7 @@ MSG
   log_slow_queries = /var/local/log/mysql/mysql-slow.log
 FILE
             put txt, '/etc/mysql/conf.d/mysql-ec2-ebs.cnf'
-            
-#             sudo "cat > /etc/mysql/conf.d/mysql-ec2-ebs.cnf <<FILE \
-# [mysqld] \
-#   datadir          = /var/local/mysql_data \
-#   tmpdir           = /mnt/tmp/mysql \
-#   log_bin          = /var/local/log/mysql/mysql-bin.log \
-#   log_slow_queries = /var/local/log/mysql/mysql-slow.log \
-# FILE"
+
             #keep a copy 
             sudo "rsync -aR /etc/mysql /var/local/"
 
@@ -338,20 +336,13 @@ DOMAIN:    #{fetch(:domain, 'undefined')}
 Modify this volume at your own risk
 FILE
             put txt, '/var/local/VOLUME-README'
-#             sudo "cat > /var/local/VOLUME-README <<FILE \
-# This volume is setup to be used by Ec2onRails for primary MySql database persistence. \
-# RAILS_ENV: #{fetch(:rails_env, 'undefined')} \
-# DOMAIN:    #{fetch(:domain, 'undefined')} \
-# 
-# Modify this volume at your own risk \
-# FILE"            
           end
 
           #update the list of ebs volumes
           #TODO: abstract this away into a helper method!!
-          ebs_info = capture("cat /etc/ec2onrails/ebs_info.yml") rescue nil
-          ebs_info = ebs_info.nil? ? {} : YAML::load(ebs_info)
-          ebs_info['/dev/sdh'] = vol_id
+          ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
+          ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
+          ebs_info['/var/local'] = {'block_loc' => '/dev/sdh', 'volume_id' => vol_id} 
           put(ebs_info.to_yaml, "/etc/ec2onrails/ebs_info.yml")
 
           #lets start it back up
@@ -434,7 +425,9 @@ FILE
         make sense).
       DESC
       task :init_backup, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
+        server.allow_sudo do
+          sudo "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
+        end
       end
       
       # do NOT run if the flag does not exist.  This is placed by a startup script
@@ -443,8 +436,7 @@ FILE
       #
       # Of course you can overload it or call the file directly
       task :optimize, :roles => :db do
-        found = capture("test -e /tmp/optimize_db_flag && echo 'file exists'") rescue false
-        if found
+        if !quiet_capture("test -e /tmp/optimize_db_flag && echo 'file exists'").empty?
           begin
             sudo "/usr/local/ec2onrails/bin/optimize_mysql.rb"
           ensure
@@ -718,7 +710,6 @@ FILE
           @within_sudo -= 1
         end
       end
-
     end
     
   end

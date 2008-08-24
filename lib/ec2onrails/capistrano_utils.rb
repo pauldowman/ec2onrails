@@ -18,5 +18,20 @@ module Ec2onrails
       end
       role.select{|s| s.options == options}.collect{|s| s.host}
     end
+    
+    # Like the capture method, but does not print out error stream and swallows 
+    # an exception if the process's exit code != 0
+    def quiet_capture(command, options={})
+      output = ""
+      invoke_command(command, options.merge(:once => true)) do |ch, stream, data|
+        case stream
+        when :out then output << data
+        # when :err then warn "[err :: #{ch[:server]}] #{data}"
+        end
+      end
+    ensure
+      return (output || '').strip
+    end
+    
   end
 end
