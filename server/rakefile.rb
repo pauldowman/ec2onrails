@@ -87,8 +87,12 @@ end
   xfsprogs
 )
 
+
+#NOTE:
+#  * skippy-amazon-ec2 is a temporary modification; just waiting for the gem to be updated
+#    to support amazon's EBS; then we'll go back to 'amazon-ec2'
 @rubygems = [
-  "amazon-ec2",
+  "skippy-amazon-ec2",
   "aws-s3",
   "memcache-client",
   "mongrel",
@@ -115,8 +119,7 @@ end
 desc "Use apt-get to install required packages inside the image's filesystem"
 task :install_packages do |t|
   unless_completed(t) do
-    #why is this commented out?
-    #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
+    ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
     run_chroot "apt-get install -y #{@packages.join(' ')}"
     run_chroot "apt-get clean"
@@ -131,6 +134,7 @@ task :install_gems => [:install_packages] do |t|
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
+    run_chroot "gem sources -a http://gems.github.com"
     @rubygems.each do |gem|
       run_chroot "gem install #{gem} --no-rdoc --no-ri"
     end
