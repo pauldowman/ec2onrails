@@ -24,7 +24,7 @@ Features of the EC2 image:
 
 * Ready to deploy a Rails app with little or no configuration of the server required
 * Optional Amazon Elastic Block Store (EBS) setup and support for MySQL database persistence.
-* Automatic backup of MySQL database to S3 (EBS enabled: hourly snapshots; Non-EBS enabled: full backup nightly + incremental backup using binary logs every 5 minutes if not using )
+* Automatic backup of MySQL database to S3 (EBS enabled: snapshots taken every 2 hrs; Non-EBS enabled: full backup nightly + incremental backup using binary logs every 5 minutes if not using )
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
 * Mongrel_cluster behind Apache 2.2, configured according to 
   "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
