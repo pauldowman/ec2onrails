@@ -36,8 +36,8 @@ end
 # package notes:
 # * aptitude:       much better package installation system, especially around 
 #                   upgrades and package dependencies
-# * denyhosts:      security program to monitor sshd abuses
 # * gcc:            libraries needed to compile c/c++ files from source
+# * libmysqlclient-dev : provide mysqlclient-dev libs, needed for DataObject gems
 # * nano/vim/less:  simle file editors and viewer
 # * git-core:       because we are all using git now, aren't we?
 # * xfsprogs:       help with freezing and resizing of persistent volumes
@@ -70,6 +70,7 @@ end
   mailx
   memcached
   mysql-client
+  libmysqlclient-dev
   mysql-server
   nano
   openssh-server
@@ -87,11 +88,8 @@ end
 )
 
 
-#NOTE:
-#  * skippy-amazon-ec2 is a temporary modification; just waiting for the gem to be updated
-#    to support amazon's EBS; then we'll go back to 'amazon-ec2'
 @rubygems = [
-  "skippy-amazon-ec2",
+  "amazon-ec2",
   "aws-s3",
   "memcache-client",
   "mongrel",
