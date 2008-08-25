@@ -129,6 +129,22 @@ module Ec2onrails
     def web_port_range
       (web_starting_port..(web_starting_port + web_num_instances-1))
     end
+    
+    def server_environment
+      mongrel_config["environment"]
+    end
+    
+    def user
+      mongrel_config['user']
+    end
+
+    def group
+      mongrel_config['group']
+    end
+    
+    def application_root
+      mongrel_config['cwd']
+    end    
 
     private
 
