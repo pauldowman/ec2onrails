@@ -1,0 +1,103 @@
+here are a list of upcoming changes or ones I'm thinking about
+
+FUTURE CHANGES
+[ ] do not change the Capify file.  This is an issue if you want to use ec2 for staging but something else (engineyard) for production.  The issue is that require 'ec2onrails/recipes' cannot be called until after the deploy file has been run because of some loading dependencies.  SO, is it possible to not have this behavior, or is this making a mnt out of a mole-hill?
+
+[ ] be able to save an ami file after cap ec2onrails:setup is run... this way you can just launch more instances of that specific ami file (can we automate this? )
+
+[ ] use mongrel_cluster from app directory (shared or directly in the app/config dir), and then default to the one at /etc/mongrel_cluster/app.yml
+
+[ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles.rb default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
+
+[X] mysql optimizations
+
+[ ] hook memcached into nginx...
+
+[ ] hook ssl setup hooks for nginx
+
+[ ] automatic firewall setup.  The hitch is can we find the amazon user_id automatically?
+
+[ ] automatic and randomized initial mysql root password setup.  Place the root password in a text file only to be read by 'root', perhaps in /etc/ec2onrails/mysq_root_passwd.  'mysqladmin -u root -h localhost password subGen1us'
+
+[ ] rename the root username for mysql, like 'update user set user="mydbadmin" where user="root";'.  Make sure we do this at startup but also have a check that if a user is upgrading their server that this is switched
+
+[ ] multi-database setup.  Master -> n slave(s)
+
+[ ] when generating roles file for each server, so each server knows where/how to find the internal IP of other servers in the cluster, generate this based on the roles that actually exist so arbitrary new ones can be added (recipes.rb, task :set_roles).  Capistrano has a variable 'roles', that should be useable...?  is an array, with Capistrano::ServerDefinition objects, which have the following attributes :host, :user, :port, :options
+
+[ ] allow memcache servers to reside on a separate host/cluster
+
+[ ] do a little memcache optimization, especially if it is its own host
+
+[ ] allow to pull memcache file from application directory ./config
+
+[ ] hook in pauls postfix changes to be able to use an external smtp provider.  make it configurable:
+    http://pauldowman.com/2008/02/17/smtp-mail-from-ec2-web-server-setup/
+    also see this file for updates:
+    http://www.babbleon.co.uk/2008/05/email-with-ec2/ 
+    
+[ ] preload mysql timezone information
+
+[ ] mysql optimizations are not calculating the num of cores avail correctly
+
+[ ] preset defaults for the ec2onrails configs?
+
+[ ] right now cron has a task called 'app' in cron.daily, cron.hourly, cron.monthly, and cron.weekly.  BUT, these are run on every server.  we should probably provide some sort of mechanism so a user can specify particular jobs for particular roles
+
+[ ] consolidate all logs to /mnt/log, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
+
+[ ] get all user-data and meta-data variables from the amazon image in a similar way to rightscale?  Makes it dead simple to use/manipulate that information
+
+[ ] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles.rb or init_services or something a bit higher`
+
+[ ] hook in encryption of backup archives
+
+[ ] hook in backup of server... or should we wait for persistent storage snapshots?  http://www.webmonkey.com/tutorial/Back_Up_a_Web_Server
+
+[ ] allow a non-standard ssh port (and make sure the firewall is setup correctly).  modify /etc/ssh/ssh_config, update /etc/services.  Also turn off root access...but only if we have another full sudo user like 'admin'
+
+[ ] should we go back to having a sudo user like 'admin' that we flip into when we need sudo access instead of root?
+
+[ ] install and setup an intrusion detection system.  Do we want to do something as simple fcheck(apt-get fcheck, run with fcheck -cadsxl, and add /mnt to its exclusion list?), or something more complex like snort or prelude?  fcheck is small, but simple; snort is quite complex and will either require its own capistrano role or live on the web role... plus it needs to be hooked into email and other notification paths to make it useful.
+
+[ ] make difficult security/hardening changes optional, especially if they will get in the way of getting up and running.  For example, do not install denyhosts by default...or disable it if the security_hardening flag == false
+
+[ ] hook in ebs, and use eric's writeup as the starting point:
+http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
+
+POSSIBLE CHANGES
+[ ] move to god from monit.  One advantage is that right now, we don't use monit to send start/stop/restart signals to the underlying processes.  Monit does not always stop mongrel, and if mongrel doesn't restart monit doesn't go in with the oh-holy 'kill -9'.  So we unmonit mongrel, then use the /etc/init.d/mongrel stop to kill it.  This works (quite well actually) BUT it makes it tricky because if we limit sudo access to only monit, we cannot run the /etc/init.d/*.  It would be best if we provide sudo access to ONLY one process.  God, supposedly, doesn't have this issue.  So if we use god instead of monit, can we have god be responsible for restarts and what not?
+
+[ ] do not put users custom files up there until before deploy:cold?  Right now I'm pushing a lot of custom stuff out there into monit which is failing because the code it is supposed to monitor is not there yet.  will pushing it to "before 'deploy:cold' cause an issues"
+
+[ ] possibly put /tmp on its own mnt point, and then lock it down in /etc/fstab. Modify tmp to something like this '/dev/hda2  /tmp  ext3  nodev,nosuid, noexec  0  0'
+this means nonone will be able to execute, or a bunch of other things, from within /tmp
+
+
+QUESTIONS
+* during setup, what do you choose for Postfix configurations?  ANSWER:
+
+* why install php5?  ANSWER: Can't tell... seems to run fine without it, so removing it as a direct aptitude fetch (if it is a dependency somewhere else, it will get downloaded)
+
+* WHO runs the script/migration?  App or db?  ANSWER: the (primary-) db does.  This make sense in that you don't want every app instance running a rake db:migration.  This means that the db role needs to be fully setup to handle rake db:migration, meaning the /etc/hosts file needs to contain db_primary as an alias to 127.0.0.1
+
+
+COMPLETED
+[X] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  ).  A few folks have branched ec2onrails into github before and they've all done this...
+
+[X] set -y flag when installing/updating gems UPDATE: not needed... does it automatically for the other non-interactive flags we are using
+
+[X] remove the *_admin capistrano roles.  can we use admin for sudo access but continue to deploy and run under a user without sudo access?  It looks like we can if we add this to the recipes.rb file:
+        set :use_sudo, true
+        set :user, "app"
+        set :admin_runner, "admin"
+    UPDATE: this didn't work as then admin would need to behave as root... SO, here is what I did:
+        * remove _admin roles AND the admin user
+        * give app user full sudo access to begin with
+        * have /etc/sudoers -> /etc/sudoers.full_access
+        * after ec2onrails:setup, trigger ec2onrails:server:restrict_sudo_access
+            - flips /etc/sudoers -> /etc/sudoers.restricted_access
+            - at this point, the app user ONLY has access to sudo to monit
+        * provide cap tasks to restrict or grant full sudo access
+
+[X] allow config to be able to flip between nginx and apache as proxy... 

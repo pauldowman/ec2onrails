@@ -1,0 +1,13 @@
+<% @web_port_range.each do |port_num| %>
+check process mongrel_<%= port_num %> with pidfile /mnt/app/shared/log/mongrel.<%= port_num %>.pid
+  start program = "/usr/local/ec2onrails/bin/mongrel_start --only <%= port_num %>" 
+  stop program = "/usr/local/ec2onrails/bin/mongrel_stop --only <%= port_num %>" 
+  if totalmem is greater than 170.0 MB for 4 cycles then restart 
+  if cpu is greater than 80% for 4 cycles then restart
+  if failed port <%= port_num %> with timeout 10 seconds then restart
+  if loadavg(5min) greater than 10 for 8 cycles then restart          # bad, bad, bad
+  if loadavg(15min) greater than 8 for 20 cycles then restart         # bad, bad, bad
+  if 20 restarts within 20 cycles then timeout
+  mode manual
+  group app
+<% end %>

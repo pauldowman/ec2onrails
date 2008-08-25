@@ -22,12 +22,11 @@ require 'yaml'
 require 'erb'
 require 'fileutils'
 require "#{File.dirname(__FILE__)}/utils"
+require "#{File.dirname(__FILE__)}/aws_helper"
 
 module Ec2onrails
   class S3Helper
 
-    DEFAULT_CONFIG_FILE = "/mnt/app/current/config/s3.yml"
-  
     # make attributes available for specs
     attr_accessor :bucket
     attr_accessor :dir
@@ -37,37 +36,16 @@ module Ec2onrails
     attr_accessor :aws_secret_access_key
     attr_accessor :bucket
 
-    def initialize(bucket, dir, config_file = DEFAULT_CONFIG_FILE, rails_env = Utils.rails_env)
+    def initialize(bucket, dir, config_file = Ec2onrails::AwsHelper.default_config_file, rails_env = Utils.rails_env)
       @dir = dir
       @config_file = config_file
       @rails_env = rails_env
-      load_s3_config
+      @awsHelper = Ec2onrails::AwsHelper.new(config_file, rails_env)
+      @aws_access_key        = @awsHelper.aws_access_key
+      @aws_secret_access_key = @awsHelper.aws_secret_access_key
+      @bucket_base_name      = @awsHelper.bucket_base_name
       @bucket = bucket || "#{@bucket_base_name}-#{Ec2onrails::Utils.hostname}"
       AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
-    end
-
-    def load_s3_config
-      if File.exists?(@config_file)
-        s3_config = YAML::load(ERB.new(File.read(@config_file)).result)
-    
-        # try to load the section for the current RAILS_ENV
-        section = s3_config[@rails_env]
-        if section.nil?
-          # fall back to keys at the root of the tree
-          section = s3_config
-        end
-    
-        @aws_access_key        = section['aws_access_key']
-        @aws_secret_access_key = section['aws_secret_access_key']
-        @bucket_base_name      = section['bucket_base_name']
-      else
-        if !File.exists?('/mnt/aws-config/config')
-          raise "Can't find either #{@config_file} or /mnt/aws-config/config"
-        end
-        @aws_access_key        = get_bash_config('AWS_ACCESS_KEY_ID')
-        @aws_secret_access_key = get_bash_config('AWS_SECRET_ACCESS_KEY')
-        @bucket_base_name      = get_bash_config('BUCKET_BASE_NAME')  
-      end
     end
 
     def create_bucket
@@ -116,11 +94,6 @@ module Ec2onrails
   
     def s3_key(file)
       @dir ? "#{@dir}/#{File.basename(file)}" : File.basename(file)
-    end
-
-    # load an env value from the shared config file
-    def get_bash_config(name)
-      `bash -c 'source /mnt/aws-config/config; echo $#{name}'`.strip
     end
   end
 end

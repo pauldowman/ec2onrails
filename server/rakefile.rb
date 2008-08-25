@@ -27,12 +27,22 @@
 require "rake/clean"
 require 'yaml'
 require 'erb'
-require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
+require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
 
 if `whoami`.strip != 'root'
   raise "Sorry, this buildfile must be run as root."
 end
 
+# package notes:
+# * aptitude:       much better package installation system, especially around 
+#                   upgrades and package dependencies
+# * denyhosts:      security program to monitor sshd abuses
+# * gcc:            libraries needed to compile c/c++ files from source
+# * nano/vim/less:  simle file editors and viewer
+# * git-core:       because we are all using git now, aren't we?
+# * xfsprogs:       help with freezing and resizing of persistent volumes
+# 
+  
 @packages = %w(
   adduser
   apache2
@@ -41,6 +51,7 @@ end
   ca-certificates
   cron
   curl
+  denyhosts
   flex
   gcc
   git-core
@@ -63,8 +74,6 @@ end
   mysql-server
   nano
   openssh-server
-  php5
-  php5-mysql
   postfix
   rdoc
   ri
@@ -75,10 +84,15 @@ end
   unzip
   vim
   wget
+  xfsprogs
 )
 
+
+#NOTE:
+#  * skippy-amazon-ec2 is a temporary modification; just waiting for the gem to be updated
+#    to support amazon's EBS; then we'll go back to 'amazon-ec2'
 @rubygems = [
-  "amazon-ec2",
+  "skippy-amazon-ec2",
   "aws-s3",
   "memcache-client",
   "mongrel",
@@ -105,7 +119,7 @@ end
 desc "Use apt-get to install required packages inside the image's filesystem"
 task :install_packages do |t|
   unless_completed(t) do
-    #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
+    ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
     run_chroot "apt-get install -y #{@packages.join(' ')}"
     run_chroot "apt-get clean"
@@ -115,11 +129,12 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/35283/rubygems-1.1.1.tgz && tar zxf rubygems-1.1.1.tgz'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.1.1 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz && tar zxf rubygems-1.2.0.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.2.0 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
+    run_chroot "gem sources -a http://gems.github.com"
     @rubygems.each do |gem|
       run_chroot "gem install #{gem} --no-rdoc --no-ri"
     end
@@ -129,7 +144,7 @@ end
 desc "Compile and install monit"
 task :install_monit => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ --localstatedir=/var/run && make && make install'"
   end
@@ -142,39 +157,18 @@ task :configure => [:install_gems, :install_monit] do |t|
     sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
 
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
-    
-    run_chroot "a2enmod deflate"
-    run_chroot "a2enmod proxy_balancer"
-    run_chroot "a2enmod proxy_http"
-    run_chroot "a2enmod rewrite"
-    
+        
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
-    run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password admin"
-    run_chroot "/usr/sbin/adduser admin adm"
-    run_chroot "/usr/sbin/addgroup sudoers"
-    
-    File.open("#{@fs_dir}/usr/local/sbin/ec2-get-credentials", 'a') do |f|
-      f << <<-END
-        mkdir -p -m 700 /home/app/.ssh
-        cp /root/.ssh/authorized_keys /home/app/.ssh
-        chown -R app:app /home/app/.ssh
-
-        mkdir -p -m 700 /home/admin/.ssh
-        cp /root/.ssh/authorized_keys /home/admin/.ssh
-        chown -R admin:admin /home/admin/.ssh
-        END
-    end
-    
+        
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.bashrc"
-    run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/admin/.bashrc"
     
-    %w(apache2 mysql auth.log daemon.log kern.log mail.err mail.info mail.log mail.warn syslog user.log).each do |f|
+    %w(mysql auth.log daemon.log kern.log mail.err mail.info mail.log mail.warn syslog user.log).each do |f|
       rm_rf "#{@fs_dir}/var/log/#{f}"
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
     
-    touch "#{@fs_dir}/ec2onrails-first-boot"
+    run "touch #{@fs_dir}/ec2onrails-first-boot"
     
     # TODO find out the most correct solution here, there seems to be a bug in
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir

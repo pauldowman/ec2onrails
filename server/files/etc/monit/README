@@ -1,0 +1,5 @@
+put your custom monit files in here.  You can also put an *.erb file,
+and at setup time it will be run with the following variables:
+  @web_port_range = web_port_range
+  @web_starting_port = web_starting_port
+  @roles = roles

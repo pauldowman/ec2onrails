@@ -1,6 +1,16 @@
-# Incremental backup every 5 minutes
-*/5 * * * *  root  /usr/local/ec2onrails/bin/backup_app_db.rb --incremental
+#
+# different backup strategies depending on whether the db instance is using Amazon's EBS
+#
 
-# Full backup every day at 05:01, reset the binary logs.
-# First kill any incremental backup that happens to be in progress
-1 5 * * *  root  killall -q -u root backup_app_db.rb ; /usr/local/ec2onrails/bin/backup_app_db.rb --reset
+# without EBS: 
+#   Incremental backup every 5 minutes
+*/5 * * * *  root  test ! -f /etc/mysql/conf.d/mysql-ec2-ebs.cnf && /usr/local/ec2onrails/bin/backup_app_db.rb --incremental
+
+# without EBS:
+#   Full backup every day at 05:01, reset the binary logs.
+#   First kill any incremental backup that happens to be in progress
+1 5 * * *  root  killall -q -u root backup_app_db.rb ; test ! -f /etc/mysql/conf.d/mysql-ec2-ebs.cnf && /usr/local/ec2onrails/bin/backup_app_db.rb --reset
+
+# with EBS:
+#   Full snapshot every 2 hours
+11 */2 * * *  root  test -f /etc/mysql/conf.d/mysql-ec2-ebs.cnf && /usr/local/ec2onrails/bin/backup_app_db.rb

@@ -1,0 +1,11 @@
+/mnt/log/nginx/*.log {
+  daily
+  missingok
+  dateext
+  compress
+  create 640 root app
+  notifempty
+  sharedscripts
+  extension gz
+  copytruncate
+}

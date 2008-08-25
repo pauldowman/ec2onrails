@@ -1,6 +1,13 @@
 # Package generated configuration file
 # See the sshd(8) manpage for details
 
+# HARDEN OpenSSH TODO's
+#  * specify AllowUsers
+#  * PermitRootLogin no # turn off root login access
+#
+# to do that, we will probably need to create a non-root user to escalate 
+# privileges to from capistrano, like 'admin'
+
 # What ports, IPs and protocols we listen for
 Port 22
 # Use these options to restrict which interfaces/protocols sshd will bind to
@@ -12,6 +19,9 @@ HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_dsa_key
 #Privilege Separation is turned on for security
 UsePrivilegeSeparation yes
+
+# Enable to harden the ssh host
+# AllowUsers admin app
 
 # Lifetime and size of ephemeral version 1 server key
 KeyRegenerationInterval 3600
@@ -48,7 +58,7 @@ PermitEmptyPasswords no
 ChallengeResponseAuthentication no
 
 # Change to no to disable tunnelled clear text passwords
-#PasswordAuthentication yes
+PasswordAuthentication no
 
 # Kerberos options
 #KerberosAuthentication no

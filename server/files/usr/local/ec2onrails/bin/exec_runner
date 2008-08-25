@@ -1,0 +1,73 @@
+#!/usr/bin/ruby
+
+#    This file is part of EC2 on Rails.
+#    http://rubyforge.org/projects/ec2onrails/
+#
+#    Copyright 2007 Paul Dowman, http://pauldowman.com/
+#
+#    EC2 on Rails is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    EC2 on Rails is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    This script allows you to ONLY execute within a shell IF the role of
+#    the server (as defined by capistrano) matches the role specified.
+#    ex.
+#      * exec_runner -role :db -exec 'echo "hello world"'
+#        # will only run if the server is in the db role
+#      * exec_runner -role :app -exec /some/app/specific/script/to/call
+#
+
+require "rubygems"
+require "optiflag"
+
+require "fileutils"
+require "#{File.dirname(__FILE__)}/../lib/roles_helper"
+require "#{File.dirname(__FILE__)}/../lib/utils"
+
+include Ec2onrails::RolesHelper
+
+module CommandLineArgs extend OptiFlagSet
+  optional_flag "role" do
+    description "The role of this server, as defined by capistrano. ex. 'db', or 'app'  If not used, will be applied to all roles"
+  end
+  
+  optional_flag "only_env" do
+    description "Only apply the script if it is running within this environment"
+  end
+
+  flag "exec" do
+    description "what to run if the role of the server matches the -role passed in"
+  end  
+  
+  and_process!
+end
+
+#strip out the ':', in case the user enters ':db', or ':app'
+role = ARGV.flags.role.sub(/^:/, '').to_sym
+if ARGV.flags.role && !in_role?(role)
+  puts "This script is not being run because the server is not running under the #{role} role"
+  exit
+end
+
+curr_env = Ec2onrails::Utils.rails_env
+if ARGV.flags.only_env && ARGV.flags.only_env.strip != curr_env
+  puts "This script is not being run because the server is not running under the #{curr_env} environment"
+  exit
+end
+
+
+# set the default to the current directory; makes it easier to 
+Dir.chdir('/mnt/app/current')
+
+ENV['RAILS_ENV'] = curr_env
+run ARGV.flags.exec
+

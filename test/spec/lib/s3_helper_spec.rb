@@ -2,7 +2,7 @@ require 'spec'
 require "#{File.dirname(__FILE__)}/../../../server/files/usr/local/ec2onrails/lib/s3_helper"
 
 REAL_S3_CONFIG = "#{File.dirname(__FILE__)}/../../../../local/s3.yml"
-MOCK_S3_CONFIG = "#{File.dirname(__FILE__)}/../../../documentation/examples/s3.yml"
+MOCK_S3_CONFIG = "#{File.dirname(__FILE__)}/../../../examples/s3.yml"
 
 TEST_FILE_1 = "#{File.dirname(__FILE__)}/../test_files/test1"
 TEST_FILE_2 = "#{File.dirname(__FILE__)}/../test_files/test2"

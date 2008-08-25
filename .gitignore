@@ -1,2 +1,4 @@
-gem/pkg/*
-gem/tmp/*
+.DS_STORE
+pkg/*
+tmp/*
+setup_notes

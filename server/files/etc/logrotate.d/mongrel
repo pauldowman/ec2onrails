@@ -1,0 +1,11 @@
+/mnt/app/current/log/*/*.log /mnt/app/current/log/*.log {
+  daily
+  missingok
+  dateext
+  rotate 365
+  compress
+  notifempty
+  sharedscripts
+  extension gz
+  copytruncate
+}

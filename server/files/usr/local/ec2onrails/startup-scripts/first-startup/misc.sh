@@ -19,6 +19,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-chmod 777 /tmp
-
 cp /etc/hosts /etc/hosts.original
+
+# make sure the db optimize is only run once... 
+# the setup script will look for this flag, and 
+# if it doesn't exist the db optimzation won't occur
+touch /tmp/optimize_db_flag
