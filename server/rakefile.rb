@@ -70,7 +70,6 @@ end
   mailx
   memcached
   mysql-client
-  libmysqlclient-dev
   mysql-server
   nano
   openssh-server
@@ -87,9 +86,18 @@ end
   xfsprogs
 )
 
+# HACK: some packages just fail with apt-get but work fine
+#       with aptitude.  These generally are virtual packages
+@aptitude_packages = %w(
+  libmysqlclient-dev
+)
 
+# NOTE: the amazon-ec2 gem is now at github, maintained by
+#       grempe-amazon-ec2.  Will move back to regular amazon-ec2
+#       gem if/when he cuts a new release with volume and snapshot
+#       support included
 @rubygems = [
-  "amazon-ec2",
+  "grempe-amazon-ec2",
   "aws-s3",
   "memcache-client",
   "mongrel",
@@ -120,6 +128,10 @@ task :install_packages do |t|
     ENV['LANG'] = ''
     run_chroot "apt-get install -y #{@packages.join(' ')}"
     run_chroot "apt-get clean"
+    
+    #lets run the aptitude-only packages
+    run_chroot "aptitude install -y #{@aptitude_packages.join(' ')}"
+    run_chroot "aptitude clean"
   end
 end
 
