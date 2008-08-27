@@ -310,6 +310,11 @@ Capistrano::Configuration.instance.load do
             puts "running: #{cmd}"
             output = `#{cmd}`
             puts output
+            if output =~/Client.InvalidVolume.ZoneMismatch/i              
+              raise Exception, "The volume you are trying to attach does not reside in the zone of your instance.  Stopping!"
+            end
+            
+            
             sleep(10)
           end
           
@@ -364,7 +369,8 @@ FILE
               sudo "rsync -aR /etc/mysql #{mysql_dir_root}/"
             end
             # lets use the mysql configs on the EBS volume
-            sudo "mv /etc/mysql /etc/mysql.orig && ln -sf #{mysql_dir_root}/etc/mysql /etc/mysql"
+            sudo "mv /etc/mysql /etc/mysql.orig 2>/dev/null"
+            sudo "ln -sf #{mysql_dir_root}/etc/mysql /etc/mysql"
 
             #just put a README on the drive so we know what this volume is for!
             txt = <<-FILE
@@ -577,7 +583,7 @@ FILE
           sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{cfg[:packages].join(' ')}'"
         end
       end
-      
+
       desc <<-DESC
         Provide extra security measures.  Set ec2onrails_config[:harden_server] = true \
         to allow the hardening of the server.
