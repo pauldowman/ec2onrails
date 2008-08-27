@@ -1,0 +1,13 @@
+# dpkg configuration file
+#
+# This file can contain default options for dpkg.  All command-line
+# options are allowed.  Values can be specified by putting them after
+# the option, separated by whitespace and/or an `=' sign.
+#
+
+# ec2onrails note: if we have a config file already up here, we want to use 
+# that over the packages default.  
+force-confold
+
+# Log status changes and actions to a file.
+log /var/log/dpkg.log
