@@ -259,6 +259,7 @@ Capistrano::Configuration.instance.load do
         #
         # TODO:
         #  * make sure if we have a predefined ebs_vol_id, that we error out with a nice msg IF the zones do not match
+        #  * can we move more of the mysql cache files back to the local disk and off of EBS, like the innodb table caches?
         #  * right now we force this task to only be run on one server; that works for db :primary => true
         #    But what is the best way to make this work if it needs to setup multiple servers (like db slaves)?
         #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol_id
