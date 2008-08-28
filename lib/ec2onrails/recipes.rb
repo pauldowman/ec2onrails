@@ -143,7 +143,7 @@ Capistrano::Configuration.instance.load do
       deploy.setup
       db.create
       server.harden_server
-      db.move_to_ebs
+      db.enable_ebs
     end
     
     desc <<-DESC
@@ -229,7 +229,7 @@ Capistrano::Configuration.instance.load do
         records and probably add it to the :db role in your deploy.rb file \
         (see the ec2onrails sample deploy.rb file for additional information)
       DESC
-      task :move_to_ebs, :roles => :db, :only => { :primary => true } do        
+      task :enable_ebs, :roles => :db, :only => { :primary => true } do        
         # based off of Eric's work:
         # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
         #
@@ -281,7 +281,7 @@ Capistrano::Configuration.instance.load do
         
         vol_id = ENV['VOlUME_ID'] || servers.first.options[:ebs_vol_id]
 
-        #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.move_to_ebs'
+        #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.enable_ebs'
         #       the places where we do call it like that, we don't want to force a move to ebs, so....
         #       if the call frame is > 1 (ie, another task called it), do NOT force the ebs move
         no_force = task_call_frames.size > 1

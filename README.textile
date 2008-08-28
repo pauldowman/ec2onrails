@@ -121,7 +121,7 @@ You'll mostly need just the following Capistrano tasks:
 
 * <code>cap ec2onrails:setup</code> This task configures a newly-launched instance. This is the first thing you should do after starting a new instance. It can be run more than once without ill effect. After running  "cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
 
-* <code>cap ec2onrails:db:move_to_ebs</code> This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume. You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like <pre>cap ec2onrails:db:move_to_ebs SIZE=10</pre>
+* <code>cap ec2onrails:db:enable_ebs</code> This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume. You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like <pre>cap ec2onrails:db:enable_ebs SIZE=10</pre>
 
 You should then specify your own volume (or the one created by this task) in your capistrano deploy.rb file like so: <pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'</pre>
 
