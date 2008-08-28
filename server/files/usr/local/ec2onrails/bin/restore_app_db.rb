@@ -52,7 +52,7 @@ begin
   logs = Dir.glob("#{@temp_dir}/mysql-bin.[0-9]*").sort
   logs.each {|log| @mysql.execute_binary_log(log) }
   
-  @mysql.execute_sql "reset master"
+  @mysql.execute_sql "reset master" # TODO  maybe we shouldn't do this if we're not going to delete the logs from the S3 bucket because this restarts the numbering again
 ensure
   FileUtils.rm_rf(@temp_dir)
 end
