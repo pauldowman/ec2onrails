@@ -1,22 +1,16 @@
 h1. EC2 on Rails
 
-
 h2. Deploy a Ruby on Rails app on EC2 in five minutes
 
-EC2 on Rails is an Ubuntu Linux server image for 
-"Amazon's EC2 hosting service":http://www.amazon.com/b/ref=sc_fe_l_2/102-6342260-7987311?ie=UTF8&node=201590011&no=3435361
-that's ready to run a standard Ruby on Rails application with little or no customization. 
-It's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
+Main Page: "https://ec2onrails.rubyforge.org":https://ec2onrails.rubyforge.org
 
-If you have an EC2 account and can start EC2 instances you're five minutes away from deploying
-your Rails app.
+Code on Github: "https://github.com/pauldowman/ec2onrails":https://github.com/pauldowman/ec2onrails
 
-EC2 on Rails is "opinionated software":http://gettingreal.37signals.com/ch04_Make_Opinionated_Software.php:
-the opinion is that for many rails apps the server setup can be generalized
-and shared the same way as the web application framework itself. For many people (Twitter, this isn't for you) 
-the server image can be treated the same way as other shared libraries. And if the day comes when your needs are
-unique enough that EC2 on Rails can't be configured to work for you then you can bundle your own image from it
-or fork the build source and customize it. 
+EC2 on Rails is an Ubuntu Linux server image for "Amazon's EC2 hosting service":http://www.amazon.com/b/ref=sc_fe_l_2/102-6342260-7987311?ie=UTF8&node=201590011&no=3435361 that's ready to run a standard Ruby on Rails application with little or no customization. It's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
+
+If you have an EC2 account and can start EC2 instances you're five minutes away from deploying your Rails app.
+
+EC2 on Rails is "opinionated software":http://gettingreal.37signals.com/ch04_Make_Opinionated_Software.php: the opinion is that for many rails apps the server setup can be generalized and shared the same way as the web application framework itself. For many people (Twitter, this isn't for you) the server image can be treated the same way as other shared libraries. And if the day comes when your needs areunique enough that EC2 on Rails can't be configured to work for you then you can bundle your own image from it or fork the build source and customize it. 
 
 But until then, why spend your time configuring servers?
 
@@ -63,57 +57,34 @@ h4. 1. Install the gem
 
 h4. 2. Add the config files to your Rails app
 
-Put "Capfile":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile 
-in the root of your rails folder, and put
-"deploy.rb":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb 
-and
-"s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml
-in the config folder.
+Put "Capfile":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile in the root of your rails folder, and put "deploy.rb":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb  and "s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml in the config folder.
 
 _Be sure to customize those files and read the comments._
 
-Also, use the hostname "db_primary" in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve
-to the instance defined in your Capistrano "db" role.
+Also, use the hostname "db_primary" in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve to the instance defined in your Capistrano "db" role.
 
 h4. 3. Start up one or more instances of the image.
 
-There is nothing EC2 on Rails-specific here yet (though soon there will be a Capistrano task to do this for you), 
-if you've started EC2 instances before you can skip this section. Otherwise, I'm not going to lie, this part is complicated
-and will take a lot more than 5 minutes the first time.
+There is nothing EC2 on Rails-specific here yet (though soon there will be a Capistrano task to do this for you), if you've started EC2 instances before you can skip this section. Otherwise, I'm not going to lie, this part is complicated and will take a lot more than 5 minutes the first time.
 
-Read the 
-"running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html
-in Amazon's getting started guide.
+Read the "running an instance section":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html in Amazon's getting started guide.
 
-For the AMI id's of the current images do <code>cap ec2onrails:ami_ids</code> from within the app that you 
-configured in the previous step (they're also listed earlier on this page).
+For the AMI id's of the current images do <code>cap ec2onrails:ami_ids</code> from within the app that you configured in the previous step (they're also listed earlier on this page).
 
 _NOTE: Only use the images that match the current version of the gem._
 
-Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG for release notes, and 
-see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
+Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG for release notes, and see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
-As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, 
-password-based logins are disabled. You log in with your own 
-"public/private keypair":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html.
+As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, password-based logins are disabled. You log in with your own "public/private keypair":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html.
 
-Most basic things can be configured automatically by the Capistrano tasks, but if you want to 
-you can login by ssh as a user named "admin" (has sudo ability) or as "app" (the user 
-that the app runs as, does not have sudo ability). The Capistrano tasks automatically 
-use the app user to deploy the app, and the admin user for server admin tasks 
-that require sudo.
+Most basic things can be configured automatically by the Capistrano tasks, but if you want to you can login by ssh as a user named "admin" (has sudo ability) or as "app" (the user that the app runs as, does not have sudo ability). The Capistrano tasks automatically use the app user to deploy the app, and the admin user for server admin tasks that require sudo.
 
-IMPORTANT: Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. 
-Be sure that you haven't allowed public access to any ports other than TCP 22 and TCP 80
-(and possibly TCP 443 if you're going to enable HTTPS).
-If you're using multiple instances, be sure to allow them network access to each other.
+IMPORTANT: Double-check "your firewall settings":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html. Be sure that you haven't allowed public access to any ports other than TCP 22 and TCP 80 (and possibly TCP 443 if you're going to enable HTTPS). If you're using multiple instances, be sure to allow them network access to each other.
 
 
 h4. 4. Copy your public key from the server to keep Capistrano happy
 
-This is a workaround for a quirk in Capistrano. Technically all you should need to connect to the server is the private 
-key file, the public key is on the server. But for some reason 
-"Capistrano requires that you have both the public key and the private key files together on the client":http://groups.google.com/group/capistrano/browse_thread/thread/1102208ff925d18.
+This is a workaround for a quirk in Capistrano. Technically all you should need to connect to the server is the private  key file, the public key is on the server. But for some reason "Capistrano requires that you have both the public key and the private key files together on the client":http://groups.google.com/group/capistrano/browse_thread/thread/1102208ff925d18.
 
 There is a Capistrano task that tries to fix this for you. From within the root of your rails app do:
 
@@ -124,25 +95,21 @@ Note, this will only work if you have an external ssh command in the path, it wo
 
 h4. 5. Deploy the app with Capistrano
 
-Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, 
-this is the only thing you'll need to do from now on.
+Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, this is the only thing you'll need to do from now on.
 
 <pre>
 cap ec2onrails:setup
 cap deploy:cold
 </pre>
 
-Yes, it's that easy! The setup task will set the server's timezone, install any 
-gems and Ubuntu packages that you specified in the config file, and 
-create your database.
+Yes, it's that easy! The setup task will set the server's timezone, install any gems and Ubuntu packages that you specified in the config file, and create your database.
 
 That's it, your app is now running on EC2!!
 
 
 h2. Capistrano tasks
 
-"Capistrano":http://capify.org is the most commonly used Rails deployment tool. It comes with many standard "tasks",
-and the EC2 on Rails gem includes Capistrano tasks specifically for configuring the server instance.
+"Capistrano":http://capify.org is the most commonly used Rails deployment tool. It comes with many standard "tasks", and the EC2 on Rails gem includes Capistrano tasks specifically for configuring the server instance.
 
 Capistrano is run from the command-line using the "cap" command, with a task name given as an argument.
 
@@ -150,60 +117,32 @@ h3. Commonly-used tasks
 
 You'll mostly need just the following Capistrano tasks:
 
-* <code>cap ec2onrails:ami_ids</code>
-Shows the AMI id's of the images that match the current version of the gem.
+* <code>cap ec2onrails:ami_ids</code> Shows the AMI id's of the images that match the current version of the gem.
 
-* <code>cap ec2onrails:setup</code>
-This task configures a newly-launched instance. This is the first thing you should do after
-starting a new instance. It can be run more than once without ill effect. After running 
-"cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
+* <code>cap ec2onrails:setup</code> This task configures a newly-launched instance. This is the first thing you should do after starting a new instance. It can be run more than once without ill effect. After running  "cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
 
-* <code>cap ec2onrails:db:move_to_ebs</code>
-This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume.
-You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like
-<pre>cap ec2onrails:db:move_to_ebs SIZE=10</pre>
+* <code>cap ec2onrails:db:move_to_ebs</code> This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume. You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like <pre>cap ec2onrails:db:move_to_ebs SIZE=10</pre>
 
-You should then specify your own volume (or the one created by this task) in your capistrano 
-deploy.rb file like so:
-<pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'</pre>
+You should then specify your own volume (or the one created by this task) in your capistrano deploy.rb file like so: <pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'</pre>
 
-*NOTE* MySQL EBS is not enabled by default.  You may call this task at anytime to move
-your MySQL over to EBS, but just make sure you keep track of the volume-id that is printed
-out by this task and use it to modify your deploy.rb file
+*NOTE* MySQL EBS is not enabled by default.  You may call this task at anytime to move your MySQL over to EBS, but just make sure you keep track of the volume-id that is printed out by this task and use it to modify your deploy.rb file
 
-* <code>cap ec2onrails:server:set_roles</code>
-Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file).
-Run this after starting or stopping instances.
-For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL)
-are running. Eventually this will customize settings for the running services also. Note that
-an instance can have more than one role. If there's only one instance it will have all roles.
+* <code>cap ec2onrails:server:set_roles</code> Customizes each instance for it's role(s) (as defined in your Capistrano deploy.rb file). Run this after starting or stopping instances. For now this just makes sure that only the appropriate services (Apache, Mongrel, and/or MySQL) are running. Eventually this will customize settings for the running services also. Note that an instance can have more than one role. If there's only one instance it will have all roles.
 
-Note that due to the way that Capistrano works all tasks are run
-against all hosts that are currently defined in the deploy.rb file.
-So if you start a new instance then add it to your deploy.rb you will need to run 
-"cap ec2onrails:setup" again which will be run on all existing instances.
+Note that due to the way that Capistrano works all tasks are run against all hosts that are currently defined in the deploy.rb file. So if you start a new instance then add it to your deploy.rb you will need to run  "cap ec2onrails:setup" again which will be run on all existing instances.
 
 
 h3. Database management tasks
 
-* <code>cap ec2onrails:db:archive</code>
-Archive the MySQL database to the bucket specified in your deploy.rb. This is for archiving a snapshot of your
-database into any S3 bucket. For example, you might want to do this before deploying.
+* <code>cap ec2onrails:db:archive</code> Archive the MySQL database to the bucket specified in your deploy.rb. This is for archiving a snapshot of your database into any S3 bucket. For example, you might want to do this before deploying.
 
-* <code>cap ec2onrails:db:restore</code>
-Restore the MySQL database from the bucket specified in your deploy.rb
-For example, I use this to restore the current production data (from my actual production backup
-bucket) onto a staging server that has the current production version of my
-app. I then deploy the new version which tests migrations exactly as they'll
-run on the production server.
+* <code>cap ec2onrails:db:restore</code> Restore the MySQL database from the bucket specified in your deploy.rb For example, I use this to restore the current production data (from my actual production backup bucket) onto a staging server that has the current production version of my app. I then deploy the new version which tests migrations exactly as they'll run on the production server.
 
 To get a full list of the Capistrano tasks at any time type <code>cap -T</code> from with your rails app root.
 
 h2. Building the image
 
-Building the image is not required, most people will simply use the prebuilt public
-image, but there is also a build script that builds the image. It's meant to be called by
-"Eric Hammond's EC2 Ubuntu script":http://alestic.com/.
+Building the image is not required, most people will simply use the prebuilt public image, but there is also a build script that builds the image. It's meant to be called by "Eric Hammond's EC2 Ubuntu script":http://alestic.com/.
 
 Here is how you go about setting it up:
 
@@ -234,19 +173,12 @@ h4. Getting started...
 
 h2. Mailing lists
 
-There are two Google groups, one for 
-"announcements":http://groups.google.com/group/ec2-on-rails-announce
-(usually just new release announcements) and one for 
-"discussion":http://groups.google.com/group/ec2-on-rails-discuss.
+There are two Google groups, one for  "announcements":http://groups.google.com/group/ec2-on-rails-announce (usually just new release announcements) and one for "discussion":http://groups.google.com/group/ec2-on-rails-discuss.
 
 
 h2. Comments
 
-Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/contact/ 
-or to the "Google group":http://groups.google.com/group/ec2-on-rails-discuss.
-If you find bugs please file them 
-"here":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse 
-or send me an "email":http://pauldowman.com/contact/.
+Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/contact/  or to the "Google group":http://groups.google.com/group/ec2-on-rails-discuss. If you find bugs please file them "here":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse  or send me an "email":http://pauldowman.com/contact/.
 
 
 h2. Change log
@@ -256,20 +188,19 @@ See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG.
 
 h2. How to submit patches
 
-Pleae read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/.
-The source code can be checked out anonymously using: 
+Pleae read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/. The source code can be checked out anonymously using: 
 <pre>
 svn checkout http://ec2onrails.rubyforge.org/svn/trunk ec2onrails
 </pre>
 
 Code on Github: "https://github.com/pauldowman/ec2onrails":https://github.com/pauldowman/ec2onrails
 
-Patches can be submitted to the "RubyForge Tracker":http://rubyforge.org/tracker/?atid=17560&group_id=4552&func=browse 
-or "emailed directly to me":http://pauldowman.com/contact/ .
+Patches can be submitted to the "RubyForge Tracker":http://rubyforge.org/tracker/?atid=17560&group_id=4552&func=browse  or "emailed directly to me":http://pauldowman.com/contact/ .
 
 h2. License
 
 This code is free to use under the terms of the GPL v2. 
 
-If you find EC2 on Rails useful please "recommend Paul Dowman":http://www.workingwithrails.com/person/10131-paul-dowman
-at Working With Rails.
+If you find EC2 on Rails useful please "recommend Paul Dowman":http://www.workingwithrails.com/person/10131-paul-dowman at Working With Rails.
+
+Copyright 2007 Paul Dowman, http://pauldowman.com/ This is free software, and you are welcome to redistribute it under certain conditions. This software comes with ABSOLUTELY NO WARRANTY. See the file named COPYING for details.
