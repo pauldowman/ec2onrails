@@ -311,7 +311,7 @@ Capistrano::Configuration.instance.load do
             puts "running: #{cmd}"
             output = `#{cmd}`
             puts output
-            if output =~/Client.InvalidVolume.ZoneMismatch/i              
+            if output =~ /Client.InvalidVolume.ZoneMismatch/i              
               raise Exception, "The volume you are trying to attach does not reside in the zone of your instance.  Stopping!"
             end
             
