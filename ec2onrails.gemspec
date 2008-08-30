@@ -12,7 +12,7 @@ authors:
 autorequire: 
 bindir: bin
 
-date: 2008-08-24 00:00:00 -07:00
+date: 2008-08-29 00:00:00 -07:00
 default_executable: 
 dependencies: 
 - !ruby/object:Gem::Dependency 
@@ -88,7 +88,6 @@ files:
 - lib/ec2onrails/recipes.rb
 - lib/ec2onrails/version.rb
 - lib/ec2onrails.rb
-- Manifest
 - Rakefile
 - README.textile
 - server/build-ec2onrails.sh
@@ -108,7 +107,10 @@ files:
 - server/files/etc/cron.hourly/app
 - server/files/etc/cron.monthly/app
 - server/files/etc/cron.weekly/app
+- server/files/etc/denyhosts.conf
+- server/files/etc/dpkg/dpkg.cfg
 - server/files/etc/ec2onrails/balancer_members
+- server/files/etc/ec2onrails/README
 - server/files/etc/ec2onrails/roles.yml
 - server/files/etc/environment
 - server/files/etc/event.d/monit
@@ -150,6 +152,8 @@ files:
 - server/files/etc/syslog.conf
 - server/files/usr/local/ec2onrails/bin/archive_file.rb
 - server/files/usr/local/ec2onrails/bin/backup_app_db.rb
+- server/files/usr/local/ec2onrails/bin/ec2_meta_data.rb
+- server/files/usr/local/ec2onrails/bin/exec_runner
 - server/files/usr/local/ec2onrails/bin/init_services.rb
 - server/files/usr/local/ec2onrails/bin/mongrel_start
 - server/files/usr/local/ec2onrails/bin/mongrel_stop
@@ -162,6 +166,7 @@ files:
 - server/files/usr/local/ec2onrails/bin/setup_web_proxy.rb
 - server/files/usr/local/ec2onrails/config
 - server/files/usr/local/ec2onrails/COPYING
+- server/files/usr/local/ec2onrails/lib/aws_helper.rb
 - server/files/usr/local/ec2onrails/lib/mysql_helper.rb
 - server/files/usr/local/ec2onrails/lib/roles_helper.rb
 - server/files/usr/local/ec2onrails/lib/s3_helper.rb
@@ -174,8 +179,10 @@ files:
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/prepare-mysql-data-dir.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/README
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/setup-credentials.sh
+- server/files/usr/local/ec2onrails/startup-scripts/first-startup/setup-file-permissions.sh
 - server/rakefile.rb
 - setup.rb
+- setup_notes
 - test/autobench.conf
 - test/spec/lib/s3_helper_spec.rb
 - test/spec/lib/s3_old.yml
@@ -239,6 +246,7 @@ files:
 - test/test_ec2onrails.rb
 - test/test_helper.rb
 - TODO
+- Manifest
 has_rdoc: true
 homepage: http://ec2onrails.rubyforge.org
 post_install_message: 
