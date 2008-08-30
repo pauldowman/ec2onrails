@@ -224,7 +224,7 @@ Capistrano::Configuration.instance.load do
         OPTIONAL PARAMETERS:
           * SIZE: Pass in num in gigs, like 10, to set the size, otherwise it will \
         default to 10 gigs.
-          * VOlUME_ID: The volume_id to use for the mysql database    
+          * VOLUME_ID: The volume_id to use for the mysql database    
         NOTE: keep track of the volume ID, as you'll want to keep this for your \
         records and probably add it to the :db role in your deploy.rb file \
         (see the ec2onrails sample deploy.rb file for additional information)
@@ -280,7 +280,7 @@ Capistrano::Configuration.instance.load do
           raise Capistrano::Error, "`#{task.fully_qualified_name}' is can only be run on one server, not #{server.size}"
         end
         
-        vol_id = ENV['VOlUME_ID'] || servers.first.options[:ebs_vol_id]
+        vol_id = ENV['VOLUME_ID'] || servers.first.options[:ebs_vol_id]
 
         #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.enable_ebs'
         #       the places where we do call it like that, we don't want to force a move to ebs, so....
