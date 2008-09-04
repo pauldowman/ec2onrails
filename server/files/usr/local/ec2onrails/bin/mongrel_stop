@@ -1,8 +1,0 @@
-#!/bin/sh
-
-. /etc/environment
-export PATH
-export RUBYLIB
-
-mongrel_rails cluster::stop -C /etc/mongrel_cluster/app.yml $*
-

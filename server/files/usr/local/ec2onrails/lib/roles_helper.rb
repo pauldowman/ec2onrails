@@ -41,23 +41,14 @@ module Ec2onrails
 
     def start(role, service, prog_name = service)
       puts "STARTING #{role} role (service: #{service}, program_name: #{prog_name})"
-      # ensure script is executable
-      run "chmod a+x /etc/init.d/#{service}"
-      # start service if not running:
-      unless (system("pidof -x #{prog_name}"))
-        run "sh /etc/init.d/#{service} start && sleep 30" # give the service 30 seconds to start before attempting to monitor it
-      end
-      run "monit -g #{role} monitor all"
+      sudo "god start #{role}"
+      # sudo "god monitor #{role}"
     end
 
     def stop(role, service, prog_name = service)
       puts "STOPING #{role} role (service: #{service}, program_name: #{prog_name})"
-      run "monit -g #{role} unmonitor all"
-      if (system("pidof -x #{prog_name}"))
-        result = run("sh /etc/init.d/#{service} stop")
-      end  
-      # make start script non-executable in case of reboot
-      run("chmod a-x /etc/init.d/#{service}")
+      # sudo "god monitor #{role}"
+      sudo "god stop #{role}"
     end
 
     def run(cmd)
@@ -145,6 +136,10 @@ module Ec2onrails
     def application_root
       mongrel_config['cwd']
     end    
+    
+    def pid_file
+      "#{application_root}/#{mongrel_config['pid_file']}"
+    end
 
     private
 

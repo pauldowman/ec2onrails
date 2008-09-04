@@ -56,35 +56,28 @@ Capistrano::Configuration.instance.load do
   namespace :deploy do
     desc <<-DESC
       Overrides the default Capistrano deploy:start, uses \
-      /etc/init.d/mongrel
+      'god start app'
     DESC
     task :start, :roles => :app do
-      ec2onrails.server.allow_sudo do
-        run_init_script("mongrel", "start")
-        sudo "monit -g app monitor all"
-      end
+      sudo "god start app"
+      # sudo "god monitor app"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:stop, uses \
-      /etc/init.d/mongrel
+      'god stop app'
     DESC
     task :stop, :roles => :app do
-      ec2onrails.server.allow_sudo do
-        sudo "monit -g app unmonitor all"
-        run_init_script("mongrel", "stop")
-      end
+      # sudo "god unmonitor app"
+      sudo "god stop app"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:restart, uses \
-      /etc/init.d/mongrel
+      'god restart app'
     DESC
     task :restart, :roles => :app do
-      ec2onrails.server.allow_sudo do
-        deploy.stop
-        deploy.start
-      end
+      sudo "god restart app"
     end
   end
   
@@ -403,19 +396,13 @@ FILE
         (But don't enable monitoring on it.)
       DESC
       task :start, :roles => :db do
-        ec2onrails.server.allow_sudo do
-          sudo "chmod a+x /etc/init.d/mysql"
-          # The mysql init script can fail on the first startup if mysql takes too long 
-          # to create the logfiles, so try again
-          sudo "sh -c '/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)'"
-        end
+        sudo "god start db"
+        # sudo "god monitor db"
       end
 
       task :stop, :roles => :db do
-        ec2onrails.server.allow_sudo do
-          sudo "/etc/init.d/mysql stop"
-          sudo "chmod a-x /etc/init.d/mysql"  
-        end
+        # sudo "god unmonitor db"
+        sudo "god stop db"
       end
       
       
@@ -731,7 +718,7 @@ FILE
       desc <<-DESC
         Restrict the main user's sudo access.
         Defaults the user to only be able to \
-        sudo to monit
+        sudo to god
       DESC
       task :restrict_sudo_access do
         old_user = fetch(:user)

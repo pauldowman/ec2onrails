@@ -99,6 +99,7 @@ end
 @rubygems = [
   "grempe-amazon-ec2",
   "aws-s3",
+  "god",
   "memcache-client",
   "mongrel",
   "mongrel_cluster",
@@ -150,17 +151,8 @@ task :install_gems => [:install_packages] do |t|
   end
 end
 
-desc "Compile and install monit"
-task :install_monit => [:install_packages] do |t|
-  unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget -q http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
-    run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
-    run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ --localstatedir=/var/run && make && make install'"
-  end
-end
-
 desc "Configure the image"
-task :configure => [:install_gems, :install_monit] do |t|
+task :configure => [:install_gems] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
     sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
@@ -183,6 +175,9 @@ task :configure => [:install_gems, :install_monit] do |t|
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
     # that it tries to write to is owned by root and not writable by others.
     run_chroot "chown -R dhcp /var/lib/dhcp3"
+    
+    #make sure that god is setup to reboot at startup
+    run_chroot "update-rc.d god defaults 98"
   end
 end
 

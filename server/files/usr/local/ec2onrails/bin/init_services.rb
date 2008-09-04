@@ -39,9 +39,9 @@ end
 
 # db primary role:
 if in_role?(:db_primary)
-  start(:db_primary, "mysql", "mysqld")
+  start(:db, "mysql", "mysqld")
 else
-  stop(:db_primary, "mysql", "mysqld")
+  stop(:db, "mysql", "mysqld")
 end
 
 # web role:

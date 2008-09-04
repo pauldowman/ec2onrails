@@ -12,7 +12,7 @@ authors:
 autorequire: 
 bindir: bin
 
-date: 2008-08-30 00:00:00 -07:00
+date: 2008-09-01 00:00:00 -07:00
 default_executable: 
 dependencies: 
 - !ruby/object:Gem::Dependency 
@@ -88,6 +88,7 @@ files:
 - lib/ec2onrails/recipes.rb
 - lib/ec2onrails/version.rb
 - lib/ec2onrails.rb
+- Manifest
 - Rakefile
 - README.textile
 - server/build-ec2onrails.sh
@@ -113,10 +114,17 @@ files:
 - server/files/etc/ec2onrails/README
 - server/files/etc/ec2onrails/roles.yml
 - server/files/etc/environment
-- server/files/etc/event.d/monit
+- server/files/etc/god/app.god
+- server/files/etc/god/db.god
+- server/files/etc/god/master.conf
+- server/files/etc/god/memcache.god
+- server/files/etc/god/notifications.god
+- server/files/etc/god/README
+- server/files/etc/god/system.god
+- server/files/etc/god/web.god
 - server/files/etc/init.d/ec2-every-startup
 - server/files/etc/init.d/ec2-first-startup
-- server/files/etc/init.d/mongrel
+- server/files/etc/init.d/god
 - server/files/etc/init.d/nginx
 - server/files/etc/init.d/set_roles
 - server/files/etc/logrotate.d/apache2
@@ -124,39 +132,25 @@ files:
 - server/files/etc/logrotate.d/nginx
 - server/files/etc/memcached.conf
 - server/files/etc/mongrel_cluster/app.yml
-- server/files/etc/monit/app.monitrc.erb
-- server/files/etc/monit/db_primary.monitrc.erb
-- server/files/etc/monit/memcache.monitrc
-- server/files/etc/monit/monitrc
-- server/files/etc/monit/README
-- server/files/etc/monit/system.monitrc
-- server/files/etc/monit/web.monitrc.erb
 - server/files/etc/motd.tail
 - server/files/etc/mysql/my.cnf
 - server/files/etc/nginx/nginx.conf
 - server/files/etc/postfix/main.cf
-- server/files/etc/rc0.d/K10mongrel
-- server/files/etc/rc1.d/K10mongrel
-- server/files/etc/rc2.d/S90mongrel
-- server/files/etc/rc3.d/S90mongrel
-- server/files/etc/rc4.d/S90mongrel
-- server/files/etc/rc5.d/S90mongrel
-- server/files/etc/rc6.d/K10mongrel
 - server/files/etc/rcS.d/S91ec2-first-startup
 - server/files/etc/rcS.d/S92ec2-every-startup
+- server/files/etc/rcS.d/S93god
 - server/files/etc/rcS.d/S99set_roles
 - server/files/etc/ssh/sshd_config
 - server/files/etc/sudoers
 - server/files/etc/sudoers.full_access
 - server/files/etc/sudoers.restricted_access
 - server/files/etc/syslog.conf
+- server/files/usr/bin/god
 - server/files/usr/local/ec2onrails/bin/archive_file.rb
 - server/files/usr/local/ec2onrails/bin/backup_app_db.rb
 - server/files/usr/local/ec2onrails/bin/ec2_meta_data.rb
 - server/files/usr/local/ec2onrails/bin/exec_runner
 - server/files/usr/local/ec2onrails/bin/init_services.rb
-- server/files/usr/local/ec2onrails/bin/mongrel_start
-- server/files/usr/local/ec2onrails/bin/mongrel_stop
 - server/files/usr/local/ec2onrails/bin/optimize_mysql.rb
 - server/files/usr/local/ec2onrails/bin/rails_env
 - server/files/usr/local/ec2onrails/bin/rebundle.sh
@@ -167,12 +161,15 @@ files:
 - server/files/usr/local/ec2onrails/config
 - server/files/usr/local/ec2onrails/COPYING
 - server/files/usr/local/ec2onrails/lib/aws_helper.rb
+- server/files/usr/local/ec2onrails/lib/god_helper.rb
+- server/files/usr/local/ec2onrails/lib/god_patch.rb
 - server/files/usr/local/ec2onrails/lib/mysql_helper.rb
 - server/files/usr/local/ec2onrails/lib/roles_helper.rb
 - server/files/usr/local/ec2onrails/lib/s3_helper.rb
 - server/files/usr/local/ec2onrails/lib/utils.rb
 - server/files/usr/local/ec2onrails/lib/vendor/ini.rb
 - server/files/usr/local/ec2onrails/startup-scripts/every-startup/get-hostname.sh
+- server/files/usr/local/ec2onrails/startup-scripts/every-startup/init_services.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/create-dirs.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/generate-default-web-cert-and-key.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/misc.sh
@@ -246,7 +243,6 @@ files:
 - test/test_ec2onrails.rb
 - test/test_helper.rb
 - TODO
-- Manifest
 has_rdoc: true
 homepage: http://ec2onrails.rubyforge.org
 post_install_message: 

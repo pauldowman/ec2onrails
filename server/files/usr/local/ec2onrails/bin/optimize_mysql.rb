@@ -72,7 +72,7 @@ free_mem = (orig_free_mem * mem_opt).to_i
 
 @mysql = Ec2onrails::MysqlHelper.new
          
-result = run("/etc/init.d/mysql start")
+result = run("god start db")
   if result
     puts <<-MSG
 ****** WOOPS ******
@@ -270,7 +270,7 @@ puts "\nCleanly stopping mysql to replace its config file."
 #TODO: can we improve this?
 sleep(5) 
 
-result = run("/etc/init.d/mysql stop")
+result = run("god stop db")
 clean_stop = true
 if result
   config_file_loc += ".optimized"
@@ -328,7 +328,7 @@ these files can be removed:
 MSG
 
 
-  result = run("/etc/init.d/mysql start")
+  result = run("god start db")
   if result
     puts <<-MSG
 ****** WOOPS ******
