@@ -4,9 +4,9 @@
 # HARDEN OpenSSH TODO's
 #  * specify AllowUsers
 #  * PermitRootLogin no # turn off root login access
-#
-# to do that, we will probably need to create a non-root user to escalate 
-# privileges to from capistrano, like 'admin'
+#    to do that, we will probably need to create a non-root user to escalate 
+#    privileges to from capistrano, like 'admin'
+#  * change default port to something other than 22
 
 # What ports, IPs and protocols we listen for
 Port 22
