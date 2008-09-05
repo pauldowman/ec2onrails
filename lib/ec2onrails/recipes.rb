@@ -378,6 +378,7 @@ FILE
             sudo "mv /tmp/VOLUME-README #{mysql_dir_root}/VOLUME-README"
             #update the list of ebs volumes
             #TODO: abstract this away into a helper method!!
+            ebs_info = quiet_capture("touch /etc/ec2onrails/ebs_info.yml")
             ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
             ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
             ebs_info[mysql_dir_root] = {'block_loc' => block_mnt, 'volume_id' => vol_id} 
