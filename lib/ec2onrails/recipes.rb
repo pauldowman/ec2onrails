@@ -332,7 +332,7 @@ Capistrano::Configuration.instance.load do
             #ok, now lets move the mysql stuff off of /mnt -> mysql_dir_root
             stop rescue nil #already stopped
             sudo "mkdir -p #{mysql_dir_root}/log"
-            #move the data over, but keep a symlink to the new location for backwards compatability
+            #move the data over, but keep a symlink to the new location for backwards compatibility
             #and do not do it if /mnt/mysql_data has already been moved
             quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/mysql_data && mv /mnt/mysql_data #{mysql_dir_root}/'")
             sudo "mv /mnt/mysql_data /mnt/mysql_data_old 2>/dev/null || echo"
@@ -340,9 +340,9 @@ Capistrano::Configuration.instance.load do
 
             #but keep the tmpdir on mnt
             sudo "sh -c 'mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql'"
-            #move the logs over, but keep a symlink to the new location for backwards compatability
+            #move the logs over, but keep a symlink to the new location for backwards compatibility
             #and do not do it if the logs have already been moved
-            sudo("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
+            quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
             sudo "ln -fs #{mysql_dir_root}/log/mysql /mnt/log/mysql"
             quiet_capture("sudo sh -c \"test -f #{mysql_dir_root}/log/mysql/mysql-bin.index && \
                   perl -pi -e 's%/mnt/log/%#{mysql_dir_root}/log/%' #{mysql_dir_root}/log/mysql/mysql-bin.index\"") rescue false
