@@ -18,7 +18,7 @@ root    ALL=(ALL) ALL
 
 # The 'app' user can NOT run sudo without a password, except when running monit.
 # This is safer, but slightly more of a hassle, than running with sudoers.full_access
-app ALL = NOPASSWD: /usr/local/bin/monit
+app ALL = NOPASSWD: /usr/bin/god
 
 # If you add named administrator accounts, add them to the group 'sudoers'
 # to give them sudo access

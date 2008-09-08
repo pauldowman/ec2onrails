@@ -57,7 +57,15 @@ h4. 1. Install the gem
 
 h4. 2. Add the config files to your Rails app
 
-Put "Capfile":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile in the root of your rails folder, and put "deploy.rb":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb  and "s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml in the config folder.
+You will need to place "Capfile":http://github.com/pauldowman/ec2onrails/tree/master/examples/Capfile?raw=true in the root of your rails folder, and put "deploy.rb":http://github.com/pauldowman/ec2onrails/tree/master/examples/deploy.rb?raw=true  and "s3.yml":http://github.com/pauldowman/ec2onrails/tree/master/examples/s3.yml?raw=true in the config folder.
+
+Within your rails directory, run
+<code>
+  wget -q -O Capfile http://github.com/pauldowman/ec2onrails/tree/master/examples/Capfile?raw=true
+  wget -q -O config/deploy.rb http://github.com/pauldowman/ec2onrails/tree/master/examples/deploy.rb?raw=true
+  wget -q -O config/s3.yml http://github.com/pauldowman/ec2onrails/tree/master/examples/s3.yml?raw=true
+</code>
+
 
 _Be sure to customize those files and read the comments._
 
@@ -121,7 +129,7 @@ You'll mostly need just the following Capistrano tasks:
 
 * <code>cap ec2onrails:setup</code> This task configures a newly-launched instance. This is the first thing you should do after starting a new instance. It can be run more than once without ill effect. After running  "cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
 
-* <code>cap ec2onrails:db:move_to_ebs</code> This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume. You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like <pre>cap ec2onrails:db:move_to_ebs SIZE=10</pre>
+* <code>cap ec2onrails:db:enable_ebs</code> This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume. You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like <pre>cap ec2onrails:db:enable_ebs SIZE=10</pre>
 
 You should then specify your own volume (or the one created by this task) in your capistrano deploy.rb file like so: <pre>role :db, "ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'</pre>
 

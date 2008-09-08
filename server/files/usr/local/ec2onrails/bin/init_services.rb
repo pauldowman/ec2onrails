@@ -22,6 +22,13 @@ require "#{File.dirname(__FILE__)}/../lib/roles_helper"
 include Ec2onrails::RolesHelper
 
 
+#TODO:
+# if not in a role, we want to make sure that the service is stopped....
+# it gets a little tricky with the web_proxy, which is not enabled if it is
+# not already in a web role. Leave as is, as all it does is throw an error
+# until GOD is in the picture, at which case it should be easy to enable
+# and let it handle it instead of the init.d script....
+
 # memcache role:
 if in_role?(:memcache)
   # increase memory size, etc if no other roles exist?
@@ -32,9 +39,9 @@ end
 
 # db primary role:
 if in_role?(:db_primary)
-  start(:db_primary, "mysql", "mysqld")
+  start(:db, "mysql", "mysqld")
 else
-  stop(:db_primary, "mysql", "mysqld")
+  stop(:db, "mysql", "mysqld")
 end
 
 # web role:
@@ -44,6 +51,7 @@ if in_role?(:web)
   # sleep(5)
   # run("/etc/init.d/web_proxy reload")
 else
+  #not started...
   stop(:web, "web_proxy", 'nginx apache')
 end
 

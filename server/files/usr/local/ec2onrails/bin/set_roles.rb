@@ -85,17 +85,3 @@ if in_role?(:db_primary) || in_role?(:app)
 end
 
 
-## lets update/modify monit files, if need be
-ROOT_MONIT_CONFIGS = "/etc/monit"
-Dir["/etc/monit/*.monitrc.erb"].each do |filename|
-  #what other variables would be helpful?
-  @web_port_range = web_port_range
-  @web_starting_port = web_starting_port
-  @roles = roles
-  file = ERB.new(IO.read(filename)).result(binding)
-  File.open(filename.sub(/\.erb$/, ''), 'w'){|f| f << file}
-end
-
-#time to reload any changes made
-sudo "monit reload"
-

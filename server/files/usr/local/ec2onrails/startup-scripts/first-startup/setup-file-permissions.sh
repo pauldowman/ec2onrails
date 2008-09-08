@@ -26,5 +26,5 @@
 
 chmod 777 /tmp
 
-#make sure the monitrc file has the correct permissions set
-chmod 700 /etc/monit/monitrc
+#make sure the god files hav the correct permissions set
+chmod 700 -R /etc/god

@@ -9,8 +9,6 @@ FUTURE CHANGES
 
 [ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles.rb default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
 
-[X] mysql optimizations
-
 [ ] hook memcached into nginx...
 
 [ ] hook ssl setup hooks for nginx
@@ -36,19 +34,15 @@ FUTURE CHANGES
     also see this file for updates:
     http://www.babbleon.co.uk/2008/05/email-with-ec2/ 
     
-[ ] preload mysql timezone information
+[ ] preload mysql timezone information (UPDATE: not sure if this is needed...)
 
 [ ] mysql optimizations are not calculating the num of cores avail correctly
-
-[ ] preset defaults for the ec2onrails configs?
 
 [ ] right now cron has a task called 'app' in cron.daily, cron.hourly, cron.monthly, and cron.weekly.  BUT, these are run on every server.  we should probably provide some sort of mechanism so a user can specify particular jobs for particular roles
 
 [ ] consolidate all logs to /mnt/log, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
 
-[ ] get all user-data and meta-data variables from the amazon image in a similar way to rightscale?  Makes it dead simple to use/manipulate that information
-
-[ ] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles.rb or init_services or something a bit higher`
+[ ] get all user-data and meta-data variables from the amazon image in a similar way to rightscale?  Makes it dead simple to use/manipulate that information.  UPDATE: rightscale gave us permission to use their open-sourced files, as long as we credit them
 
 [ ] hook in encryption of backup archives
 
@@ -62,12 +56,7 @@ FUTURE CHANGES
 
 [ ] make difficult security/hardening changes optional, especially if they will get in the way of getting up and running.  For example, do not install denyhosts by default...or disable it if the security_hardening flag == false
 
-[ ] hook in ebs, and use eric's writeup as the starting point:
-http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
-
 POSSIBLE CHANGES
-[ ] move to god from monit.  One advantage is that right now, we don't use monit to send start/stop/restart signals to the underlying processes.  Monit does not always stop mongrel, and if mongrel doesn't restart monit doesn't go in with the oh-holy 'kill -9'.  So we unmonit mongrel, then use the /etc/init.d/mongrel stop to kill it.  This works (quite well actually) BUT it makes it tricky because if we limit sudo access to only monit, we cannot run the /etc/init.d/*.  It would be best if we provide sudo access to ONLY one process.  God, supposedly, doesn't have this issue.  So if we use god instead of monit, can we have god be responsible for restarts and what not?
-
 [ ] do not put users custom files up there until before deploy:cold?  Right now I'm pushing a lot of custom stuff out there into monit which is failing because the code it is supposed to monitor is not there yet.  will pushing it to "before 'deploy:cold' cause an issues"
 
 [ ] possibly put /tmp on its own mnt point, and then lock it down in /etc/fstab. Modify tmp to something like this '/dev/hda2  /tmp  ext3  nodev,nosuid, noexec  0  0'
@@ -87,6 +76,14 @@ COMPLETED
 
 [X] set -y flag when installing/updating gems UPDATE: not needed... does it automatically for the other non-interactive flags we are using
 
+[X] mysql optimizations
+
+[X] hook in ebs, and use eric's writeup as the starting point:
+http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
+
+
+[X] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles.rb or init_services or something a bit higher`
+
 [X] remove the *_admin capistrano roles.  can we use admin for sudo access but continue to deploy and run under a user without sudo access?  It looks like we can if we add this to the recipes.rb file:
         set :use_sudo, true
         set :user, "app"
@@ -101,3 +98,5 @@ COMPLETED
         * provide cap tasks to restrict or grant full sudo access
 
 [X] allow config to be able to flip between nginx and apache as proxy... 
+
+[X] move to god from monit.  One advantage is that right now, we don't use monit to send start/stop/restart signals to the underlying processes.  Monit does not always stop mongrel, and if mongrel doesn't restart monit doesn't go in with the oh-holy 'kill -9'.  So we unmonit mongrel, then use the /etc/init.d/mongrel stop to kill it.  This works (quite well actually) BUT it makes it tricky because if we limit sudo access to only monit, we cannot run the /etc/init.d/*.  It would be best if we provide sudo access to ONLY one process.  God, supposedly, doesn't have this issue.  So if we use god instead of monit, can we have god be responsible for restarts and what not?

@@ -56,35 +56,28 @@ Capistrano::Configuration.instance.load do
   namespace :deploy do
     desc <<-DESC
       Overrides the default Capistrano deploy:start, uses \
-      /etc/init.d/mongrel
+      'god start app'
     DESC
     task :start, :roles => :app do
-      ec2onrails.server.allow_sudo do
-        run_init_script("mongrel", "start")
-        sudo "monit -g app monitor all"
-      end
+      sudo "god start app"
+      # sudo "god monitor app"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:stop, uses \
-      /etc/init.d/mongrel
+      'god stop app'
     DESC
     task :stop, :roles => :app do
-      ec2onrails.server.allow_sudo do
-        sudo "monit -g app unmonitor all"
-        run_init_script("mongrel", "stop")
-      end
+      # sudo "god unmonitor app"
+      sudo "god stop app"
     end
     
     desc <<-DESC
       Overrides the default Capistrano deploy:restart, uses \
-      /etc/init.d/mongrel
+      'god restart app'
     DESC
     task :restart, :roles => :app do
-      ec2onrails.server.allow_sudo do
-        deploy.stop
-        deploy.start
-      end
+      sudo "god restart app"
     end
   end
   
@@ -143,7 +136,7 @@ Capistrano::Configuration.instance.load do
       deploy.setup
       db.create
       server.harden_server
-      db.move_to_ebs
+      db.enable_ebs
     end
     
     desc <<-DESC
@@ -224,12 +217,12 @@ Capistrano::Configuration.instance.load do
         OPTIONAL PARAMETERS:
           * SIZE: Pass in num in gigs, like 10, to set the size, otherwise it will \
         default to 10 gigs.
-          * VOlUME_ID: The volume_id to use for the mysql database    
+          * VOLUME_ID: The volume_id to use for the mysql database    
         NOTE: keep track of the volume ID, as you'll want to keep this for your \
         records and probably add it to the :db role in your deploy.rb file \
         (see the ec2onrails sample deploy.rb file for additional information)
       DESC
-      task :move_to_ebs, :roles => :db, :only => { :primary => true } do        
+      task :enable_ebs, :roles => :db, :only => { :primary => true } do        
         # based off of Eric's work:
         # http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
         #
@@ -259,6 +252,7 @@ Capistrano::Configuration.instance.load do
         #
         # TODO:
         #  * make sure if we have a predefined ebs_vol_id, that we error out with a nice msg IF the zones do not match
+        #  * can we move more of the mysql cache files back to the local disk and off of EBS, like the innodb table caches?
         #  * right now we force this task to only be run on one server; that works for db :primary => true
         #    But what is the best way to make this work if it needs to setup multiple servers (like db slaves)?
         #    I need to figure out how to do a direct mapping from a server definition to a ebs_vol_id
@@ -279,9 +273,9 @@ Capistrano::Configuration.instance.load do
           raise Capistrano::Error, "`#{task.fully_qualified_name}' is can only be run on one server, not #{server.size}"
         end
         
-        vol_id = ENV['VOlUME_ID'] || servers.first.options[:ebs_vol_id]
+        vol_id = ENV['VOLUME_ID'] || servers.first.options[:ebs_vol_id]
 
-        #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.move_to_ebs'
+        #HACK!  capistrano doesn't allow arguments to be passed in if we call this task as a method, like 'db.enable_ebs'
         #       the places where we do call it like that, we don't want to force a move to ebs, so....
         #       if the call frame is > 1 (ie, another task called it), do NOT force the ebs move
         no_force = task_call_frames.size > 1
@@ -310,7 +304,7 @@ Capistrano::Configuration.instance.load do
             puts "running: #{cmd}"
             output = `#{cmd}`
             puts output
-            if output =~/Client.InvalidVolume.ZoneMismatch/i              
+            if output =~ /Client.InvalidVolume.ZoneMismatch/i              
               raise Exception, "The volume you are trying to attach does not reside in the zone of your instance.  Stopping!"
             end
             
@@ -341,15 +335,14 @@ Capistrano::Configuration.instance.load do
             #move the data over, but keep a symlink to the new location for backwards compatability
             #and do not do it if /mnt/mysql_data has already been moved
             quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/mysql_data && mv /mnt/mysql_data #{mysql_dir_root}/'")
-            sudo "mv /mnt/mysql_data /mnt/mysql_data_old 2>/dev/null"
+            sudo "mv /mnt/mysql_data /mnt/mysql_data_old 2>/dev/null || echo"
             sudo "ln -fs #{mysql_dir_root}/mysql_data /mnt/mysql_data"
 
             #but keep the tmpdir on mnt
             sudo "sh -c 'mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql'"
             #move the logs over, but keep a symlink to the new location for backwards compatability
             #and do not do it if the logs have already been moved
-            quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
-            sudo "mv /mnt/log/mysql /mnt/log/mysql_old 2>/dev/null"
+            sudo("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
             sudo "ln -fs #{mysql_dir_root}/log/mysql /mnt/log/mysql"
             quiet_capture("sudo sh -c \"test -f #{mysql_dir_root}/log/mysql/mysql-bin.index && \
                   perl -pi -e 's%/mnt/log/%#{mysql_dir_root}/log/%' #{mysql_dir_root}/log/mysql/mysql-bin.index\"") rescue false
@@ -403,19 +396,13 @@ FILE
         (But don't enable monitoring on it.)
       DESC
       task :start, :roles => :db do
-        ec2onrails.server.allow_sudo do
-          sudo "chmod a+x /etc/init.d/mysql"
-          # The mysql init script can fail on the first startup if mysql takes too long 
-          # to create the logfiles, so try again
-          sudo "sh -c '/etc/init.d/mysql start || (sleep 10 && /etc/init.d/mysql start)'"
-        end
+        sudo "god start db"
+        # sudo "god monitor db"
       end
 
       task :stop, :roles => :db do
-        ec2onrails.server.allow_sudo do
-          sudo "/etc/init.d/mysql stop"
-          sudo "chmod a-x /etc/init.d/mysql"  
-        end
+        # sudo "god unmonitor db"
+        sudo "god stop db"
       end
       
       
@@ -731,7 +718,7 @@ FILE
       desc <<-DESC
         Restrict the main user's sudo access.
         Defaults the user to only be able to \
-        sudo to monit
+        sudo to god
       DESC
       task :restrict_sudo_access do
         old_user = fetch(:user)
