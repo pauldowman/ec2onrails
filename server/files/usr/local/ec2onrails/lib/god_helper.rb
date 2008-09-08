@@ -8,20 +8,34 @@ module  GodHelper
 
 
     w.behavior(:clean_pid_file)
-    # w.behavior(:notify_when_flapping, :failures => 5, :seconds => 5.minutes, )
-    # w.start_if do |start|
-    #   start.condition(:process_running) do |c|
-    #     c.interval = 5.seconds
-    #     c.running = false
-    #   end
-    # end
-    
-    # start if process is not running
-    w.transition(:up, :start) do |on|
-      on.condition(:process_exits) do |c|
+    w.start_if do |start|
+      start.condition(:process_running) do |c|
+        c.interval = 5.seconds
+        c.running = false
         c.notify = {:contacts => ['default'], :category => 'process exited...restarting'}
       end
     end
+
+    # determine when process has finished starting
+    # w.transition([:start, :restart], :up) do |on|
+    #   on.condition(:process_running) do |c|
+    #     c.running = true
+    #   end
+    # 
+    #   # failsafe
+    #   on.condition(:tries) do |c|
+    #     c.times = 8
+    #     c.within = 2.minutes
+    #     c.transition = :start
+    #   end
+    # end
+    # 
+    # # start if process is not running
+    # w.transition(:up, :start) do |on|
+    #   on.condition(:process_exits) do |c|
+    #     c.notify = {:contacts => ['default'], :category => 'process exited...restarting'}
+    #   end
+    # end
   end
 
   def restart_if_resource_hog(w, options={})
@@ -60,17 +74,29 @@ module  GodHelper
   end
 
   def monitor_lifecycle(w)
-    w.lifecycle do |on|
-      on.condition(:flapping) do |c|
-        c.to_state = [:start, :restart]
-        c.times = 5
-        c.within = 5.minutes
-        c.transition = :unmonitored
+    w.transition(:up, :unmonitored) do |on| 
+      on.condition(:flapping) do |c| 
+        c.notify = {:contacts => ['default'], :category => 'process flapping...restarting'}
+        c.to_state = [:start, :restart] 
+        c.times = 5 
+        c.within = 60.seconds 
         c.retry_in = 10.minutes
         c.retry_times = 5
         c.retry_within = 2.hours
-      end
+      end 
     end
+    
+    # w.lifecycle do |on|
+    #   on.condition(:flapping) do |c|
+    #     c.to_state = [:start, :restart]
+    #     c.times = 5
+    #     c.within = 5.minutes
+    #     c.transition = :unmonitored
+    #     c.retry_in = 10.minutes
+    #     c.retry_times = 5
+    #     c.retry_within = 2.hours
+    #   end
+    # end
   end
   
   class Configs
