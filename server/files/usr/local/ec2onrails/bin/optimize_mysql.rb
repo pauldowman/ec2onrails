@@ -72,7 +72,7 @@ free_mem = (orig_free_mem * mem_opt).to_i
 
 @mysql = Ec2onrails::MysqlHelper.new
          
-result = run("god start db")
+result = sudo("god start db")
   if result
     puts <<-MSG
 ****** WOOPS ******
@@ -81,6 +81,7 @@ Not optimizing mysql config file
 MSG
   exit 1
   end
+  sleep(10) #make sure the db has some time to start up!
 
 num_connections = 100
 mysql_cmd = %{mysql -u #{@mysql.user} -e "select @@max_connections;"}
@@ -125,7 +126,7 @@ MSG
 configs = Ini.load(DEFAULT_CONFIG_LOC, :comment => '#')
 configs['mysqld']['key_buffer_size'] ||= configs['mysqld']['key_buffer']
 
-modifying_keys = %w(thread_concurency thread_cache_size query_cache_size table_cache 
+modifying_keys = %w(thread_concurrency thread_cache_size query_cache_size table_cache 
                     key_buffer_size innodb_flush_log_at_trx_commit 
                     innodb_buffer_pool_size innodb_additional_mem_pool_size 
                     innodb_log_buffer_size innodb_log_file_size)
@@ -133,13 +134,13 @@ modifying_keys = %w(thread_concurency thread_cache_size query_cache_size table_c
 original_values = modifying_keys.inject([]){|all, key| all << [key, configs['mysqld'][key.to_s]]}
 
 
-##### thread_concurency: only turn on thread concurrency if 
+##### thread_concurrency: only turn on thread concurrency if 
 #     there are some spare 'cores' available
 if avail_cores < 2
-  configs['mysqld'].delete('thread_concurency')
+  configs['mysqld'].delete('thread_concurrency')
 elsif
   # Try number of CPU's*2 for thread_concurrency
-  configs['mysqld']['thread_concurency'] = (avail_cores) * 2
+  configs['mysqld']['thread_concurrency'] = (avail_cores) * 2
 end
 
 
@@ -270,7 +271,8 @@ puts "\nCleanly stopping mysql to replace its config file."
 #TODO: can we improve this?
 sleep(5) 
 
-result = run("god stop db")
+result = sudo("god stop db")
+sleep(10) #make sure the db has some time to stop
 clean_stop = true
 if result
   config_file_loc += ".optimized"
@@ -328,7 +330,7 @@ these files can be removed:
 MSG
 
 
-  result = run("god start db")
+  result = sudo("god start db")
   if result
     puts <<-MSG
 ****** WOOPS ******
