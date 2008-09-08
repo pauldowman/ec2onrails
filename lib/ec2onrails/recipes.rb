@@ -197,6 +197,8 @@ Capistrano::Configuration.instance.load do
         on_rollback { drop }
         load_config
         start
+        sleep(5) #make sure the db has some time to start up!
+        
         
         # remove the default test database, though sometimes it doesn't exist (perhaps it isn't there anymore?)
         run %{mysql -u root -e "drop database if exists test; flush privileges;"}
