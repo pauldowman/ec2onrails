@@ -2,7 +2,7 @@ module Ec2onrails
   module Utils
     def self.run(command)
       result = system command
-      raise("error: #{$?}") unless result
+      raise("error, process exited with status #{$?.exitstatus}") unless result
     end
   
     def self.rails_env
