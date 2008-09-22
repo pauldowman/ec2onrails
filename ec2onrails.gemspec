@@ -12,7 +12,7 @@ authors:
 autorequire: 
 bindir: bin
 
-date: 2008-09-01 00:00:00 -07:00
+date: 2008-09-22 00:00:00 -07:00
 default_executable: 
 dependencies: 
 - !ruby/object:Gem::Dependency 
@@ -116,10 +116,10 @@ files:
 - server/files/etc/environment
 - server/files/etc/god/app.god
 - server/files/etc/god/db.god
+- server/files/etc/god/examples/have_god_daemonize.god
 - server/files/etc/god/master.conf
 - server/files/etc/god/memcache.god
 - server/files/etc/god/notifications.god
-- server/files/etc/god/README
 - server/files/etc/god/system.god
 - server/files/etc/god/web.god
 - server/files/etc/init.d/ec2-every-startup
@@ -138,7 +138,6 @@ files:
 - server/files/etc/postfix/main.cf
 - server/files/etc/rcS.d/S91ec2-first-startup
 - server/files/etc/rcS.d/S92ec2-every-startup
-- server/files/etc/rcS.d/S93god
 - server/files/etc/rcS.d/S99set_roles
 - server/files/etc/ssh/sshd_config
 - server/files/etc/sudoers
@@ -169,7 +168,6 @@ files:
 - server/files/usr/local/ec2onrails/lib/utils.rb
 - server/files/usr/local/ec2onrails/lib/vendor/ini.rb
 - server/files/usr/local/ec2onrails/startup-scripts/every-startup/get-hostname.sh
-- server/files/usr/local/ec2onrails/startup-scripts/every-startup/init_services.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/create-dirs.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/generate-default-web-cert-and-key.sh
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/misc.sh
