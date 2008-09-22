@@ -380,7 +380,11 @@ FILE
             sudo "mv /tmp/VOLUME-README #{mysql_dir_root}/VOLUME-README"
             #update the list of ebs volumes
             #TODO: abstract this away into a helper method!!
-            ebs_info = quiet_capture("touch /etc/ec2onrails/ebs_info.yml")
+            #TODO: this first touch should *not* be needed... quiet_capture should return an empty string
+            #      if the cat on a non-existant file fails (as it should).  this isn't causing issues
+            #      for me, but a few users have complained.... bad gemspec or something?
+            #      COMMENTING OUT for now to see if the recent gemspec update improved things...
+            # ebs_info = quiet_capture("touch /etc/ec2onrails/ebs_info.yml")
             ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
             ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
             ebs_info[mysql_dir_root] = {'block_loc' => block_mnt, 'volume_id' => vol_id} 
