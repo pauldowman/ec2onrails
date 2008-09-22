@@ -207,8 +207,10 @@ Capistrano::Configuration.instance.load do
         run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
         run %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
         
-        run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
-        run %{mysql -u root -e "grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        # qoting of database names allows special characters eg (the-database-name)
+        # the quotes need to be double escaped. Once for capistrano and once for the host shell
+        run %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`';"}
+        run %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
       end
@@ -420,7 +422,7 @@ FILE
       DESC
       task :drop, :roles => :db do
         load_config
-        run %{mysql -u root -e "drop database if exists #{cfg[:db_name]};"}
+        run %{mysql -u root -e "drop database if exists \\`#{cfg[:db_name]}\\`;"}
       end
       
       desc <<-DESC
