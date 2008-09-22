@@ -271,10 +271,14 @@ puts "\nCleanly stopping mysql to replace its config file."
 #TODO: can we improve this?
 sleep(5) 
 
-result = sudo("god stop db")
-sleep(10) #make sure the db has some time to stop
+# result = sudo("god stop db")
+# not using god because it doesn't wait for the script to finish
+# before returning....
+# result = sudo("god stop db")
+result = sudo("/etc/init.d/mysql stop")
+# sleep(10) #make sure the db has some time to stop
 clean_stop = true
-if result
+unless result =~ /Stopping/ && result =~ /done\./
   config_file_loc += ".optimized"
   clean_stop = false
   puts <<-MSG
@@ -330,8 +334,11 @@ these files can be removed:
 MSG
 
 
-  result = sudo("god start db")
-  if result
+  # result = sudo("god start db")
+  #using init.d instead of god, because god doesn't wait for the command to finish...
+  #it fires it off and then checks it in x seconds 
+  result = sudo("/etc/init.d/mysql start")
+  unless result =~ /Starting/ && result =~ /done\./
     puts <<-MSG
 ****** WOOPS ******
 mysql was not successfully started up.  
