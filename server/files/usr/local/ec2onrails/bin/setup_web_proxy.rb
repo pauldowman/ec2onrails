@@ -104,3 +104,6 @@ else
   puts "The mode: #{ARGV.flags.mode} was not recognized.  Must be one of these #{["apache","nginx"].join(', ')}"
   exit 1
 end
+
+#restart god... the config file will automatically pick up the changes but we need to restart god
+sudo("/etc/init.d/god restart")
