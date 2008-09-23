@@ -72,7 +72,8 @@ free_mem = (orig_free_mem * mem_opt).to_i
 
 @mysql = Ec2onrails::MysqlHelper.new
          
-result = sudo("god start db")
+# result = sudo("god start db")
+  result = sudo("/etc/init.d/mysql start")
   if result
     puts <<-MSG
 ****** WOOPS ******
@@ -81,7 +82,7 @@ Not optimizing mysql config file
 MSG
   exit 1
   end
-  sleep(10) #make sure the db has some time to start up!
+  # sleep(10) #make sure the db has some time to start up!
 
 num_connections = 100
 mysql_cmd = %{mysql -u #{@mysql.user} -e "select @@max_connections;"}
@@ -276,9 +277,8 @@ sleep(5)
 # before returning....
 # result = sudo("god stop db")
 result = sudo("/etc/init.d/mysql stop")
-# sleep(10) #make sure the db has some time to stop
 clean_stop = true
-unless result =~ /Stopping/ && result =~ /done\./
+if result 
   config_file_loc += ".optimized"
   clean_stop = false
   puts <<-MSG
@@ -338,7 +338,7 @@ MSG
   #using init.d instead of god, because god doesn't wait for the command to finish...
   #it fires it off and then checks it in x seconds 
   result = sudo("/etc/init.d/mysql start")
-  unless result =~ /Starting/ && result =~ /done\./
+  if result 
     puts <<-MSG
 ****** WOOPS ******
 mysql was not successfully started up.  
