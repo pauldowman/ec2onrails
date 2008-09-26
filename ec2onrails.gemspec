@@ -177,7 +177,6 @@ files:
 - server/files/usr/local/ec2onrails/startup-scripts/first-startup/setup-file-permissions.sh
 - server/rakefile.rb
 - setup.rb
-- setup_notes
 - test/autobench.conf
 - test/spec/lib/s3_helper_spec.rb
 - test/spec/lib/s3_old.yml
