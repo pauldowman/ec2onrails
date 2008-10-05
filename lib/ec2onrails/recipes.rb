@@ -137,20 +137,22 @@ Capistrano::Configuration.instance.load do
       Prepare a newly-started instance for a cold deploy.
     DESC
     task :setup do
-      server.set_mail_forward_address
-      server.set_timezone
-      server.install_packages
-      server.install_gems
-      server.deploy_files
-      server.setup_web_proxy
-      server.set_roles
-      server.enable_ssl if cfg[:enable_ssl]
-      server.set_rails_env
-      server.restart_services
-      deploy.setup
-      db.create
-      server.harden_server
-      db.enable_ebs
+      ec2onrails.server.allow_sudo do
+        server.set_mail_forward_address
+        server.set_timezone
+        server.install_packages
+        server.install_gems
+        server.deploy_files
+        server.setup_web_proxy
+        server.set_roles
+        server.enable_ssl if cfg[:enable_ssl]
+        server.set_rails_env
+        server.restart_services
+        deploy.setup
+        db.create
+        server.harden_server
+        db.enable_ebs
+      end
     end
     
     desc <<-DESC
@@ -576,7 +578,6 @@ FILE
             puts data
           end
         end
-        
       end
       
       desc <<-DESC
@@ -686,8 +687,10 @@ FILE
       DESC
       task :set_timezone do
         if cfg[:timezone]
-          sudo "bash -c 'echo #{cfg[:timezone]} > /etc/timezone'"
-          sudo "cp /usr/share/zoneinfo/#{cfg[:timezone]} /etc/localtime"
+          ec2onrails.server.allow_sudo do
+            sudo "bash -c 'echo #{cfg[:timezone]} > /etc/timezone'"
+            sudo "cp /usr/share/zoneinfo/#{cfg[:timezone]} /etc/localtime"
+          end
         end
       end
       
