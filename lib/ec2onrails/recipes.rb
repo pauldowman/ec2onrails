@@ -51,6 +51,20 @@ Capistrano::Configuration.instance.load do
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
   after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
+
+  #NOTE: some default setups (like engineyard's) do some symlinking of config files after
+  # deploy:update_code.  The ordering here matters as we need to have those symlinks in place
+  # but we need to have the gems in place before the rails env is loaded up, or else it will
+  # fail.  By adding it to the callback queue AFTER all the tasks have loaded up, we make sure
+  # it is done at the very end.  
+  #
+  # *IF* you had tasks also triggered after update_code that run rake tasks 
+  # (like compressing javascript and stylesheets), move those over to before "deploy:symlink"
+  # and you'll be set!
+  on :load do
+    after "deploy:update_code", "ec2onrails:server:run_rails_rake_gems_install"
+  end  
+
   
   # override default start/stop/restart tasks
   namespace :deploy do
@@ -623,7 +637,19 @@ FILE
               end
             end
           end
-        end
+        end        
+      end
+      
+      task :run_rails_rake_gems_install do
+        #if running under Rails 2.1, lets trigger 'rake gems:install', but in such a way
+        #so it fails gracefully if running rails < 2.1
+        # ALSO, this might be the first time rake is run, and running it as sudo means that 
+        # if any plugins are loaded and create directories... like what image_science does for 
+        # ruby_inline, then the dirs will be created as root.  so trigger the rails loading
+        # very quickly before the sudo is called
+        # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
+        output = quiet_capture "cd #{release_path} && rake -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
+        puts output
       end
       
       desc <<-DESC

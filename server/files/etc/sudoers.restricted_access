@@ -16,9 +16,9 @@ Defaults        !lecture,tty_tickets,!fqdn
 # User privilege specification
 root    ALL=(ALL) ALL
 
-# The 'app' user can NOT run sudo without a password, except when running monit.
+# The 'app' user can NOT run sudo without a password, except when running god and a rake task.
 # This is safer, but slightly more of a hassle, than running with sudoers.full_access
-app ALL = NOPASSWD: /usr/bin/god
+app ALL = NOPASSWD: /usr/bin/god, /usr/bin/rake
 
 # If you add named administrator accounts, add them to the group 'sudoers'
 # to give them sudo access
