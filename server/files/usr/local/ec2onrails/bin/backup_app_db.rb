@@ -18,7 +18,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-exit unless File.stat("/etc/init.d/mysql").executable?   
+#exit if the current application is not deployed, meaning there is nothing to back up!
 exit unless File.exists?("/mnt/app/current")
   
 require "rubygems"
@@ -28,8 +28,16 @@ require 'EC2'
 require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
 require "#{File.dirname(__FILE__)}/../lib/s3_helper"
 require "#{File.dirname(__FILE__)}/../lib/aws_helper"
+require "#{File.dirname(__FILE__)}/../lib/roles_helper"
 
 require "#{File.dirname(__FILE__)}/../lib/utils"
+
+# Only run if this instance is the db_pimrary
+# The original code would run on any instance that had /etc/init.d/mysql
+# Which was pretty much all instances no matter what role
+include Ec2onrails::RolesHelper
+exit unless in_role?(:db_primary)
+
     
 module CommandLineArgs extend OptiFlagSet
   optional_flag "bucket"  
@@ -58,7 +66,8 @@ if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
         begin
           `sudo xfs_freeze -f #{mount}`
           output = ec2.create_snapshot(:volume_id => ebs_info['volume_id'])
-          snap_id = output['CreateSnapshotResponse']['snapshotId'] rescue nil
+          snap_id = output['snapshotId'] rescue nil
+          
           if snap_id.nil? || snap_id.empty?
             puts "Snapshot for #{ebs_info['volume_id']} FAILED"
             exit
