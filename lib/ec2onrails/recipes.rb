@@ -649,8 +649,10 @@ FILE
         # ruby_inline, then the dirs will be created as root.  so trigger the rails loading
         # very quickly before the sudo is called
         # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
-        output = quiet_capture "cd #{release_path} && rake -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
-        puts output
+        ec2onrails.server.allow_sudo do
+          output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version 2>&1 1>/dev/null || sudo rake RAILS_ENV=#{rails_env} gems:install"
+          puts output
+        end
       end
       
       desc <<-DESC
