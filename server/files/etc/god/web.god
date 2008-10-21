@@ -1,7 +1,7 @@
 nginx_enabled = system("which nginx 2>&1 > /dev/null")
 
 God.watch do |w|
-  applog(w, :debug, "web: using #{nginx_enabled ? 'nginx' : 'apache2'}")
+  applog(w, :info, "web: using #{nginx_enabled ? 'nginx' : 'apache2'}")
 
   if nginx_enabled
     w.name = "nginx"
