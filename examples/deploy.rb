@@ -57,6 +57,8 @@ set :ec2onrails_config, {
   # Any extra RubyGems to install if desired: can be "gemname" or if a 
   # particular version is desired "gemname -v 1.0.1"
   # If you don't want to install extra rubygems then remove this
+  # NOTE: if you are using rails 2.1, ec2onrails calls 'sudo rake gem:install',
+  # which will install gems defined in your rails configuration
   :rubygems => ["rmagick", "rfacebook -v 0.9.7"],
   
   # Defines the web proxy that will be used.  Choices are :apache or :nginx
