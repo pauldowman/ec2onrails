@@ -155,8 +155,7 @@ desc "Configure the image"
 task :configure => [:install_gems] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
-    sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
-
+    sh("find #{@fs_dir} -type d -name .svn -o -name .git | xargs rm -rf")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
         
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
