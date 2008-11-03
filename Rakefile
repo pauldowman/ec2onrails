@@ -28,7 +28,7 @@ Echoe.new('ec2onrails', version) do |p|
  
   p.dependencies     = [
                         'capistrano          >= 2.4.3', 
-                        'archive-tar-minitar >= 0.5.1', 
+                        'archive-tar-minitar >= 0.5.2', 
                         'optiflag            >= 0.6.5']
                         
   p.development_dependencies = ['rake >=0.7.1']
