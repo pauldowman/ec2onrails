@@ -337,8 +337,21 @@ Capistrano::Configuration.instance.load do
             # it to make sure it is ok, and then continue on
             # if errors, the device is busy...something else is going on here and it is already mounted... skip!
             if prev_created
+              # Stop the db (mysql server) for cases where this is being run after the original run
+              # If EBS partiion is already mounted and being used by mysql, it will fail when umount is run
+              god_status = quiet_capture("sudo god status")
+              god_status = god_status.empty? ? {} : YAML::load(god_status)
+              start_stop_db = false
+              start_stop_db = god_status['db']['mysql'] == 'up'
+              if start_stop_db
+                stop
+                puts "Waiting for mysql to stop"
+                sleep(10)
+              end
               quiet_capture("sudo umount #{mysql_dir_root}") #unmount if need to
               sudo "xfs_check #{block_mnt}"
+              # Restart the db if it 
+              start if start_stop_db
             else
               sudo "mkfs.xfs #{block_mnt}"  
             end
