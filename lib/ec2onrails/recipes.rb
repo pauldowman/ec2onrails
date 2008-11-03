@@ -597,7 +597,9 @@ FILE
         Install extra Ubuntu packages. Set ec2onrails_config[:packages], it \
         should be an array of strings.
         NOTE: the package installation will be non-interactive, if the packages \
-        require configuration either log in as 'root' and run \
+        require configuration either set ec2onrails_config[:interactive_packages] \
+        like you would for ec2onrails_config[:packages] (we'll flood the server \
+        with 'Y' inputs), or log in as 'root' and run \
         'dpkg-reconfigure packagename' or replace the package's config files \
         using the 'ec2onrails:server:deploy_files' task.
       DESC
@@ -605,6 +607,16 @@ FILE
         sudo "aptitude -q update"
         if cfg[:packages] && cfg[:packages].any?
           sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{cfg[:packages].join(' ')}'"
+        end
+        if cfg[:interactive_packages] && cfg[:interactive_packages].any?
+          # sudo "aptitude install #{cfg[:interactive_packages].join(' ')}", {:env => {'DEBIAN_FRONTEND' => 'readline'} }
+          #trying to pick WHEN to send a Y is a bit tricky...it totally depends on the 
+          #interactive package you want to install.  FLOODING it with 'Y'... but not sure how
+          #'correct' or robust this is
+          cmd = "sudo sh -c 'export DEBIAN_FRONTEND=readline; aptitude -y -q install #{cfg[:interactive_packages].join(' ')}'"
+          run(cmd) do |channel, stream, data|
+              channel.send_data "Y\n"
+          end
         end
       end
 
@@ -622,13 +634,7 @@ FILE
           # denyhosts: sshd security tool.  config file is already installed... 
           #
           security_pkgs = %w{denyhosts}
-          old_pkgs = cfg[:packages]
-          begin
-            cfg[:packages] = security_pkgs
-            install_packages
-          ensure
-            cfg[:packages] = old_pkgs
-          end
+          sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{security_pkgs.join(' ')}'"
         end
       end
       
