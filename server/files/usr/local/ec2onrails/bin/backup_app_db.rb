@@ -55,6 +55,46 @@ if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
   @aws   = Ec2onrails::AwsHelper.new
   vols = YAML::load(File.read("/etc/ec2onrails/ebs_info.yml"))
   ec2 = EC2::Base.new( :access_key_id => @aws.aws_access_key, :secret_access_key => @aws.aws_secret_access_key )
+  
+  #lets make sure we have space: AMAZON puts a 500 limit on the number of snapshots
+  snaps = ec2.describe_snapshots['DescribeSnapshotsResponse']['snapshotSet']['item'] rescue nil
+  if snaps && snaps.size > 450
+    # TODO:
+    # can we make this a bit smarter?  With a limit of 500, that is difficult.  
+    # possible ideas (and some commented out code below)
+    #  * only apply cleanups to the volume_ids attached to this instance
+    #  * keep the last week worth (at hrly snapshots), then daily for a month, then monthly
+    #  * a sweeper task 
+    #
+    # vol_ids = []
+    # vols.each_pair{|k,v| vol_ids << v['volume_id']}
+    # #lets only work on those that apply for these volumnes attached 
+    # snaps = snaps.collect{|sn| vol_ids.index(sn['volumeId']) ? sn : nil}.compact
+    # # get them sorted
+    snaps = snaps.sort_by{|snapshot| snapshot['startTime']}.reverse
+    curr_batch = {}
+    remaining = []
+    snaps[200..-1].each do |sn| 
+      next if sn.blank? || sn['status'] != 'completed'
+      today = Date.parse(sn['startTime']).to_s
+      if curr_batch[sn['volumeId']] != today
+        curr_batch[sn['volumeId']] = today
+        remaining << sn
+      else
+        ec2.delete_snapshot(:snapshot_id => sn['snapshotId'])
+      end
+      # next unless vol_ids.index(sn['volumeId'])
+    end
+    if remaining > 400
+      puts "  WARNING: still contains #{remaining.size} snapshots; removing the oldest 100 to clean up space"
+      remaining[350..-1].each do |sn|
+        ec2.delete_snapshot(:snapshot_id => sn['snapshotId'])
+      end
+    end
+  else
+    puts "Could not retrieve snapshots: auto archiving cleanup will not occur" unless snaps
+  end
+  
   @mysql.execute do |conn|
     begin
       conn.query "FLUSH TABLES WITH READ LOCK;"
