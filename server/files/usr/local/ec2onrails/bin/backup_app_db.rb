@@ -66,8 +66,8 @@ if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
         begin
           `sudo xfs_freeze -f #{mount}`
           output = ec2.create_snapshot(:volume_id => ebs_info['volume_id'])
-          snap_id = output['snapshotId'] rescue nil
-          
+          snap_id = output['CreateSnapshotResponse']['snapshotId'] rescue nil
+          snap_id ||= output['snapshotId'] rescue nil #this is for the old version of the amazon-ec2
           if snap_id.nil? || snap_id.empty?
             puts "Snapshot for #{ebs_info['volume_id']} FAILED"
             exit
