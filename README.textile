@@ -163,7 +163,7 @@ h4. Notes
 
 h4. Getting started...
 
-* launch one of Eric's default images (see "Eric Hammond's":http://alestic.com/ page for the most recent ami-images): <code>ec2-run-instances ami-179e7a7e -k amazon-keypair</code> (for a 64-bit image, launch: <code>ec2-run-instances ami-f89d7991 -k amazon-keypair --instance-type m1.large</code>)
+* launch one of Eric's default images (see "Eric Hammond's":http://alestic.com/ page for the most recent ami-images): <code>ec2-run-instances ami-1cd73375 -k amazon-keypair</code> (for a 64-bit image, launch: <code>ec2-run-instances ami-17d7337e -k amazon-keypair --instance-type m1.large</code>)
 * lets get your amazon keypair up onto the instance: <code>scp -i ~/.ssh/id_rsa-amazon-keypair ~/.ec2/{cert,pk}-*.pem root@HOST_PUBLIC_ADDRESS:/mnt/</code>
 * ditto for getting the ec2onrails server code up onto your new instance: <code>scp -rp -i ~/.ssh/id_rsa-amazon-keypair ~/your/copy/of/ec2onrails/. root@HOST_PUBLIC_ADDRESS:/mnt/ec2onrails</code>
 * time to log into your instance: <code>ssh -i ~/.ssh/id_rsa-amazon-keypair root@HOST_PUBLIC_ADDRESS</code>
