@@ -85,7 +85,7 @@ if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
       end
       # next unless vol_ids.index(sn['volumeId'])
     end
-    if remaining > 400
+    if remaining.size > 400
       puts "  WARNING: still contains #{remaining.size} snapshots; removing the oldest 100 to clean up space"
       remaining[350..-1].each do |sn|
         ec2.delete_snapshot(:snapshot_id => sn['snapshotId'])
