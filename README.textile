@@ -2,9 +2,9 @@ h1. EC2 on Rails
 
 h2. Deploy a Ruby on Rails app on EC2 in five minutes
 
-Main Page: "https://ec2onrails.rubyforge.org":https://ec2onrails.rubyforge.org
+Main Page: "http://ec2onrails.rubyforge.org":http://ec2onrails.rubyforge.org
 
-Code on Github: "https://github.com/pauldowman/ec2onrails":https://github.com/pauldowman/ec2onrails
+Code on Github: "http://github.com/pauldowman/ec2onrails":http://github.com/pauldowman/ec2onrails
 
 EC2 on Rails is an Ubuntu Linux server image for "Amazon's EC2 hosting service":http://www.amazon.com/b/ref=sc_fe_l_2/102-6342260-7987311?ie=UTF8&node=201590011&no=3435361 that's ready to run a standard Ruby on Rails application with little or no customization. It's a Ruby on Rails "virtual appliance":http://en.wikipedia.org/wiki/Virtual_appliance.
 
