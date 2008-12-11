@@ -80,6 +80,7 @@ end
   ruby
   ruby1.8-dev
   subversion
+  sysstat
   unzip
   vim
   wget
