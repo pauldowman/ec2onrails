@@ -2,7 +2,7 @@ require 'ec2onrails/version'
 
 AUTHOR = 'Paul Dowman'  # can also be an array of Authors
 EMAIL = "paul@pauldowman.com"
-DESCRIPTION = "Client-side libraries (Capistrano tasks) for managing and deploying to EC2 on Rails servers."
+DESCRIPTION = "Client-side libraries (Capistrano tasks) for managing and deploying to 'EC2 on Rails' servers."
 GEM_NAME = 'ec2onrails' # what ppl will type to install your gem
 RUBYFORGE_PROJECT = 'ec2onrails' # The unix name for your project
 HOMEPATH = "http://#{RUBYFORGE_PROJECT}.rubyforge.org"
@@ -59,7 +59,7 @@ hoe = Hoe.new(GEM_NAME, VERS) do |p|
   
   # == Optional
   p.changes = p.paragraphs_of("History.txt", 0..1).join("\\n\\n")
-  p.extra_deps = [['capistrano', '= 2.4.3'], ['archive-tar-minitar', '>= 0.5.1'], ['optiflag', '>= 0.6.5']]     # An array of rubygem dependencies [name, version], e.g. [ ['active_support', '>= 1.3.1'] ]
+  p.extra_deps = [['capistrano', '>= 2.5.3'], ['archive-tar-minitar', '>= 0.5.2'], ['optiflag', '>= 0.6.5']]     # An array of rubygem dependencies [name, version], e.g. [ ['active_support', '>= 1.3.1'] ]
   
   #p.spec_extras = {}    # A hash of extra values to set in the gemspec.
   

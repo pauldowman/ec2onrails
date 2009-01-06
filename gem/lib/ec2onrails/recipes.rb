@@ -321,18 +321,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :upgrade_gems, :roles => all_admin_role_names do
         sudo "gem update --system --no-rdoc --no-ri"
-        sudo "gem update --no-rdoc --no-ri" do |ch, str, data|
-          ch[:data] ||= ""
-          ch[:data] << data
-          if data =~ />\s*$/
-            puts data
-            choice = Capistrano::CLI.ui.ask("The gem command is asking for a number:")
-            ch.send_data("#{choice}\n")
-          else
-            puts data
-          end
-        end
-        
+        sudo "gem update --no-rdoc --no-ri"
       end
       
       desc <<-DESC
@@ -345,6 +334,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :install_packages, :roles => all_admin_role_names do
         if cfg[:packages] && cfg[:packages].any?
+          sudo "aptitude -q update"
           run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{cfg[:packages].join(' ')}"
         end
       end
@@ -355,18 +345,8 @@ Capistrano::Configuration.instance.load do
       DESC
       task :install_gems, :roles => all_admin_role_names do
         if cfg[:rubygems]
-          cfg[:rubygems].each do |gem|
-            sudo "gem install #{gem} --no-rdoc --no-ri" do |ch, str, data|
-              ch[:data] ||= ""
-              ch[:data] << data
-              if data =~ />\s*$/
-                puts data
-                choice = Capistrano::CLI.ui.ask("The gem command is asking for a number:")
-                ch.send_data("#{choice}\n")
-              else
-                puts data
-              end
-            end
+          cfg[:rubygems].each do |g|
+            sudo "gem install #{g} --no-rdoc --no-ri"
           end
         end
       end

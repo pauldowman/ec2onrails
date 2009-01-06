@@ -63,8 +63,6 @@ end
   mysql-server
   nano
   openssh-server
-  php5
-  php5-mysql
   postfix
   rdoc
   ri
@@ -85,7 +83,9 @@ end
   "mongrel_cluster",
   "optiflag",
   "rails",
-  "rails -v 2.0.2",
+  "rails -v 2.2.2",
+  "rails -v 2.1.2",
+  "rails -v 2.0.5",
   "rails -v 1.2.6",
   "rake"
 ]
@@ -107,7 +107,9 @@ task :install_packages do |t|
   unless_completed(t) do
     #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
+    run_chroot "apt-get update"
     run_chroot "apt-get install -y #{@packages.join(' ')}"
+    run_chroot "apt-get autoremove -y"
     run_chroot "apt-get clean"
   end
 end
@@ -115,13 +117,14 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/35283/rubygems-1.1.1.tgz && tar zxf rubygems-1.1.1.tgz'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.1.1 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/45905/rubygems-1.3.1.tgz && tar zxf rubygems-1.3.1.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.3.1 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
-    @rubygems.each do |gem|
-      run_chroot "gem install #{gem} --no-rdoc --no-ri"
+    run_chroot "gem sources -a http://gems.github.com"
+    @rubygems.each do |g|
+      run_chroot "gem install #{g} --no-rdoc --no-ri"
     end
   end
 end
@@ -131,16 +134,25 @@ task :install_monit => [:install_packages] do |t|
   unless_completed(t) do
     run_chroot "sh -c 'cd /tmp && wget http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
-    run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ --localstatedir=/var/run && make && make install'"
+    run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit --localstatedir=/var/run && make && make install'"
   end
 end
 
-desc "Configure the image"
-task :configure => [:install_gems, :install_monit] do |t|
+desc "Copy files into the image"
+task :copy_files do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
-    sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
+  end
+end
 
+desc "Set file permissions. This is needed because files stored in git don't keep their metadata"
+task :set_file_permissions => :copy_files do |t|
+  run_chroot "chmod -R 700 /etc/monit"
+end
+
+desc "Configure the image"
+task :configure => [:install_gems, :install_monit, :set_file_permissions] do |t|
+  unless_completed(t) do
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
     
     run_chroot "a2enmod deflate"
@@ -153,7 +165,7 @@ task :configure => [:install_gems, :install_monit] do |t|
     run_chroot "/usr/sbin/adduser admin adm"
     run_chroot "/usr/sbin/addgroup sudoers"
     
-    File.open("#{@fs_dir}/usr/local/sbin/ec2-get-credentials", 'a') do |f|
+    File.open("#{@fs_dir}/etc/init.d/ec2-get-credentials", 'a') do |f|
       f << <<-END
         mkdir -p -m 700 /home/app/.ssh
         cp /root/.ssh/authorized_keys /home/app/.ssh
@@ -168,6 +180,9 @@ task :configure => [:install_gems, :install_monit] do |t|
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/admin/.bashrc"
+    
+    run_chroot "cp /root/.gemrc /home/app"
+    run_chroot "cp /root/.gemrc /home/admin"
     
     %w(apache2 mysql auth.log daemon.log kern.log mail.err mail.info mail.log mail.warn syslog user.log).each do |f|
       rm_rf "#{@fs_dir}/var/log/#{f}"

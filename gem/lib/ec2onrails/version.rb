@@ -21,11 +21,10 @@ module Ec2onrails #:nodoc:
     MAJOR = 0
     MINOR = 9
     TINY  = 9
-    # GEM_UPDATE  = 0
-    # STRING = [MAJOR, MINOR, TINY, GEM_UPDATE].join('.')
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    BUGFIX  = 1
+    STRING = [MAJOR, MINOR, TINY, BUGFIX].join('.')
     
-    AMI_ID_32_BIT = 'ami-c9bc58a0'
-    AMI_ID_64_BIT = 'ami-cbbc58a2'
+    AMI_ID_32_BIT = 'ami-xx'
+    AMI_ID_64_BIT = 'ami-xx'
   end
 end
