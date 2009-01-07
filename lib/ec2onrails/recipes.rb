@@ -51,6 +51,20 @@ Capistrano::Configuration.instance.load do
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
   after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
+
+  #NOTE: some default setups (like engineyard's) do some symlinking of config files after
+  # deploy:update_code.  The ordering here matters as we need to have those symlinks in place
+  # but we need to have the gems in place before the rails env is loaded up, or else it will
+  # fail.  By adding it to the callback queue AFTER all the tasks have loaded up, we make sure
+  # it is done at the very end.  
+  #
+  # *IF* you had tasks also triggered after update_code that run rake tasks 
+  # (like compressing javascript and stylesheets), move those over to before "deploy:symlink"
+  # and you'll be set!
+  on :load do
+    after "deploy:update_code", "ec2onrails:server:run_rails_rake_gems_install"
+  end  
+
   
   # override default start/stop/restart tasks
   namespace :deploy do
@@ -123,20 +137,22 @@ Capistrano::Configuration.instance.load do
       Prepare a newly-started instance for a cold deploy.
     DESC
     task :setup do
-      server.set_mail_forward_address
-      server.set_timezone
-      server.install_packages
-      server.install_gems
-      server.deploy_files
-      server.setup_web_proxy
-      server.set_roles
-      server.enable_ssl if cfg[:enable_ssl]
-      server.set_rails_env
-      server.restart_services
-      deploy.setup
-      db.create
-      server.harden_server
-      db.enable_ebs
+      ec2onrails.server.allow_sudo do
+        server.set_mail_forward_address
+        server.set_timezone
+        server.install_packages
+        server.install_gems
+        server.deploy_files
+        server.setup_web_proxy
+        server.set_roles
+        server.enable_ssl if cfg[:enable_ssl]
+        server.set_rails_env
+        server.restart_services
+        deploy.setup
+        db.create
+        server.harden_server
+        db.enable_ebs
+      end
     end
     
     desc <<-DESC
@@ -197,6 +213,8 @@ Capistrano::Configuration.instance.load do
         on_rollback { drop }
         load_config
         start
+        sleep(5) #make sure the db has some time to start up!
+        
         
         # remove the default test database, though sometimes it doesn't exist (perhaps it isn't there anymore?)
         run %{mysql -u root -e "drop database if exists test; flush privileges;"}
@@ -205,8 +223,10 @@ Capistrano::Configuration.instance.load do
         run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
         run %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
         
-        run %{mysql -u root -e "create database if not exists #{cfg[:db_name]};"}
-        run %{mysql -u root -e "grant all on #{cfg[:db_name]}.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        # qoting of database names allows special characters eg (the-database-name)
+        # the quotes need to be double escaped. Once for capistrano and once for the host shell
+        run %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`;"}
+        run %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
       end
@@ -317,8 +337,21 @@ Capistrano::Configuration.instance.load do
             # it to make sure it is ok, and then continue on
             # if errors, the device is busy...something else is going on here and it is already mounted... skip!
             if prev_created
+              # Stop the db (mysql server) for cases where this is being run after the original run
+              # If EBS partiion is already mounted and being used by mysql, it will fail when umount is run
+              god_status = quiet_capture("sudo god status")
+              god_status = god_status.empty? ? {} : YAML::load(god_status)
+              start_stop_db = false
+              start_stop_db = god_status['db']['mysql'] == 'up'
+              if start_stop_db
+                stop
+                puts "Waiting for mysql to stop"
+                sleep(10)
+              end
               quiet_capture("sudo umount #{mysql_dir_root}") #unmount if need to
               sudo "xfs_check #{block_mnt}"
+              # Restart the db if it 
+              start if start_stop_db
             else
               sudo "mkfs.xfs #{block_mnt}"  
             end
@@ -332,7 +365,7 @@ Capistrano::Configuration.instance.load do
             #ok, now lets move the mysql stuff off of /mnt -> mysql_dir_root
             stop rescue nil #already stopped
             sudo "mkdir -p #{mysql_dir_root}/log"
-            #move the data over, but keep a symlink to the new location for backwards compatability
+            #move the data over, but keep a symlink to the new location for backwards compatibility
             #and do not do it if /mnt/mysql_data has already been moved
             quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/mysql_data && mv /mnt/mysql_data #{mysql_dir_root}/'")
             sudo "mv /mnt/mysql_data /mnt/mysql_data_old 2>/dev/null || echo"
@@ -340,9 +373,9 @@ Capistrano::Configuration.instance.load do
 
             #but keep the tmpdir on mnt
             sudo "sh -c 'mkdir -p /mnt/tmp/mysql && chown mysql:mysql /mnt/tmp/mysql'"
-            #move the logs over, but keep a symlink to the new location for backwards compatability
+            #move the logs over, but keep a symlink to the new location for backwards compatibility
             #and do not do it if the logs have already been moved
-            sudo("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
+            quiet_capture("sudo sh -c 'test ! -d #{mysql_dir_root}/log/mysql_data && mv /mnt/log/mysql #{mysql_dir_root}/log/'")
             sudo "ln -fs #{mysql_dir_root}/log/mysql /mnt/log/mysql"
             quiet_capture("sudo sh -c \"test -f #{mysql_dir_root}/log/mysql/mysql-bin.index && \
                   perl -pi -e 's%/mnt/log/%#{mysql_dir_root}/log/%' #{mysql_dir_root}/log/mysql/mysql-bin.index\"") rescue false
@@ -367,7 +400,7 @@ FILE
 
             #just put a README on the drive so we know what this volume is for!
             txt = <<-FILE
-This volume is setup to be used by Ec2onRails for primary MySql database persistence.
+This volume is setup to be used by Ec2onRails in conjunction with Amazon's EBS, for primary MySql database persistence.
 RAILS_ENV: #{fetch(:rails_env, 'undefined')}
 DOMAIN:    #{fetch(:domain, 'undefined')}
 
@@ -378,6 +411,11 @@ FILE
             sudo "mv /tmp/VOLUME-README #{mysql_dir_root}/VOLUME-README"
             #update the list of ebs volumes
             #TODO: abstract this away into a helper method!!
+            #TODO: this first touch should *not* be needed... quiet_capture should return an empty string
+            #      if the cat on a non-existant file fails (as it should).  this isn't causing issues
+            #      for me, but a few users have complained.... bad gemspec or something?
+            #      COMMENTING OUT for now to see if the recent gemspec update improved things...
+            # ebs_info = quiet_capture("touch /etc/ec2onrails/ebs_info.yml")
             ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
             ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
             ebs_info[mysql_dir_root] = {'block_loc' => block_mnt, 'volume_id' => vol_id} 
@@ -413,7 +451,7 @@ FILE
       DESC
       task :drop, :roles => :db do
         load_config
-        run %{mysql -u root -e "drop database if exists #{cfg[:db_name]};"}
+        run %{mysql -u root -e "drop database if exists \\`#{cfg[:db_name]}\\`;"}
       end
       
       desc <<-DESC
@@ -553,14 +591,15 @@ FILE
             puts data
           end
         end
-        
       end
       
       desc <<-DESC
         Install extra Ubuntu packages. Set ec2onrails_config[:packages], it \
         should be an array of strings.
         NOTE: the package installation will be non-interactive, if the packages \
-        require configuration either log in as 'root' and run \
+        require configuration either set ec2onrails_config[:interactive_packages] \
+        like you would for ec2onrails_config[:packages] (we'll flood the server \
+        with 'Y' inputs), or log in as 'root' and run \
         'dpkg-reconfigure packagename' or replace the package's config files \
         using the 'ec2onrails:server:deploy_files' task.
       DESC
@@ -568,6 +607,16 @@ FILE
         sudo "aptitude -q update"
         if cfg[:packages] && cfg[:packages].any?
           sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{cfg[:packages].join(' ')}'"
+        end
+        if cfg[:interactive_packages] && cfg[:interactive_packages].any?
+          # sudo "aptitude install #{cfg[:interactive_packages].join(' ')}", {:env => {'DEBIAN_FRONTEND' => 'readline'} }
+          #trying to pick WHEN to send a Y is a bit tricky...it totally depends on the 
+          #interactive package you want to install.  FLOODING it with 'Y'... but not sure how
+          #'correct' or robust this is
+          cmd = "sudo sh -c 'export DEBIAN_FRONTEND=readline; aptitude -y -q install #{cfg[:interactive_packages].join(' ')}'"
+          run(cmd) do |channel, stream, data|
+              channel.send_data "Y\n"
+          end
         end
       end
 
@@ -585,13 +634,7 @@ FILE
           # denyhosts: sshd security tool.  config file is already installed... 
           #
           security_pkgs = %w{denyhosts}
-          old_pkgs = cfg[:packages]
-          begin
-            cfg[:packages] = security_pkgs
-            install_packages
-          ensure
-            cfg[:packages] = old_pkgs
-          end
+          sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install #{security_pkgs.join(' ')}'"
         end
       end
       
@@ -614,6 +657,20 @@ FILE
               end
             end
           end
+        end        
+      end
+      
+      task :run_rails_rake_gems_install do
+        #if running under Rails 2.1, lets trigger 'rake gems:install', but in such a way
+        #so it fails gracefully if running rails < 2.1
+        # ALSO, this might be the first time rake is run, and running it as sudo means that 
+        # if any plugins are loaded and create directories... like what image_science does for 
+        # ruby_inline, then the dirs will be created as root.  so trigger the rails loading
+        # very quickly before the sudo is called
+        # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
+        ec2onrails.server.allow_sudo do
+          output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version 2>&1 1>/dev/null || sudo rake RAILS_ENV=#{rails_env} gems:install"
+          puts output
         end
       end
       
@@ -651,8 +708,10 @@ FILE
       DESC
       task :set_timezone do
         if cfg[:timezone]
-          sudo "bash -c 'echo #{cfg[:timezone]} > /etc/timezone'"
-          sudo "cp /usr/share/zoneinfo/#{cfg[:timezone]} /etc/localtime"
+          ec2onrails.server.allow_sudo do
+            sudo "bash -c 'echo #{cfg[:timezone]} > /etc/timezone'"
+            sudo "cp /usr/share/zoneinfo/#{cfg[:timezone]} /etc/localtime"
+          end
         end
       end
       
@@ -711,6 +770,7 @@ FILE
       task :enable_ssl, :roles => :web do
         #TODO: enable for nginx
         sudo "a2enmod ssl"
+        sudo "a2enmod headers" # the headers module is necessary to forward a header so that rails can detect it is handling an SSL connection.  NPG 7/11/08
         sudo "a2ensite default-ssl"
         run_init_script("web_proxy", "restart")
       end

@@ -1,4 +1,5 @@
 .DS_STORE
 pkg/*
 tmp/*
-setup_notes
+.loadpath
+.project

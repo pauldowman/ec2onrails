@@ -21,11 +21,11 @@ case "$1" in
       RETVAL=$?
   ;;
     stop)
-      ruby /usr/bin/god terminate
+      ruby /usr/bin/god quit
       RETVAL=$?
   ;;
     restart)
-      ruby /usr/bin/god terminate
+      ruby /usr/bin/god quit
       ruby /usr/bin/god -c $CONF_DIR/master.conf
       RETVAL=$?
   ;;

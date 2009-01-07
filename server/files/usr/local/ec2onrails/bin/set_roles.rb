@@ -49,7 +49,7 @@ if in_role?(:web)
   end
   
 
-  if system("which apache")
+  if system("which apache2")
     apache_config_file = "/etc/ec2onrails/balancer_members"
     unless files_written.index(apache_config_file)
       File.open(apache_config_file, "w") do |f|

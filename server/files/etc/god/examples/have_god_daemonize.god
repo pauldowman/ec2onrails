@@ -10,7 +10,7 @@ God.watch do |w|
   w.gid = @configs.group
   w.autostart = false
   
-  w.start = "/usr/local/ec2onrails/bin/rails_env #{APP_ROOT}/current/script/mq_poller"
+  w.start = "/usr/local/ec2onrails/bin/rails_env #{APP_ROOT}/script/mq_poller"
 
   default_configurations(w)
   restart_if_resource_hog(w)

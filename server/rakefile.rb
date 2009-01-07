@@ -106,8 +106,8 @@ end
   "mongrel_cluster",
   "optiflag",
   "rails",
-  "rails -v 2.0.2",
-  "rails -v 1.2.6",
+  "rails -v '~> 2.0.5'",
+  "rails -v '~> 1.2.6'",
   "rake"
 ]
 
@@ -140,9 +140,11 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz && tar zxf rubygems-1.2.0.tgz'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.2.0 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/45905/rubygems-1.3.1.tgz && tar zxf rubygems-1.3.1.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.3.1 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
+    #NOTE: this will update to rubygems 1.3 and beyond... 
+    #      this was broken in rubygems 1.1 and 1.2, but it looks like they fixed it
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
     run_chroot "gem sources -a http://gems.github.com"
@@ -156,8 +158,7 @@ desc "Configure the image"
 task :configure => [:install_gems] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
-    sh("find #{@fs_dir} -type d -name .svn | xargs rm -rf")
-
+    sh("find #{@fs_dir} -type d -name .svn -o -name .git | xargs rm -rf")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
         
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
