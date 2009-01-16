@@ -630,6 +630,8 @@ FILE
       task :harden_server do
         #NOTES: for those security features that will get in the way of ease-of-use
         #       hook them in here
+        # Like encrypting the mnt directory
+        # http://groups.google.com/group/ec2ubuntu/web/encrypting-mnt-using-cryptsetup-on-ubuntu-7-10-gutsy-on-amazon-ec2
         if cfg[:harden_server]
           #lets install some extra packages:
           # denyhosts: sshd security tool.  config file is already installed... 
