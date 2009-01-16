@@ -28,6 +28,13 @@ include Ec2onrails::RolesHelper
 # not already in a web role. Leave as is, as all it does is throw an error
 # until GOD is in the picture, at which case it should be easy to enable
 # and let it handle it instead of the init.d script....
+APP_ROOT = "/mnt/app/current"
+RAILS_ENV = `/usr/local/ec2onrails/bin/rails_env`.strip
+
+#reload configs to pick up any new changes
+Dir.glob("/etc/god/*.god") + Dir.glob("/mnt/app/current/config/god/staging/*.god").each do |f|
+  sudo "god load '#{f}'"
+end
 
 # memcache role:
 if in_role?(:memcache)
