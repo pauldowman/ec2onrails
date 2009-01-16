@@ -16,7 +16,7 @@ God.watch do |w|
     w.restart = "/etc/init.d/apache2 restart"
     w.pid_file = "/var/run/apache2.pid"
   end
-  w.grace = 5.seconds
+  w.grace = 30.seconds
   w.group = 'web'
   w.autostart = false
 
@@ -27,7 +27,7 @@ God.watch do |w|
       c.port = 80
       c.path = '/'
       c.code_is_not = 200
-      c.timeout = 15.seconds
+      c.timeout = 5.seconds
       c.times = [3, 5] # 3 out of 5 intervals
     end
   end
