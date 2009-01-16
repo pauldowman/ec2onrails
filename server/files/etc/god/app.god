@@ -1,6 +1,8 @@
 # rolling restart idea plagiarized directly from:
 # http://blog.pragmatic-it.de/articles/2008/07/09/poor-mans-rolling-restart-for-thin-god
-restart_time  = 60.seconds #how long to restart the entire cluster
+#NOTE: this doesn't do what you think it does...
+#      requests are queued up at nginx and requests start to time out
+restart_time  = 2.seconds #how long to restart the entire cluster
 rolling_delay = (restart_time / @configs.web_num_instances.to_f).ceil
 @configs.web_port_range.each_with_index do |port, i|
   God.watch do |w|
