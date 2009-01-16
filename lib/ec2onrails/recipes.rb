@@ -235,8 +235,8 @@ Capistrano::Configuration.instance.load do
         Move the MySQL database to Amazon's Elastic Block Store (EBS), \
         which is a persistant data store for the cloud.
         OPTIONAL PARAMETERS:
-          * SIZE: Pass in num in gigs, like 10, to set the size, otherwise it will \
-        default to 10 gigs.
+          * SIZE: Pass in a number representing the GB's to hold, like 10. \
+            It will default to 10 gigs.
           * VOLUME_ID: The volume_id to use for the mysql database    
         NOTE: keep track of the volume ID, as you'll want to keep this for your \
         records and probably add it to the :db role in your deploy.rb file \
@@ -473,7 +473,7 @@ FILE
       end
       
       desc <<-DESC
-        Dump the MySQL database to the S3 bucket specified by \
+        Dump the MySQL database to ebs (if enabled) or the S3 bucket specified by \
         ec2onrails_config[:archive_to_bucket]. The filename will be \
         "database-archive/<timestamp>/dump.sql.gz".
       DESC
@@ -493,7 +493,7 @@ FILE
       desc <<-DESC
         [internal] Initialize the default backup folder on S3 (i.e. do a full
         backup of the newly-created db so the automatic incremental backups 
-        make sense).
+        make sense).  NOTE: Only of use if you do not have ebs enabled
       DESC
       task :init_backup, :roles => :db do
         server.allow_sudo do
@@ -548,6 +548,7 @@ FILE
       
       task :init_services do
         server.allow_sudo do
+          #lets pick up the new configuration files
           sudo "/usr/local/ec2onrails/bin/init_services.rb"
         end
       end
