@@ -1,10 +1,12 @@
+# -*- encoding: utf-8 -*-
+
 Gem::Specification.new do |s|
   s.name = %q{ec2onrails}
   s.version = "0.9.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Paul Dowman, Adam Greene"]
-  s.date = %q{2009-01-16}
+  s.date = %q{2009-01-17}
   s.description = %q{Client-side libraries (Capistrano tasks) for managing and  deploying to EC2 on Rails servers.}
   s.email = %q{paul@pauldowman.com}
   s.extra_rdoc_files = ["CHANGELOG", "lib/ec2onrails/capistrano_utils.rb", "lib/ec2onrails/recipes.rb", "lib/ec2onrails/version.rb", "lib/ec2onrails.rb", "README.textile"]
@@ -22,21 +24,21 @@ Gem::Specification.new do |s|
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 2
 
-    if current_version >= 3 then
-      s.add_runtime_dependency(%q<capistrano>, [">= 0", "= 2.4.3"])
-      s.add_runtime_dependency(%q<archive-tar-minitar>, [">= 0", "= 0.5.2"])
-      s.add_runtime_dependency(%q<optiflag>, [">= 0", "= 0.6.5"])
+    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<capistrano>, [">= 2.4.3"])
+      s.add_runtime_dependency(%q<archive-tar-minitar>, [">= 0.5.2"])
+      s.add_runtime_dependency(%q<optiflag>, [">= 0.6.5"])
       s.add_development_dependency(%q<rake>, [">= 0.7.1"])
     else
-      s.add_dependency(%q<capistrano>, [">= 0", "= 2.4.3"])
-      s.add_dependency(%q<archive-tar-minitar>, [">= 0", "= 0.5.2"])
-      s.add_dependency(%q<optiflag>, [">= 0", "= 0.6.5"])
+      s.add_dependency(%q<capistrano>, [">= 2.4.3"])
+      s.add_dependency(%q<archive-tar-minitar>, [">= 0.5.2"])
+      s.add_dependency(%q<optiflag>, [">= 0.6.5"])
       s.add_dependency(%q<rake>, [">= 0.7.1"])
     end
   else
-    s.add_dependency(%q<capistrano>, [">= 0", "= 2.4.3"])
-    s.add_dependency(%q<archive-tar-minitar>, [">= 0", "= 0.5.2"])
-    s.add_dependency(%q<optiflag>, [">= 0", "= 0.6.5"])
+    s.add_dependency(%q<capistrano>, [">= 2.4.3"])
+    s.add_dependency(%q<archive-tar-minitar>, [">= 0.5.2"])
+    s.add_dependency(%q<optiflag>, [">= 0.6.5"])
     s.add_dependency(%q<rake>, [">= 0.7.1"])
   end
 end
