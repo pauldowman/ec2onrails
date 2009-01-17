@@ -185,7 +185,7 @@ end
 desc "This task is for deploying the contents of /files to a running server image to test config file changes without rebuilding."
 task :deploy_files do |t|
   raise "need 'key' and 'host' env vars defined" unless ENV['key'] && ENV['host']
-  run "rsync -rlvzcC --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
+  run "rsync -rlvzcCp --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
 end
 
 ##################
