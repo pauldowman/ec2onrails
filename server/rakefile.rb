@@ -80,6 +80,7 @@ end
   ruby
   ruby1.8-dev
   subversion
+  sysstat
   unzip
   vim
   wget
@@ -105,6 +106,8 @@ end
   "mongrel_cluster",
   "optiflag",
   "rails",
+  "rails -v '~> 2.2.2'",
+  "rails -v '~> 2.1.2'",
   "rails -v '~> 2.0.5'",
   "rails -v '~> 1.2.6'",
   "rake"
@@ -147,8 +150,9 @@ task :install_gems => [:install_packages] do |t|
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
     run_chroot "gem sources -a http://gems.github.com"
-    @rubygems.each do |gem|
-      run_chroot "gem install #{gem} --no-rdoc --no-ri"
+    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
+    @rubygems.each do |g|
+      run_chroot "gem install #{g} --no-rdoc --no-ri"
     end
   end
 end
@@ -157,7 +161,6 @@ desc "Configure the image"
 task :configure => [:install_gems] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
-    sh("find #{@fs_dir} -type d -name .svn -o -name .git | xargs rm -rf")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
         
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
@@ -175,6 +178,9 @@ task :configure => [:install_gems] do |t|
     # TODO find out the most correct solution here, there seems to be a bug in
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
     # that it tries to write to is owned by root and not writable by others.
+    # *** Do we still need this? The problem was constant messages in the syslog
+    # after the first DHCP lease expired (after 12 hours or so).
+    # We can probably assume Eric's base image does the right thing.
     run_chroot "chown -R dhcp /var/lib/dhcp3"
     
     #make sure that god is setup to reboot at startup

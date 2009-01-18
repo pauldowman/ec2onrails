@@ -40,7 +40,7 @@ module Ec2onrails
     def load_db_config(config_file)
       db_config = YAML::load(ERB.new(File.read(config_file)).result)
       if db_config && db_config[@rails_env].nil?
-        puts "the rails environment '#{@rails_env}' was not found in this db onfig file: #{config_file}"
+        puts "the rails environment '#{@rails_env}' was not found in this db config file: #{config_file}"
       end
       db_config = db_config[@rails_env]
       @database = db_config['database']
