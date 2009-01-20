@@ -21,5 +21,5 @@
 # Set the hostname to this instance's public hostname
 
 hostname `curl http://169.254.169.254/latest/meta-data/public-hostname`
-sudo god reload
+sudo "/etc/init.d/god restart"
 
