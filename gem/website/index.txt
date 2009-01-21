@@ -61,11 +61,11 @@ h4. 1. Install the gem
 
 h4. 2. Add the config files to your Rails app
 
-Put "Capfile":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/Capfile 
+Put "Capfile":http://github.com/pauldowman/ec2onrails/tree/0.9.9.1/documentation/examples/Capfile 
 in the root of your rails folder, and put
-"deploy.rb":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/deploy.rb 
+"deploy.rb":http://github.com/pauldowman/ec2onrails/tree/0.9.9.1/documentation/examples/deploy.rb 
 and
-"s3.yml":http://ec2onrails.rubyforge.org/svn/trunk/documentation/examples/s3.yml
+"s3.yml":http://github.com/pauldowman/ec2onrails/tree/0.9.9.1/documentation/examples/s3.yml
 in the config folder.
 
 _Be sure to customize those files and read the comments._
@@ -88,7 +88,7 @@ configured in the previous step (they're also listed earlier on this page).
 
 _NOTE: Only use the images that match the current version of the gem._
 
-Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt for release notes, and 
+Please see the "change log":http://github.com/pauldowman/ec2onrails/tree/0.9.9.1/gem/History.txt for release notes, and 
 see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
 As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, 
@@ -210,7 +210,7 @@ or send me an "email":http://pauldowman.com/contact/.
 
 h2. Change log
 
-See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/History.txt.
+See the "change log":http://github.com/pauldowman/ec2onrails/blob/0.9.9.1/gem/History.txt.
 
 
 h2. How to submit patches
@@ -218,7 +218,7 @@ h2. How to submit patches
 Pleae read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/.
 The source code can be checked out anonymously using: 
 <pre>
-svn checkout http://ec2onrails.rubyforge.org/svn/trunk ec2onrails
+git clone git://github.com/pauldowman/ec2onrails.git
 </pre>
 
 Patches can be submitted to the "RubyForge Tracker":http://rubyforge.org/tracker/?atid=17560&group_id=4552&func=browse 
