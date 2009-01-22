@@ -1,0 +1,43 @@
+#!/bin/sh
+
+#    This file is part of EC2 on Rails.
+#    http://rubyforge.org/projects/ec2onrails/
+#
+#    Copyright 2007 Paul Dowman, http://pauldowman.com/
+#
+#    EC2 on Rails is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    EC2 on Rails is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# Check if the hostname has been updated.
+# This can happen if the user associated or disassociated an Elastic IP
+
+OLD_HOSTNAME=`hostname`
+/usr/local/ec2onrails/startup-scripts/every-startup/get-hostname.sh
+NEW_HOSTNAME=`hostname`
+if [ $OLD_HOSTNAME != $NEW_HOSTNAME ] ; then
+  echo "Hostname has changed (from $OLD_HOSTNAME to $NEW_HOSTNAME)"
+  
+  echo "Restarting monit..."
+  # Unfortunately we need to use kill -9 because if monit shuts down normally
+  # it forgets its state because we're using manual mode.
+  MONIT_PID=`initctl list monit | sed 's/[^0-9]//g'`
+  kill -9 $MONIT_PID
+  
+  echo "Running full database backup into new bucket..."
+  # We run the full backup because the bucket name is expected to be based on
+  # the hostname.
+  # Kill any current backup job first.
+  killall -q -u root backup_app_db.rb
+  /usr/local/ec2onrails/bin/backup_app_db.rb --reset
+fi
