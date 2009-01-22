@@ -136,6 +136,15 @@ end
 # app role:
 if in_role(:app)
   puts "Starting app role..."
+  start(:app, "mongrel", "mongrel_rails")
+else
+  puts "Stopping app role..."
+  stop(:app, "mongrel", "mongrel_rails")
+end
+
+# add db_primary hostname
+if in_role(:app) || in_role(:db_primary)
+  puts "Adding db_primary hostname to /etc/hosts..."
   
   if @roles[:db_primary]
     # edit /etc/hosts, need db_primary address & db_slave address
