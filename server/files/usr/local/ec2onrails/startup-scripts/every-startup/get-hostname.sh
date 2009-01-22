@@ -19,7 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Set the hostname to this instance's public hostname
-HOSTNAME=`curl http://169.254.169.254/latest/meta-data/public-hostname`
+HOSTNAME=`curl -s http://169.254.169.254/latest/meta-data/public-hostname`
 
 hostname $HOSTNAME
 
