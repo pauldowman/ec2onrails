@@ -64,7 +64,7 @@ Capistrano::Configuration.instance.load do
     DESC
     task :start, :roles => :app_admin do
       run_init_script("mongrel", "start")
-      run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
+      run "sleep 60" # give the service time to start before attempting to monitor it or monit will complain
       sudo "monit -g app monitor all"
     end
     

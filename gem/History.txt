@@ -10,6 +10,7 @@
 * Updated rails gems (2.2.2, 2.1.2, 2.0.5, 1.2.6)
 * Updated build script to work with git repo instead of svn repo
 * Removed PHP packages
+* Increased the time to wait for mongrel processes to restart before re-enabling monitoring
 * Bug fix: fixed server:install_packages capistrano task (now updates package list)
 * Bug fix: now automatically handles an Elastic IP being associated or disassociated (automatically checks every 15 mins to see if the hostname has been changed and resets anything that depends on the hostname)
 * Bug fix: Apache now compresses .js files properly
