@@ -186,13 +186,12 @@ Capistrano::Configuration.instance(:must_exist).load do
             system cmds
           end
 
-          #lets get it off the server so we can save it for future use
           pub_key = File.read("config/mail/dkim/dkim_#{selector}.public.key")
           pub_key = pub_key.split("\n")[1..-2].join(' ')
 
           #lets get the private and public keys up to the server
-          put "config/mail/dkim/dkim_#{selector}.private.key", "/tmp/dkim_#{selector}.private.key"
-          put "config/mail/dkim/dkim_#{selector}.public.key", "/tmp/dkim_#{selector}.public.key"
+          put File.read("config/mail/dkim/dkim_#{selector}.private.key"), "/tmp/dkim_#{selector}.private.key"
+          put File.read("config/mail/dkim/dkim_#{selector}.public.key"), "/tmp/dkim_#{selector}.public.key"
           sudo "mkdir -p /var/dkim-filter"
           sudo "mv /tmp/dkim_#{selector}.p*.key /var/dkim-filter/."
 
