@@ -70,6 +70,12 @@ set :ec2onrails_config, {
   # server after 3 attempts for upto 3 months.  
   :harden_server => false,
   
+  #if you want to harden the server, or setup email signing, you will need to set the domain
+  #if you use Capistrano's multistage extension (recommended!), you can add a line like this to your
+  #environment specific file:
+  #      ec2onrails_config[:service_domain] = 'staging.mydomain.com'
+  :service_domain => nil,
+  
   # Set the server timezone. run "cap -e ec2onrails:server:set_timezone" for 
   # details
   :timezone => "UTC",
@@ -81,7 +87,7 @@ set :ec2onrails_config, {
   # server's filesystem. 
   # If you don't need to deploy customized config files to the server then
   # remove this.
-  :server_config_files_root => "../server_config",
+  :server_config_files_root => "../server_configs",
   
   # If config files are deployed, some services might need to be restarted.
   # If you don't need to deploy customized config files to the server then
