@@ -69,7 +69,7 @@ Within your rails directory, run
 
 _Be sure to customize those files and read the comments._
 
-Also, use the hostname "db_primary" in your database.yml file. After running "cap ec2onrails:server:set_roles" it will resolve to the instance defined in your Capistrano "db" role.
+In your database.yml file, add <code>host: db_primary</code> to the host of other database configuration options. After running "cap ec2onrails:server:set_roles" it will resolve to the instance defined in your Capistrano "db" role.
 
 h4. 3. Start up one or more instances of the image.
 
