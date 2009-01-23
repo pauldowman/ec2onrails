@@ -32,7 +32,7 @@ APP_ROOT = "/mnt/app/current"
 RAILS_ENV = `/usr/local/ec2onrails/bin/rails_env`.strip
 
 #reload configs to pick up any new changes
-Dir.glob("/etc/god/*.god") + Dir.glob("/mnt/app/current/config/god/staging/*.god").each do |f|
+Dir.glob("/etc/god/*.god") + Dir.glob("/mnt/app/current/config/god/#{RAILS_ENV}/*.god").each do |f|
   sudo "god load '#{f}'"
 end
 
