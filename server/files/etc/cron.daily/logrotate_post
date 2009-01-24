@@ -10,10 +10,12 @@ if [ -x /mnt/app/current ] ; then
   fi
 fi
 
-for f in `ls /mnt/log/apache2/*.log` ; do
-  logfile=$f-`date +%Y%m%d`
-  if [ -e $logfile ] ; then
-    gzip $logfile
-    /usr/local/ec2onrails/bin/archive_file.rb --file $logfile.gz --dir logs/apache && rm $logfile.gz
-  fi
-done
+if [ -x /mnt/log/apache2 ] ; then
+  for f in `ls /mnt/log/apache2/*.log` ; do
+    logfile=$f-`date +%Y%m%d`
+    if [ -e $logfile ] ; then
+      gzip $logfile
+      /usr/local/ec2onrails/bin/archive_file.rb --file $logfile.gz --dir logs/apache && rm $logfile.gz
+    fi
+  done
+fi
