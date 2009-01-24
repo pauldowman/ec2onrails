@@ -93,7 +93,7 @@ end
 @build_root = "/mnt/build"
 @fs_dir = "#{@build_root}/ubuntu"
 
-@version = [Ec2onrails::VERSION::MAJOR, Ec2onrails::VERSION::MINOR, Ec2onrails::VERSION::TINY].join('.')
+@version = [Ec2onrails::VERSION::STRING]
 
 task :default => :configure
 
