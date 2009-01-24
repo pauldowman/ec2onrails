@@ -90,6 +90,18 @@ puts "Roles: "
 pp @roles
 
 
+puts "Adding db_primary to /etc/hosts..."
+if @roles[:db_primary]
+  db_primary_addr = @roles[:db_primary][0]
+  puts "db_primary has ip address: #{db_primary_addr}"
+  
+  # TODO just use ruby here...
+  run("cp /etc/hosts.original /etc/hosts")
+  run("echo '\n#{db_primary_addr}\tdb_primary\n' >> /etc/hosts")
+end
+# TODO also add hostname for each memcache server
+
+
 #######################################
 # TODO move these role definitions each into it's own file so adding a new 
 #      role is just dropping a ruby file into a directory
@@ -136,26 +148,6 @@ end
 # app role:
 if in_role(:app)
   puts "Starting app role..."
-  start(:app, "mongrel", "mongrel_rails")
-else
-  puts "Stopping app role..."
-  stop(:app, "mongrel", "mongrel_rails")
-end
-
-# add db_primary hostname
-if in_role(:app) || in_role(:db_primary)
-  puts "Adding db_primary hostname to /etc/hosts..."
-  
-  if @roles[:db_primary]
-    # edit /etc/hosts, need db_primary address & db_slave address
-    db_primary_addr = @roles[:db_primary][0]
-    puts "db_primary has ip address: #{db_primary_addr}"
-    
-    # TODO just use ruby here...
-    run("cp /etc/hosts.original /etc/hosts")
-    run("echo '\n#{db_primary_addr}\tdb_primary\n' >> /etc/hosts")
-  end
-  
   start(:app, "mongrel", "mongrel_rails")
 else
   puts "Stopping app role..."
