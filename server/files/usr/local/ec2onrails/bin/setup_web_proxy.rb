@@ -68,7 +68,7 @@ when 'nginx'
   
   src_dir = "#{Dir.pwd}/src"
 
-  nginx_img = "http://sysoev.ru/nginx/nginx-0.6.32.tar.gz"
+  nginx_img = "http://sysoev.ru/nginx/nginx-0.6.34.tar.gz"
   fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
   nginx_dir = "#{src_dir}/nginx"
   puts "installing nginx 6.32 (src dir: #{nginx_dir})"
