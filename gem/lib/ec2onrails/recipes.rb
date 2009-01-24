@@ -64,8 +64,8 @@ Capistrano::Configuration.instance.load do
     DESC
     task :start, :roles => :app_admin do
       run_init_script("mongrel", "start")
-      run "sleep 60" # give the service time to start before attempting to monitor it or monit will complain
-      sudo "monit -g app monitor all"
+      # Give the service time to start before attempting to monitor it or monit will complain
+      sudo "sh -c 'sleep 75 && monit -g app monitor all'"
     end
     
     desc <<-DESC
