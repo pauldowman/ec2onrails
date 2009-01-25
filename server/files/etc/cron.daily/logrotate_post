@@ -10,7 +10,7 @@ if [ -x /mnt/app/current ] ; then
   fi
 fi
 
-if [ -x /mnt/log/apache2 ] ; then
+if [ -e /mnt/log/apache2/access.log ] ; then
   for f in `ls /mnt/log/apache2/*.log` ; do
     logfile=$f-`date +%Y%m%d`
     if [ -e $logfile ] ; then
