@@ -31,7 +31,7 @@ if [ $OLD_HOSTNAME != $NEW_HOSTNAME ] ; then
   echo "Restarting monit..."
   # Unfortunately we need to use kill -9 because if monit shuts down normally
   # it forgets its state because we're using manual mode.
-  MONIT_PID=`initctl list monit | sed 's/[^0-9]//g'`
+  MONIT_PID=`/sbin/initctl list monit | sed 's/[^0-9]//g'`
   kill -9 $MONIT_PID
   
   echo "Running full database backup into new bucket..."
