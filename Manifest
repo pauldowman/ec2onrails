@@ -39,6 +39,7 @@ server/files/etc/ec2onrails/roles.yml
 server/files/etc/environment
 server/files/etc/god/app.god
 server/files/etc/god/db.god
+server/files/etc/god/dkim_filter.god
 server/files/etc/god/examples/have_god_daemonize.god
 server/files/etc/god/master.conf
 server/files/etc/god/memcache.god
