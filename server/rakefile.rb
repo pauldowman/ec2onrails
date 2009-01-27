@@ -156,6 +156,7 @@ task :configure => [:install_gems, :install_monit, :set_file_permissions] do |t|
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
     
     run_chroot "a2enmod deflate"
+    run_chroot "a2enmod headers"
     run_chroot "a2enmod proxy_balancer"
     run_chroot "a2enmod proxy_http"
     run_chroot "a2enmod rewrite"
