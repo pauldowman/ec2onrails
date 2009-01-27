@@ -15,4 +15,6 @@ NameVirtualHost *:443
   SSLEngine On
   SSLCertificateFile    /etc/ec2onrails/ssl/cert/ec2onrails-default.crt
   SSLCertificateKeyFile /etc/ec2onrails/ssl/private/ec2onrails-default.key
+  
+  RequestHeader set X_FORWARDED_PROTO 'https'
 </VirtualHost>
