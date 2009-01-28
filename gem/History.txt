@@ -1,6 +1,7 @@
-== 0.9.9.1 2009-01-25
+== 0.9.9.1 2009-01-27
 
-* ami-xx (32-bit) and ami-xx (64-bit)
+* US AMI's: ami-5394733a (32-bit) and ami-5594733c (64-bit)
+* EU AMI's: ami-761c3402 (32-bit) and ami-701c3404 (64-bit)
 * This is just a bug fix release for 0.9.9, it doesn't include the (huge) changes from the github master branch (EBS, etc.)
 * Updated to Ubuntu 8.04.2 LTS (https://wiki.ubuntu.com/HardyReleaseNotes/ChangeSummary/8.04.2)
 * Built with ec2ubuntu build script version 125 (http://alestic.com)
@@ -10,7 +11,10 @@
 * Updated rails gems (2.2.2, 2.1.2, 2.0.5, 1.2.6)
 * Updated build script to work with git repo
 * Removed PHP packages
-* Bug fix: Increased the time to wait for mongrel processes to restart before re-enabling monitoring (to avoid warning messages from monit)
+* Apache now sets the X_FORWARDED_PROTO header to "https" for SSL requests so request.ssl? will work
+* Apache now removes the Client-IP HTTP header if it's set to prevent Rails from raising an erroneous "IP spoofing attack?!" exception
+* Bug fix: now sets the db_primary hostname alias on all hosts, not just those in the app role
+* Bug fix: increased the time to wait for mongrel processes to restart before re-enabling monitoring (to avoid warning messages from monit)
 * Bug fix: fixed server:install_packages capistrano task (now updates package list)
 * Bug fix: now automatically handles an Elastic IP being associated or disassociated (automatically checks every 15 mins to see if the hostname has been changed and resets anything that depends on the hostname)
 * Bug fix: doesn't try to rotate apache logs if they don't exist. This previously resulted in a warning email.

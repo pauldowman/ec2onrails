@@ -24,7 +24,10 @@ module Ec2onrails #:nodoc:
     BUGFIX  = 1
     STRING = [MAJOR, MINOR, TINY, BUGFIX].join('.')
     
-    AMI_ID_32_BIT = 'ami-xx'
-    AMI_ID_64_BIT = 'ami-xx'
+    AMI_ID_32_BIT_US = 'ami-5394733a'
+    AMI_ID_64_BIT_US = 'ami-5594733c'
+
+    AMI_ID_32_BIT_EU = 'ami-761c3402'
+    AMI_ID_64_BIT_EU = 'ami-701c3404'
   end
 end

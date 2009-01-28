@@ -37,8 +37,6 @@ Capistrano::Configuration.instance.load do
   cfg = ec2onrails_config
 
   set :ec2onrails_version, Ec2onrails::VERSION::STRING
-  set :image_id_32_bit, Ec2onrails::VERSION::AMI_ID_32_BIT
-  set :image_id_64_bit, Ec2onrails::VERSION::AMI_ID_64_BIT
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
   set :user, "app"
@@ -93,8 +91,10 @@ Capistrano::Configuration.instance.load do
       EC2 on Rails.
     DESC
     task :ami_ids do
-      puts "32-bit server image for EC2 on Rails #{ec2onrails_version}: #{image_id_32_bit}"
-      puts "64-bit server image for EC2 on Rails #{ec2onrails_version}: #{image_id_64_bit}"
+      puts "32-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_32_BIT_US}"
+      puts "64-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_64_BIT_US}"
+      puts "32-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_32_BIT_EU}"
+      puts "64-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_64_BIT_EU}"
     end
     
     desc <<-DESC
@@ -129,6 +129,7 @@ Capistrano::Configuration.instance.load do
       Prepare a newly-started instance for a cold deploy.
     DESC
     task :setup, :roles => all_admin_role_names do
+      server.update_hostname
       server.set_admin_mail_forward_address
       server.set_timezone
       server.install_packages
@@ -307,6 +308,16 @@ Capistrano::Configuration.instance.load do
         rails_env = fetch(:rails_env, "production")
         sudo "/usr/local/ec2onrails/bin/set_rails_env #{rails_env}"
       end
+
+      desc <<-DESC
+        Tell the server that an elastic IP has been assigned so it can 
+        reconfigure the things that depend on knowing it's hostname.
+        (It checks every 15 minutes anyway so this is not strictly 
+        necessary.)
+      DESC
+      task :update_hostname, :roles => all_admin_role_names do
+        sudo "/usr/local/ec2onrails/bin/update_hostname"
+      end
       
       desc <<-DESC
         Upgrade to the newest versions of all Ubuntu packages.
@@ -425,9 +436,10 @@ Capistrano::Configuration.instance.load do
       end
 
       desc <<-DESC
-        Enable ssl for the web server. The SSL cert file should be in
-        /etc/ssl/certs/default.pem and the SSL key file should be in
-        /etc/ssl/private/default.key (use the deploy_files task).
+        Enable ssl for the web server. You'll need to deploy a valid
+        SSL certificate file to /etc/ssl/certs/default.pem
+        and a valid SSL key file to  /etc/ssl/private/default.key
+        (use the deploy_files task).
       DESC
       task :enable_ssl, :roles => :web_admin do
         sudo "a2enmod ssl"
