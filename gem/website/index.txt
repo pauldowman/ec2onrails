@@ -112,7 +112,7 @@ Capistrano is run from the command-line using the "cap" command, with a task nam
 
 h3. Commonly-used tasks
 
-You'll mostly need just the following Capistrano tasks:
+In addition to the <code>cap ec2onrails:setup</code> task, you'll mostly need just the following Capistrano tasks:
 
 * <code>cap ec2onrails:ami_ids</code>
 Shows the AMI id's of the images that match the current version of the gem.
