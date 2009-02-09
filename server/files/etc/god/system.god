@@ -15,7 +15,7 @@ God.watch do |w|
     end 
 
     on.condition(:disk_usage) do |c| 
-      c.mount_point = "/mng"
+      c.mount_point = "/mnt"
       c.above = 75
     end 
     
