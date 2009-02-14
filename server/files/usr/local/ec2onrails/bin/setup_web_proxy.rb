@@ -66,32 +66,33 @@ when 'apache'
   
 when 'nginx'
   #nginx does not have a precompiled package, so....
-  
-  src_dir = "#{Dir.pwd}/src"
+  nginx_version = "nginx-0.6.34"
+  nginx_tar = "#{nginx_version}.tar.gz"
 
-  nginx_img = "http://sysoev.ru/nginx/nginx-0.6.34.tar.gz"
+  nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
   fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
-  nginx_dir = "#{src_dir}/nginx"
-  puts "installing nginx 6.32 (src dir: #{nginx_dir})"
-  run "mkdir -p -m 755 #{nginx_dir} &&  rm -rf #{nginx_dir}/*"
-  run "mkdir -p -m 755 #{nginx_dir}/modules/nginx-upstream-fair"
-  run "cd #{nginx_dir} && wget -q #{nginx_img} && tar -xzf nginx-0.6.32.tar.gz"
+  src_dir = "/tmp/src/nginx"
+  puts "installing nginx #{nginx_version} (src dir: #{src_dir})"
+  #make sure the dir is created but empty...lets start afresh
+  run "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
+  run "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
+  run "cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}"
   
-  run "cd #{nginx_dir}/modules && \
+  run "cd #{src_dir}/modules && \
        wget -q #{fair_bal_img} && \
        tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
        mv nginx-upstream-fair/*/* nginx-upstream-fair/."
        
   sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install libpcre3-dev'"
     
-  run "cd #{nginx_dir}/nginx-0.6.32 && \
+  run "cd #{src_dir}/#{nginx_version} && \
        ./configure \
          --sbin-path=/usr/sbin \
          --conf-path=/etc/nginx/nginx.conf \
          --pid-path=/var/run/nginx.pid \
          --with-http_ssl_module \
          --with-http_stub_status_module \
-         --add-module=#{nginx_dir}/modules/nginx-upstream-fair && \
+         --add-module=#{src_dir}/modules/nginx-upstream-fair && \
        make && \
        sudo make install"
 
