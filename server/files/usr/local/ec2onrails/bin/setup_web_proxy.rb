@@ -53,6 +53,7 @@ when 'apache'
   # sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install apache2'"
   
   sudo "a2enmod deflate"
+  sudo "a2enmod headers"
   sudo "a2enmod proxy_balancer"
   sudo "a2enmod proxy_http"
   sudo "a2enmod rewrite"
