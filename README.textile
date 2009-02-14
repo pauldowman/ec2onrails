@@ -57,13 +57,13 @@ h4. 1. Install the gem
 
 h4. 2. Add the config files to your Rails app
 
-You will need to place "Capfile":http://github.com/pauldowman/ec2onrails/tree/master/examples/Capfile?raw=true in the root of your rails folder, and put "deploy.rb":http://github.com/pauldowman/ec2onrails/tree/master/examples/deploy.rb?raw=true  and "s3.yml":http://github.com/pauldowman/ec2onrails/tree/master/examples/s3.yml?raw=true in the config folder.
+You will need to place "Capfile":http://github.com/pauldowman/ec2onrails/raw/master/examples/Capfile in the root of your rails folder, and put "deploy.rb":http://github.com/pauldowman/ec2onrails/raw/master/examples/deploy.rb  and "s3.yml":http://github.com/pauldowman/ec2onrails/raw/master/examples/s3.yml in the config folder.
 
 Within your rails directory, run
 <pre>
-  wget -q -O Capfile http://github.com/pauldowman/ec2onrails/tree/master/examples/Capfile?raw=true
-  wget -q -O config/deploy.rb http://github.com/pauldowman/ec2onrails/tree/master/examples/deploy.rb?raw=true
-  wget -q -O config/s3.yml http://github.com/pauldowman/ec2onrails/tree/master/examples/s3.yml?raw=true
+  wget -q -O Capfile http://github.com/pauldowman/ec2onrails/raw/master/examples/Capfile
+  wget -q -O config/deploy.rb http://github.com/pauldowman/ec2onrails/raw/master/examples/deploy.rb
+  wget -q -O config/s3.yml http://github.com/pauldowman/ec2onrails/raw/master/examples/s3.yml
 </pre>
 
 
@@ -106,7 +106,6 @@ h4. 5. Deploy the app with Capistrano
 Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, this is the only thing you'll need to do from now on.
 
 <pre>
-cap ec2onrails:setup
 cap deploy:cold
 </pre>
 
@@ -126,8 +125,6 @@ h3. Commonly-used tasks
 You'll mostly need just the following Capistrano tasks:
 
 * <code>cap ec2onrails:ami_ids</code> Shows the AMI id's of the images that match the current version of the gem.
-
-* <code>cap ec2onrails:setup</code> This task configures a newly-launched instance. This is the first thing you should do after starting a new instance. It can be run more than once without ill effect. After running  "cap ec2onrails:setup" the next thing to do is run "cap deploy:cold"
 
 * <code>cap ec2onrails:db:enable_ebs</code> This task will move the _primary_ mysql database onto an Amazon Elastic Storage Block (EBS) volume. You can call this task with the optional SIZE parameter defined (defaults to 10 gigs) like <pre>cap ec2onrails:db:enable_ebs SIZE=10</pre>
 
