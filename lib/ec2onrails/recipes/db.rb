@@ -279,11 +279,9 @@ FILE
       DESC
       task :start, :roles => :db do
         sudo "god start db"
-        # sudo "god monitor db"
       end
 
       task :stop, :roles => :db do
-        # sudo "god unmonitor db"
         sudo "god stop db"
       end
       

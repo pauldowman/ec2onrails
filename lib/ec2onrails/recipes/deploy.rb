@@ -9,7 +9,6 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task :start, :roles => :app do
       sudo "god start app"
-      # sudo "god monitor app"
     end
     
     desc <<-DESC
@@ -17,7 +16,6 @@ Capistrano::Configuration.instance(:must_exist).load do
       'god stop app'
     DESC
     task :stop, :roles => :app do
-      # sudo "god unmonitor app"
       sudo "god stop app"
     end
     
