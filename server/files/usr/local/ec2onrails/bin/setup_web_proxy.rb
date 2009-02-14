@@ -65,43 +65,46 @@ when 'apache'
   sudo "ln -sf /mnt/log/apache2 /mnt/log/web_proxy"
   
 when 'nginx'
-  #nginx does not have a precompiled package, so....
-  nginx_version = "nginx-0.6.34"
-  nginx_tar = "#{nginx_version}.tar.gz"
+  #stop if already have nginx installed
+  unless system('which nginx') 
+    #nginx does not have a precompiled package, so....
+    nginx_version = "nginx-0.6.34"
+    nginx_tar = "#{nginx_version}.tar.gz"
 
-  nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
-  fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
-  src_dir = "/tmp/src/nginx"
-  puts "installing nginx #{nginx_version} (src dir: #{src_dir})"
-  #make sure the dir is created but empty...lets start afresh
-  run "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
-  run "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
-  run "cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}"
-  
-  run "cd #{src_dir}/modules && \
-       wget -q #{fair_bal_img} && \
-       tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
-       mv nginx-upstream-fair/*/* nginx-upstream-fair/."
-       
-  sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install libpcre3-dev'"
-    
-  run "cd #{src_dir}/#{nginx_version} && \
-       ./configure \
-         --sbin-path=/usr/sbin \
-         --conf-path=/etc/nginx/nginx.conf \
-         --pid-path=/var/run/nginx.pid \
-         --with-http_ssl_module \
-         --with-http_stub_status_module \
-         --add-module=#{src_dir}/modules/nginx-upstream-fair && \
-       make && \
-       sudo make install"
+    nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
+    fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
+    src_dir = "/tmp/src/nginx"
+    puts "installing nginx #{nginx_version} (src dir: #{src_dir})"
+    #make sure the dir is created but empty...lets start afresh
+    run "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
+    run "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
+    run "cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}"
 
-  run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
-  #an init.d script is in the default server config... lets link it up
-  sudo "ln -sf /etc/init.d/nginx /etc/init.d/web_proxy"
-  sudo "ln -sf /mnt/log/nginx /mnt/log/web_proxy"
-  # sudo "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"  
-  # sudo "ln -sf /usr/local/nginx/conf /etc/nginx"
+    run "cd #{src_dir}/modules && \
+         wget -q #{fair_bal_img} && \
+         tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
+         mv nginx-upstream-fair/*/* nginx-upstream-fair/."
+
+    sudo "sh -c 'export DEBIAN_FRONTEND=noninteractive; aptitude -q -y install libpcre3-dev'"
+
+    run "cd #{src_dir}/#{nginx_version} && \
+         ./configure \
+           --sbin-path=/usr/sbin \
+           --conf-path=/etc/nginx/nginx.conf \
+           --pid-path=/var/run/nginx.pid \
+           --with-http_ssl_module \
+           --with-http_stub_status_module \
+           --add-module=#{src_dir}/modules/nginx-upstream-fair && \
+         make && \
+         sudo make install"
+
+    run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
+    #an init.d script is in the default server config... lets link it up
+    sudo "ln -sf /etc/init.d/nginx /etc/init.d/web_proxy"
+    sudo "ln -sf /mnt/log/nginx /mnt/log/web_proxy"
+    # sudo "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"  
+    # sudo "ln -sf /usr/local/nginx/conf /etc/nginx"
+  end
 else
   puts "The mode: #{ARGV.flags.mode} was not recognized.  Must be one of these #{["apache","nginx"].join(', ')}"
   exit 1
