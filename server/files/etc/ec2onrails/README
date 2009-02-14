@@ -1,5 +1,5 @@
 You can place a *.erb file in this directory and the set_roles script will 
-format them.  This is helpful if you want to customize your balancer_memebers
+format them.  This is helpful if you want to customize your balancer_members
 or nginx_upstream_members files.  For example, if you want to define multiple
 instances for nginx to hook into, you can put something like this in
 nginx_upstream_members.erb:

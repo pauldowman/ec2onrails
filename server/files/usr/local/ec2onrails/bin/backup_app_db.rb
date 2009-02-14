@@ -57,7 +57,7 @@ if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
   ec2 = EC2::Base.new( :access_key_id => @aws.aws_access_key, :secret_access_key => @aws.aws_secret_access_key )
   
   #lets make sure we have space: AMAZON puts a 500 limit on the number of snapshots
-  snaps = ec2.describe_snapshots['DescribeSnapshotsResponse']['snapshotSet']['item'] rescue nil
+  snaps = ec2.describe_snapshots['snapshotSet']['item'] rescue nil
   if snaps && snaps.size > 450
     # TODO:
     # can we make this a bit smarter?  With a limit of 500, that is difficult.  

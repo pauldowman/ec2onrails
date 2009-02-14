@@ -116,7 +116,7 @@ end
 @build_root = "/mnt/build"
 @fs_dir = "#{@build_root}/ubuntu"
 
-@version = [Ec2onrails::VERSION::MAJOR, Ec2onrails::VERSION::MINOR, Ec2onrails::VERSION::TINY].join('.')
+@version = [Ec2onrails::VERSION::STRING]
 
 task :default => :configure
 
@@ -150,7 +150,7 @@ task :install_gems => [:install_packages] do |t|
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
     run_chroot "gem sources -a http://gems.github.com"
-    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
+#    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
     @rubygems.each do |g|
       run_chroot "gem install #{g} --no-rdoc --no-ri"
     end

@@ -411,8 +411,12 @@ Capistrano::Configuration.instance(:must_exist).load do
         begin
           set :user, 'root'
           sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
-          sudo "cp -f /etc/sudoers.restricted_access /etc/sudoers"
+          
+          sudo "test ! -L /etc/sudoers || ( echo 'removing symlink /etc/sudoers' ; unlink /etc/sudoers )"
+          sudo "cp -f /etc/sudoers.restricted_access /etc/sudoers && chmod 440 /etc/sudoers"
+          # this doesn't work; sudo needs the file to not be a symlink
           # run "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
+
         ensure
           set :user, old_user
           sessions.clear
@@ -448,7 +452,11 @@ Capistrano::Configuration.instance(:must_exist).load do
               #   do not escalate priv. to root...use another user like 'admin' that has full sudo access
               set :user, 'root'
               sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
-              run "cp -f /etc/sudoers.full_access /etc/sudoers"
+              
+
+              # note, this approach prevents end users from effectively editing the sudoers file directly :(
+	          sudo "test ! -L /etc/sudoers || ( echo 'removing symlink /etc/sudoers' ; unlink /etc/sudoers )"
+              run "cp /etc/sudoers.full_access /etc/sudoers && chmod 440 /etc/sudoers"
               set :user, old_user
               sessions.clear 
               yield if block_given?

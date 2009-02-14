@@ -166,9 +166,10 @@ Capistrano::Configuration.instance.load do
             if output =~ /Client.InvalidVolume.ZoneMismatch/i              
               raise Exception, "The volume you are trying to attach does not reside in the zone of your instance.  Stopping!"
             end
-            
-            
-            sleep(10)
+			while !system( "ec2-describe-volumes | grep #{vol_id} | grep attached" )
+				puts "Waiting for #{vol_id} to be attached..."
+				sleep 1            
+			end
           end
           
           ec2onrails.server.allow_sudo do
@@ -188,9 +189,11 @@ Capistrano::Configuration.instance.load do
                 sleep(10)
               end
               quiet_capture("sudo umount #{mysql_dir_root}") #unmount if need to
+              puts "Checking if the filesystem needs to be created (if you created #{vol_id} yourself)"
+              existing = quiet_capture( "mkfs.xfs /dev/sdh", :via => 'sudo' ).match( /existing filesystem/ )
               sudo "xfs_check #{block_mnt}"
               # Restart the db if it 
-              start if start_stop_db
+              start if start_stop_db && existing
             else
               sudo "mkfs.xfs #{block_mnt}"  
             end
