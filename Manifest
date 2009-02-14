@@ -25,7 +25,7 @@ server/files/etc/apache2/sites-available/app.common
 server/files/etc/apache2/sites-available/app.custom
 server/files/etc/apache2/sites-available/default
 server/files/etc/apache2/sites-available/default-ssl
-server/files/etc/cron.d/backup_app_db_to_s3
+server/files/etc/cron.d/ec2onrails
 server/files/etc/cron.daily/app
 server/files/etc/cron.daily/logrotate_post
 server/files/etc/cron.hourly/app
@@ -81,6 +81,7 @@ server/files/usr/local/ec2onrails/bin/restore_app_db.rb
 server/files/usr/local/ec2onrails/bin/set_rails_env
 server/files/usr/local/ec2onrails/bin/set_roles.rb
 server/files/usr/local/ec2onrails/bin/setup_web_proxy.rb
+server/files/usr/local/ec2onrails/bin/update_hostname
 server/files/usr/local/ec2onrails/config
 server/files/usr/local/ec2onrails/COPYING
 server/files/usr/local/ec2onrails/lib/aws_helper.rb
