@@ -26,7 +26,7 @@ Features of the EC2 image:
 * Ruby 1.8.6
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
-* "monit":http://www.tildeslash.com/monit/ configured to monitor apache, mongrel, mysql, memcached, drive space and system load
+* "god":http://god.rubyforge.org/ configured to monitor apache or nginx, mongrel, mysql, memcached, drive space and system load
 * Ubuntu 8.04 LTS "Hardy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
 * SSL support
 * Amazon AMI tools installed
