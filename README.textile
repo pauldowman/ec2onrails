@@ -168,7 +168,7 @@ h4. Getting started...
 * ditto for getting the ec2onrails server code up onto your new instance: <code>scp -rp -i ~/.ssh/id_rsa-amazon-keypair ~/your/copy/of/ec2onrails/. root@HOST_PUBLIC_ADDRESS:/mnt/ec2onrails</code>
 * time to log into your instance: <code>ssh -i ~/.ssh/id_rsa-amazon-keypair root@HOST_PUBLIC_ADDRESS</code>
 * get the most recent ec2ubuntu script: <code>curl -Lo /mnt/ec2ubuntu-build-ami http://ec2ubuntu-build-ami.notlong.com</code>
-* time to get the instance ready for ec2onrails (i.e. install all the default packages and gems, as well as copy over all the server/files for the default configuration).  The script will end with a command you need to run to finish creating an amazon ami-image. <pre>bash /mnt/ec2ubuntu-build-ami \ 
+* time to get the instance ready for ec2onrails.  The script will end with a command you need to run to finish creating an amazon ami-image. <pre>bash /mnt/ec2ubuntu-build-ami \ 
 --codename hardy \ 
 --bucket YOURNAME_ec2onrails \ 
 --prefix ec2onrails \ 
