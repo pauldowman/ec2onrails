@@ -101,6 +101,7 @@ end
   "grempe-amazon-ec2",
   "aws-s3",
   "god",
+  "RubyInline",
   "memcache-client",
   "mongrel",
   "mongrel_cluster",
