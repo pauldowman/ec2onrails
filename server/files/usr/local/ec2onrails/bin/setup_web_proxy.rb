@@ -97,14 +97,13 @@ when 'nginx'
            --add-module=#{src_dir}/modules/nginx-upstream-fair && \
          make && \
          sudo make install"
-
-    run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
-    #an init.d script is in the default server config... lets link it up
-    sudo "ln -sf /etc/init.d/nginx /etc/init.d/web_proxy"
-    sudo "ln -sf /mnt/log/nginx /mnt/log/web_proxy"
-    # sudo "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"  
-    # sudo "ln -sf /usr/local/nginx/conf /etc/nginx"
   end
+  run "sudo rm -rf /usr/local/nginx/logs; sudo ln -sf /mnt/log/nginx /usr/local/nginx/logs"
+  #an init.d script is in the default server config... lets link it up
+  sudo "ln -sf /etc/init.d/nginx /etc/init.d/web_proxy"
+  sudo "ln -sf /mnt/log/nginx /mnt/log/web_proxy"
+  # sudo "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"  
+  # sudo "ln -sf /usr/local/nginx/conf /etc/nginx"
 else
   puts "The mode: #{ARGV.flags.mode} was not recognized.  Must be one of these #{["apache","nginx"].join(', ')}"
   exit 1
