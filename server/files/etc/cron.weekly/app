@@ -5,6 +5,17 @@
 #      to run a script under a specific role
 #      see the file for details
 
-test -e /mnt/app/current/script/weekly || exit 0
 cd /mnt/app/current
-sudo -u app /usr/local/ec2onrails/bin/rails_env script/weekly
+
+if test -e /mnt/app/current/script/cron/weekly
+then 
+   sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/weekly
+   exit 0;
+fi
+
+#DEPRECATED: just for old usage....
+if test -e /mnt/app/current/script/weekly
+then 
+   sudo -u app /usr/local/ec2onrails/bin/rails_env script/weekly
+   exit 0;
+fi

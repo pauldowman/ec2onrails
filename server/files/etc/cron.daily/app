@@ -4,6 +4,18 @@
 #      /usr/local/ec2onrails/bin/exec_runner
 #      to run a script under a specific role
 #      see the file for details
-test -e /mnt/app/current/script/daily || exit 0
+
 cd /mnt/app/current
-sudo -u app /usr/local/ec2onrails/bin/rails_env script/daily
+
+if test -e /mnt/app/current/script/cron/daily
+then 
+   sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/daily
+   exit 0;
+fi
+
+#DEPRECATED: just for old usage....
+if test -e /mnt/app/current/script/daily
+then 
+   sudo -u app /usr/local/ec2onrails/bin/rails_env script/daily
+   exit 0;
+fi
