@@ -220,10 +220,12 @@ Capistrano::Configuration.instance(:must_exist).load do
     sudo postconf -e 'myhostname = #{domain}';
     sudo postconf -e 'mydomain = #{domain}';
     sudo postconf -e 'myorigin = $mydomain';
+    sudo postconf -e 'mynetworks_style=subnet';
     sudo postconf -e 'biff = no';
     sudo postconf -e 'alias_maps = hash:/etc/aliases';
     sudo postconf -e 'alias_database = hash:/etc/aliases';
     sudo postconf -e 'mydestination = localdomain, localhost, localhost.localdomain, localhost';
+    sudo postconf -e 'relay_domains=$mydestination';
     sudo postconf -e 'mynetworks = 127.0.0.0/8';
     sudo postconf -e 'smtpd_milters = inet:localhost:8891';
     sudo postconf -e 'non_smtpd_milters = inet:localhost:8891';
@@ -256,8 +258,17 @@ Capistrano::Configuration.instance(:must_exist).load do
     MSG
           puts msg
 
-          #putting this below because sometimes restarting the dkim filter fails
-          sudo "/etc/init.d/dkim-filter restart 2>&1"
+          #sometimes the dkim-filter restart fails; it seems to be a race condition with some of the postfix changes going in...
+          #but a sleep here seems to do the trick.
+          sleep(10)
+          output = quiet_capture "sudo /etc/init.d/dkim-filter restart"
+          if output =~ /smfi_opensocket\(\) failed/
+            #ah, if we didn't sleep enough above, lets try it one more time; but this time it will fail if we still get
+            #the smfi_opensocket error
+            sleep(5)
+            sudo "/etc/init.d/dkim-filter restart 2>&1"
+          end
+          sleep(2)
           sudo "/etc/init.d/postfix restart 2>&1"
         end
 
