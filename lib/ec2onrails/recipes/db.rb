@@ -166,10 +166,10 @@ Capistrano::Configuration.instance.load do
             if output =~ /Client.InvalidVolume.ZoneMismatch/i              
               raise Exception, "The volume you are trying to attach does not reside in the zone of your instance.  Stopping!"
             end
-			while !system( "ec2-describe-volumes | grep #{vol_id} | grep attached" )
-				puts "Waiting for #{vol_id} to be attached..."
-				sleep 1            
-			end
+      			while !system( "ec2-describe-volumes | grep #{vol_id} | grep attached" )
+      				puts "Waiting for #{vol_id} to be attached..."
+      				sleep 1            
+      			end
           end
           
           ec2onrails.server.allow_sudo do
@@ -251,16 +251,9 @@ FILE
       
             put txt, "/tmp/VOLUME-README"
             sudo "mv /tmp/VOLUME-README #{mysql_dir_root}/VOLUME-README"
-            #update the list of ebs volumes
-            #TODO: abstract this away into a helper method!!
-            #TODO: this first touch should *not* be needed... quiet_capture should return an empty string
-            #      if the cat on a non-existant file fails (as it should).  this isn't causing issues
-            #      for me, but a few users have complained.... bad gemspec or something?
-            #      COMMENTING OUT for now to see if the recent gemspec update improved things...
-            # ebs_info = quiet_capture("touch /etc/ec2onrails/ebs_info.yml")
+            sudo "touch /etc/ec2onrails/ebs_info.yml"
             ebs_info = quiet_capture("cat /etc/ec2onrails/ebs_info.yml")
-            #THIS IS BROKEN!
-            
+
             ebs_info = ebs_info.empty? ? {} : YAML::load(ebs_info)
             ebs_info[mysql_dir_root] = {'block_loc' => block_mnt, 'volume_id' => vol_id} 
             put(ebs_info.to_yaml, "/tmp/ebs_info.yml")
