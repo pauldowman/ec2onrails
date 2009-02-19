@@ -29,7 +29,7 @@ if [ $OLD_HOSTNAME != $NEW_HOSTNAME ] ; then
   echo "Hostname has changed (from $OLD_HOSTNAME to $NEW_HOSTNAME)"
   
   echo "Restarting god..."
-  /etc/init.d/god  restart
+  /etc/init.d/god  restart > /dev/null
   
   echo "Running full database backup into new bucket..."
   # We run the full backup because the bucket name is expected to be based on
