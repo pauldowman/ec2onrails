@@ -5,12 +5,14 @@
 #      to run a script under a specific role
 #      see the file for details
 
-
 cd /mnt/app/current
 
-if test -e /mnt/app/current/script/cron/hourly
-then 
-   sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/hourly
+if test -e /mnt/app/current/script/cron/hourly; then 
+   if test -f /mnt/app/current/script/cron/hourly; then 
+      sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/hourly;
+   else 
+      sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/hourly/*;
+   fi
    exit 0;
 fi
 

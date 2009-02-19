@@ -7,9 +7,12 @@
 
 cd /mnt/app/current
 
-if test -e /mnt/app/current/script/cron/weekly
-then 
-   sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/weekly
+if test -e /mnt/app/current/script/cron/weekly; then 
+   if test -f /mnt/app/current/script/cron/weekly; then 
+      sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/weekly;
+   else 
+      sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/weekly/*;
+   fi
    exit 0;
 fi
 
