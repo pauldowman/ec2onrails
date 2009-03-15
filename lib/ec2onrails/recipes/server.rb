@@ -423,8 +423,8 @@ Capistrano::Configuration.instance(:must_exist).load do
           set :user, 'root'
           sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
           
-          sudo "test ! -L /etc/sudoers || ( echo 'removing symlink /etc/sudoers' ; unlink /etc/sudoers )"
-          sudo "cp -f /etc/sudoers.restricted_access /etc/sudoers && chmod 440 /etc/sudoers"
+          run "test ! -L /etc/sudoers || ( echo 'removing symlink /etc/sudoers' ; unlink /etc/sudoers )"
+          run "cp -f /etc/sudoers.restricted_access /etc/sudoers && chmod 440 /etc/sudoers"
           # this doesn't work; sudo needs the file to not be a symlink
           # run "ln -sf /etc/sudoers.restricted_access /etc/sudoers"
 
