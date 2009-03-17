@@ -54,20 +54,31 @@ Capistrano::Configuration.instance.load do
         start
         sleep(5) #make sure the db has some time to start up!
         
+        #NOTE: if these commands fail, it is most likely because the command has already been run....
+
+        cmds = []
+        #sometimes there is a test database that comes with the default installation of MySQL...get rid of it!
         
-        # remove the default test database, though sometimes it doesn't exist (perhaps it isn't there anymore?)
-        run %{mysql -u root -e "drop database if exists test; flush privileges;"}
-        
+        cmds << %{mysql -u root -e "drop database if exists test; flush privileges;"}
         # removing anonymous mysql accounts
-        run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
-        run %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
-        
+        cmds << %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
+        cmds << %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
+
         # qoting of database names allows special characters eg (the-database-name)
         # the quotes need to be double escaped. Once for capistrano and once for the host shell
-        run %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`;"}
-        run %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        cmds << %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`;"}
+        cmds << %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        cmds << %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        cmds << %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        
+        cmds.each do |cmd|
+          begin
+            run cmd
+          rescue Exception => e
+              puts "  CONTINUING: this command was previously run, so continuing"
+          end
+        end
+        
       end
       
       desc <<-DESC
@@ -303,7 +314,13 @@ FILE
       DESC
       task :set_root_password, :roles => :db do
         if cfg[:mysql_root_password]
-          run %{mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('#{cfg[:mysql_root_password]}') WHERE User='root'; FLUSH PRIVILEGES;"}
+          begin
+            run %{mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('#{cfg[:mysql_root_password]}') WHERE User='root'; FLUSH PRIVILEGES;"}
+          rescue Exception => e
+            #most likely because the password was already set
+            #in that case this is fine to swallow the error because the task is 'set' db password, not reset it.... we would have to know
+            #what the old root password was
+          end
         end
       end
       
