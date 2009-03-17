@@ -68,7 +68,7 @@ when 'nginx'
   #stop if already have nginx installed
   unless system('which nginx') 
     #nginx does not have a precompiled package, so....
-    nginx_version = "nginx-0.6.34"
+    nginx_version = "nginx-0.6.35"
     nginx_tar = "#{nginx_version}.tar.gz"
 
     nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
