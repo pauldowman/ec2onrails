@@ -131,7 +131,9 @@ task :install_packages do |t|
   unless_completed(t) do
     ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
+    run_chroot "apt-get update"
     run_chroot "apt-get install -y #{@packages.join(' ')}"
+    run_chroot "apt-get autoremove -y"
     run_chroot "apt-get clean"
     
     #lets run the aptitude-only packages

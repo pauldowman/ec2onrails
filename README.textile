@@ -81,7 +81,7 @@ For the AMI id's of the current images do <code>cap ec2onrails:ami_ids</code> fr
 
 _NOTE: Only use the images that match the current version of the gem._
 
-Please see the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG for release notes, and see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
+Please see the "change log":http://github.com/pauldowman/ec2onrails/raw/master/gem/CHANGELOG for release notes, and see the "list of open issues":http://rubyforge.org/tracker/?atid=17558&group_id=4552&func=browse.
 
 As is "standard for public AMI's":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/DeveloperGuide/public-ami-guidelines.html, password-based logins are disabled. You log in with your own "public/private keypair":http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/running-an-instance.html.
 
@@ -188,17 +188,15 @@ Comments are welcome. Send an email to "Paul Dowman":http://pauldowman.com/conta
 
 h2. Change log
 
-See the "change log":http://ec2onrails.rubyforge.org/svn/trunk/gem/CHANGELOG.
+See the "change log":http://github.com/pauldowman/ec2onrails/raw/master/gem/CHANGELOG.
 
 
 h2. How to submit patches
 
 Pleae read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/. The source code can be checked out anonymously using: 
 <pre>
-svn checkout http://ec2onrails.rubyforge.org/svn/trunk ec2onrails
+git clone git://github.com/pauldowman/ec2onrails.git
 </pre>
-
-Code on Github: "https://github.com/pauldowman/ec2onrails":https://github.com/pauldowman/ec2onrails
 
 Patches can be submitted to the "RubyForge Tracker":http://rubyforge.org/tracker/?atid=17560&group_id=4552&func=browse  or "emailed directly to me":http://pauldowman.com/contact/ .
 

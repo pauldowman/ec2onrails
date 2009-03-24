@@ -80,17 +80,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       DESC
       task :upgrade_gems do
         sudo "gem update --system --no-rdoc --no-ri"
-        sudo "gem update --no-rdoc --no-ri" do |ch, str, data|
-          ch[:data] ||= ""
-          ch[:data] << data
-          if data =~ />\s*$/
-            puts data
-            choice = Capistrano::CLI.ui.ask("The gem command is asking for a number:")
-            ch.send_data("#{choice}\n")
-          else
-            puts data
-          end
-        end
+        sudo "gem update --no-rdoc --no-ri"
       end
       
       desc <<-DESC
@@ -281,18 +271,8 @@ Capistrano::Configuration.instance(:must_exist).load do
       DESC
       task :install_gems do
         if cfg[:rubygems]
-          cfg[:rubygems].each do |gem|
-            sudo "gem install #{gem} --no-rdoc --no-ri" do |ch, str, data|
-              ch[:data] ||= ""
-              ch[:data] << data
-              if data =~ />\s*$/
-                puts data
-                choice = Capistrano::CLI.ui.ask("The gem command is asking for a number:")
-                ch.send_data("#{choice}\n")
-              else
-                puts data
-              end
-            end
+          cfg[:rubygems].each do |g|
+            sudo "gem install #{g} --no-rdoc --no-ri"
           end
         end        
       end
@@ -400,9 +380,10 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
 
       desc <<-DESC
-        Enable ssl for the web server. The SSL cert file should be in
-        /etc/ssl/certs/default.pem and the SSL key file should be in
-        /etc/ssl/private/default.key (use the deploy_files task).
+        Enable ssl for the web server. You'll need to deploy a valid
+        SSL certificate file to /etc/ssl/certs/default.pem
+        and a valid SSL key file to  /etc/ssl/private/default.key
+        (use the deploy_files task).
       DESC
       task :enable_ssl, :roles => :web do
         #TODO: enable for nginx

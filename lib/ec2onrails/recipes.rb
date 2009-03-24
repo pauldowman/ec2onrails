@@ -47,8 +47,6 @@ Capistrano::Configuration.instance.load do
   cfg[:web_proxy_server] ||= :apache
 
   set :ec2onrails_version, Ec2onrails::VERSION::STRING
-  set :image_id_32_bit, Ec2onrails::VERSION::AMI_ID_32_BIT
-  set :image_id_64_bit, Ec2onrails::VERSION::AMI_ID_64_BIT
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
   set :user, "app"
@@ -80,8 +78,10 @@ Capistrano::Configuration.instance.load do
       EC2 on Rails.
     DESC
     task :ami_ids do
-      puts "32-bit server image for EC2 on Rails #{ec2onrails_version}: #{image_id_32_bit}"
-      puts "64-bit server image for EC2 on Rails #{ec2onrails_version}: #{image_id_64_bit}"
+      puts "32-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_32_BIT_US}"
+      puts "64-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_64_BIT_US}"
+      puts "32-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_32_BIT_EU}"
+      puts "64-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_64_BIT_EU}"
     end
     
     desc <<-DESC

@@ -79,7 +79,7 @@ if in_role?(:web)
   end
 end
 
-if in_role?(:db_primary) || in_role?(:app)
+if roles[:db_primary]
   db_primary_addr = roles[:db_primary][0]
   add_etc_hosts_entry('db_primary', db_primary_addr)
 end
