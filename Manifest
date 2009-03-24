@@ -81,7 +81,6 @@ server/files/usr/local/ec2onrails/bin/restore_app_db.rb
 server/files/usr/local/ec2onrails/bin/set_rails_env
 server/files/usr/local/ec2onrails/bin/set_roles.rb
 server/files/usr/local/ec2onrails/bin/setup_web_proxy.rb
-server/files/usr/local/ec2onrails/bin/update_hostname
 server/files/usr/local/ec2onrails/config
 server/files/usr/local/ec2onrails/COPYING
 server/files/usr/local/ec2onrails/lib/aws_helper.rb
