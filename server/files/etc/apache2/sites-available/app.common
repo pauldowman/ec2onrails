@@ -43,7 +43,7 @@ RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
 RewriteRule ^/(.*)$ balancer://mongrel_cluster%{REQUEST_URI} [P,QSA,L]
 
 # Deflate
-AddOutputFilterByType DEFLATE text/html text/plain text/xml application/xml application/xhtml+xml text/javascript text/css
+AddOutputFilterByType DEFLATE text/html text/plain text/xml application/xml application/xhtml+xml text/javascript application/x-javascript text/css
 BrowserMatch ^Mozilla/4 gzip-only-text/html
 BrowserMatch ^Mozilla/4.0[678] no-gzip
 BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
@@ -54,3 +54,8 @@ BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
 #DeflateFilterNote Ratio ratio_info
 #LogFormat '"%r" %{output_info}n/%{input_info}n (%{ratio_info}n%%)' deflate
 #CustomLog logs/myapp_deflate_log deflate
+
+# Fix rails "IP spoofing attack?!" error
+# see http://iprog.com/posting/2008/08/rails_500_error_ip_spoofing_attack
+# see http://rails.lighthouseapp.com/projects/8994/tickets/322-don-t-return-500-if-client-ip-and-x-forwarded-for-agree
+RequestHeader unset Client-IP

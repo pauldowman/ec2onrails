@@ -46,21 +46,24 @@ module CommandLineArgs extend OptiFlagSet
 
   flag "exec" do
     description "what to run if the role of the server matches the -role passed in"
-  end  
+  end
+  
+  optional_switch_flag "v" do
+    description "let you know if the script stopped because it was running in either a different role or environment than the one specified"
+  end
   
   and_process!
 end
 
 #strip out the ':', in case the user enters ':db', or ':app'
-role = ARGV.flags.role.sub(/^:/, '').to_sym
-if ARGV.flags.role && !in_role?(role)
-  puts "This script is not being run because the server is not running under the #{role} role"
+if ARGV.flags.role && !in_role?(ARGV.flags.role.sub(/^:/, '').to_sym)
+  puts "This script is not being run because the server is not running under the #{role} role" if ARGV.flags.v
   exit
 end
 
 curr_env = Ec2onrails::Utils.rails_env
-if ARGV.flags.only_env && ARGV.flags.only_env.strip != curr_env
-  puts "This script is not being run because the server is not running under the #{curr_env} environment"
+if ARGV.flags.only_env && ARGV.flags.only_env.strip.downcase != curr_env.strip.downcase
+  puts "This script is not being run because the server is not running under the #{curr_env} environment" if ARGV.flags.v
   exit
 end
 

@@ -27,10 +27,11 @@ Echoe.new('ec2onrails', version) do |p|
   p.rdoc_pattern     = /^(lib|README.textile|CHANGELOG)/
  
   p.dependencies     = [
-                        'capistrano          >= 2.4.3', 
-                        'archive-tar-minitar >= 0.5.2', 
-                        'optiflag            >= 0.6.5']
+                        'capistrano           >=2.4.3', 
+                        'archive-tar-minitar  >=0.5.2', 
+                        'optiflag             >=0.6.5']
                         
   p.development_dependencies = ['rake >=0.7.1']
+  
   
 end

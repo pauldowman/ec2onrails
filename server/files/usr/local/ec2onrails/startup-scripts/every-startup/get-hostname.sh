@@ -20,6 +20,4 @@
 
 # Set the hostname to this instance's public hostname
 
-hostname `curl http://169.254.169.254/latest/meta-data/public-hostname`
-sudo god reload
-
+hostname `curl -s http://169.254.169.254/latest/meta-data/public-hostname`

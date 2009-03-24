@@ -101,6 +101,7 @@ end
   "grempe-amazon-ec2",
   "aws-s3",
   "god",
+  "RubyInline",
   "memcache-client",
   "mongrel",
   "mongrel_cluster",
@@ -116,7 +117,7 @@ end
 @build_root = "/mnt/build"
 @fs_dir = "#{@build_root}/ubuntu"
 
-@version = [Ec2onrails::VERSION::MAJOR, Ec2onrails::VERSION::MINOR, Ec2onrails::VERSION::TINY].join('.')
+@version = [Ec2onrails::VERSION::STRING]
 
 task :default => :configure
 
@@ -150,7 +151,7 @@ task :install_gems => [:install_packages] do |t|
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
     run_chroot "gem sources -a http://gems.github.com"
-    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
+#    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
     @rubygems.each do |g|
       run_chroot "gem install #{g} --no-rdoc --no-ri"
     end
@@ -191,7 +192,7 @@ end
 desc "This task is for deploying the contents of /files to a running server image to test config file changes without rebuilding."
 task :deploy_files do |t|
   raise "need 'key' and 'host' env vars defined" unless ENV['key'] && ENV['host']
-  run "rsync -rlvzcC --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
+  run "rsync -rlvzcCp --rsh='ssh -l root -i #{ENV['key']}' files/ #{ENV['host']}:/"
 end
 
 ##################

@@ -14,3 +14,8 @@
 # with EBS:
 #   Full snapshot every 2 hours
 11 */2 * * *  root  test -f /etc/mysql/conf.d/mysql-ec2-ebs.cnf && /usr/local/ec2onrails/bin/backup_app_db.rb
+
+
+# Check if the hostname has been updated every 15 minutes.
+# This can happen if the user associated or disassociated an Elastic IP
+12,27,42,57 * * * * root /usr/local/ec2onrails/bin/update_hostname

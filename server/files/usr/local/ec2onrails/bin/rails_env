@@ -28,8 +28,7 @@ require "yaml"
 @rails_env = YAML::load_file("/etc/mongrel_cluster/app.yml")["environment"]
 
 if ARGV.any?
-  result = system "env RAILS_ENV=#{@rails_env} #{ARGV.join(' ')}"
-  raise("error: #{$?}") unless result
+  exec "env RAILS_ENV=#{@rails_env} #{ARGV.join(' ')}"
 else
   puts @rails_env
 end

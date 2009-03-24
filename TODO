@@ -1,6 +1,8 @@
 here are a list of upcoming changes or ones I'm thinking about
 
 FUTURE CHANGES
+[ ] when hardening server, change the SSH port
+
 [ ] do not change the Capify file.  This is an issue if you want to use ec2 for staging but something else (engineyard) for production.  The issue is that require 'ec2onrails/recipes' cannot be called until after the deploy file has been run because of some loading dependencies.  SO, is it possible to not have this behavior, or is this making a mnt out of a mole-hill?
 
 [ ] be able to save an ami file after cap ec2onrails:setup is run... this way you can just launch more instances of that specific ami file (can we automate this? )
@@ -33,16 +35,8 @@ FUTURE CHANGES
     http://pauldowman.com/2008/02/17/smtp-mail-from-ec2-web-server-setup/
     also see this file for updates:
     http://www.babbleon.co.uk/2008/05/email-with-ec2/ 
-    
-[ ] preload mysql timezone information (UPDATE: not sure if this is needed...)
-
-[ ] mysql optimizations are not calculating the num of cores avail correctly
-
-[ ] right now cron has a task called 'app' in cron.daily, cron.hourly, cron.monthly, and cron.weekly.  BUT, these are run on every server.  we should probably provide some sort of mechanism so a user can specify particular jobs for particular roles
 
 [ ] consolidate all logs to /mnt/log, including /mnt/app/current... it makes it easier to rotate and shuffle them off to s3
-
-[ ] get all user-data and meta-data variables from the amazon image in a similar way to rightscale?  Makes it dead simple to use/manipulate that information.  UPDATE: rightscale gave us permission to use their open-sourced files, as long as we credit them
 
 [ ] hook in encryption of backup archives
 
@@ -72,6 +66,14 @@ QUESTIONS
 
 
 COMPLETED
+[X] preload mysql timezone information (UPDATE: not sure if this is needed...NOTE: it is not)
+
+[X] mysql optimizations are not calculating the num of cores avail correctly
+
+[X] right now cron has a task called 'app' in cron.daily, cron.hourly, cron.monthly, and cron.weekly.  BUT, these are run on every server.  we should probably provide some sort of mechanism so a user can specify particular jobs for particular roles  NOTE: paul already thought of this with the exec_runner script that we can run from within cron
+
+[X] get all user-data and meta-data variables from the amazon image in a similar way to rightscale?  Makes it dead simple to use/manipulate that information.  UPDATE: rightscale gave us permission to use their open-sourced files, as long as we credit them
+
 [X] Move to Echoe?  It just seems a LOT easier to setup and handle than hoe.  It can remove a lot of cruft, probably including ./config, ./script, ./tasks (or most of them), and ./website (move that to the README file?... looks like would need to be moved to ./docs  ).  A few folks have branched ec2onrails into github before and they've all done this...
 
 [X] set -y flag when installing/updating gems UPDATE: not needed... does it automatically for the other non-interactive flags we are using
