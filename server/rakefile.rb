@@ -56,12 +56,7 @@ end
   git-core
   irb
   less
-  libdbm-ruby
-  libgdbm-ruby
   libmysql-ruby
-  libopenssl-ruby
-  libreadline-ruby
-  libruby
   libssl-dev
   libyaml-ruby
   libzlib-ruby
@@ -77,8 +72,7 @@ end
   rdoc
   ri
   rsync
-  ruby
-  ruby1.8-dev
+  ruby-full
   subversion
   sysstat
   unzip
