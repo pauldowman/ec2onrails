@@ -151,7 +151,6 @@ task :install_gems => [:install_packages] do |t|
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
     run_chroot "gem sources -a http://gems.github.com"
-#    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
     @rubygems.each do |g|
       run_chroot "gem install #{g} --no-rdoc --no-ri"
     end
@@ -165,6 +164,8 @@ task :configure => [:install_gems] do |t|
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
         
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
+
+    run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
         
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.bashrc"
