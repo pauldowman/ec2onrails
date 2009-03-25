@@ -1,37 +1,23 @@
-require "./lib/ec2onrails/version"
- 
 begin
   require 'echoe'
 rescue LoadError
   abort "You'll need to have `echoe' installed to use ec2onrails' Rakefile"
 end
- 
-version = Ec2onrails::VERSION::STRING.dup
- 
-Echoe.new('ec2onrails', version) do |p|
-  p.changelog        = "CHANGELOG"
- 
-  p.author           = ['Paul Dowman', 'Adam Greene']
-  p.email            = "paul@pauldowman.com"
- 
-  p.summary = <<-DESC.strip.gsub(/\n\s+/, " ")
-    Client-side libraries (Capistrano tasks) for managing and 
-    deploying to EC2 on Rails servers.
-  DESC
-  
-  #OTHER helpful options
-  # p.install_message = "perhaps telling them where to find the example docs?"
-  # p.rdoc_pattern
-  p.url              = "http://ec2onrails.rubyforge.org"
-  p.need_zip         = true
-  p.rdoc_pattern     = /^(lib|README.textile|CHANGELOG)/
- 
-  p.dependencies     = [
-                        'capistrano           >=2.4.3', 
-                        'archive-tar-minitar  >=0.5.2', 
-                        'optiflag             >=0.6.5']
-                        
-  p.development_dependencies = ['rake >=0.7.1']
-  
-  
-end
+
+require "./echoe_config"
+
+desc "Run all gem-related tasks"
+task :ec2onrails_gem => [:manifest, :package, :update_github_gemspec]
+
+desc "Update the GitHub gemspec file (/ec2onrails.gemspec)"
+task :update_github_gemspec => [:manifest, :package] do
+  root_dir = File.dirname __FILE__
+  contents = File.open("#{root_dir}/pkg/ec2onrails-#{Ec2onrails::VERSION::STRING}/ec2onrails.gemspec", 'r').readlines
+  File.open("#{root_dir}/ec2onrails.gemspec", 'w') do |f|
+    f << "# This file is auto-generated, do not edit.\n"
+    f << "# Edit echoe_config.rb and then run 'rake ec2onrails_gem'\n"
+    f << "# \n"
+    contents.each {|line| f << line}
+  end
+end  
+
