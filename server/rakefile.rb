@@ -101,6 +101,7 @@ end
   "mongrel_cluster",
   "optiflag",
   "rails",
+  "rails -v '~> 2.3.2'",
   "rails -v '~> 2.2.2'",
   "rails -v '~> 2.1.2'",
   "rails -v '~> 2.0.5'",
