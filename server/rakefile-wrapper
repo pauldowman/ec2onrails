@@ -22,23 +22,5 @@
 # This script runs the EC2 on Rails rakefile, it's meant to be called by
 # Eric Hammond's Ubuntu build script: http://alestic.com/
 
-
-if [ -z `which rake` ] ; then
-  echo "Installing rake..."
-  (
-  cd /tmp
-  wget http://rubyforge.org/frs/download.php/29752/rake-0.8.1.tgz
-  tar xvf rake-0.8.1.tgz
-  cd rake-0.8.1
-  ruby install.rb
-  )
-fi
-
 cd `dirname $0`
-
-if [ $(uname -m) = 'x86_64' ]; then
-  export ARCH=x86_64
-  rake
-else
-  rake
-fi
+rake

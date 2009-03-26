@@ -17,12 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This script is meant to be run by build-ec2onrails.sh, which is run by
+# This script is meant to be run by rakefile-wrapper, which is run by
 # Eric Hammond's Ubuntu build script: http://alestic.com/
-# e.g.:
-# bash /mnt/ec2ubuntu-build-ami --script /mnt/ec2onrails/server/build-ec2onrails.sh ...
-
-
+# See the README file for details
 
 require "rake/clean"
 require 'yaml'
