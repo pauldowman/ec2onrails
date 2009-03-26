@@ -115,6 +115,11 @@ task :default => :configure
 
 desc "Removes all build files"
 task :clean_all do |t|
+  puts "Unmounting proc and dev from #{@build_root}..."
+  run "umount #{@build_root}/ubuntu/proc", true
+  run "umount #{@build_root}/ubuntu/dev", true
+
+  puts "Removing #{@build_root}..."
   rm_rf @build_root
 end
 
