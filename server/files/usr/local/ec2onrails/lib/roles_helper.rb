@@ -16,11 +16,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'erb'
 require 'net/http'
 require 'pp'
+require 'resolv'
 require 'socket'
 require 'yaml'
-require 'erb'
 
 module Ec2onrails
   module RolesHelper
