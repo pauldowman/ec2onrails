@@ -69,7 +69,12 @@ module Ec2onrails
     end
 
     def resolve(hostname)
-      address = IPSocket.getaddress(hostname).strip
+      # hostname might be an alias, so get the .amazonaws.com hostname
+      canonical_name = Resolv.getname(IPSocket.getaddress(hostname))      
+
+      # EC2's internal DNS resolves the external hostnames (*.amazonaws.com) into internal IP addresses
+      address = IPSocket.getaddress(canonical_name).strip
+
       if address == local_address || address == public_address
         "127.0.0.1"
       else
