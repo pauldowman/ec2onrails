@@ -21,7 +21,10 @@
 #    This file helps spread the root key so we can log in/deploy using the 
 #    app user instead of root, but with the same ec2 key
 
-#make sure we have the credentials
+
+# /etc/init.d/ec2-get-credentials is run as /etc/rc2.d/S70ec2-get-credentials,
+# but this script is run from /etc/rcS.d so the rc2.d scripts haven't
+# been run yet
 /etc/init.d/ec2-get-credentials
 
 mkdir -p -m 700 /home/app/.ssh
