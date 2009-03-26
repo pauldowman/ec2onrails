@@ -200,8 +200,6 @@ task :configure => [:install_software] do |t|
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
     
-    run "touch #{@fs_dir}/ec2onrails-first-boot"
-    
     # TODO find out the most correct solution here, there seems to be a bug in
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
     # that it tries to write to is owned by root and not writable by others.

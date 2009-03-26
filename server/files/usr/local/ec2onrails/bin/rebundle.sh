@@ -19,13 +19,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-cleanup() {
-  rm -f /ec2onrails-first-boot	
-}
-
 fail() {
   echo "`basename $0`: ERROR: $1"
-  cleanup
   exit 1
 }
 
@@ -52,8 +47,6 @@ fi
 echo "--> Clearing apt cache..."
 aptitude clean
 
-touch /ec2onrails-first-boot || fail
-
 echo "--> Clearing sensitive files..."
 rm -f /root/{.bash_history,.lesshst}
 
@@ -67,4 +60,3 @@ echo "--> Registering image..."
 ec2-register "$NEW_BUCKET_NAME/image.manifest.xml" || fail "ec2-register failed"
 
 echo "--> Done."
-cleanup
