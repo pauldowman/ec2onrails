@@ -31,8 +31,6 @@ if `whoami`.strip != 'root'
 end
 
 # package notes:
-# * aptitude:       much better package installation system, especially around 
-#                   upgrades and package dependencies
 # * gcc:            libraries needed to compile c/c++ files from source
 # * libmysqlclient-dev : provide mysqlclient-dev libs, needed for DataObject gems
 # * nano/vim/less:  simle file editors and viewer
@@ -42,7 +40,6 @@ end
   
 @packages = %w(
   adduser
-  aptitude
   bison
   ca-certificates
   cron
@@ -52,6 +49,7 @@ end
   git-core
   irb
   less
+  libmysqlclient-dev
   libmysql-ruby
   libpcre3-dev
   libssl-dev
@@ -76,12 +74,6 @@ end
   vim
   wget
   xfsprogs
-)
-
-# HACK: some packages just fail with apt-get but work fine
-#       with aptitude.  These generally are virtual packages
-@aptitude_packages = %w(
-  libmysqlclient-dev
 )
 
 # NOTE: the amazon-ec2 gem is now at github, maintained by
@@ -123,18 +115,14 @@ task :clean_all do |t|
   rm_rf @build_root
 end
 
-desc "Use apt-get to install required packages inside the image's filesystem"
+desc "Use aptitude to install required packages inside the image's filesystem"
 task :install_packages do |t|
   unless_completed(t) do
     ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
-    run_chroot "apt-get update"
-    run_chroot "apt-get install -y #{@packages.join(' ')}"
     run_chroot "apt-get autoremove -y"
-    run_chroot "apt-get clean"
-    
-    #lets run the aptitude-only packages
-    run_chroot "aptitude install -y #{@aptitude_packages.join(' ')}"
+    run_chroot "aptitude update"
+    run_chroot "aptitude install -y #{@packages.join(' ')}"
     run_chroot "aptitude clean"
   end
 end
