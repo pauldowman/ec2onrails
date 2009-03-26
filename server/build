@@ -24,7 +24,7 @@
 # which it modifies to the following values:
 #   --distribution ubuntu
 #   --codename intrepid
-#   --script /mnt/ec2onrails/server/build-ec2onrails.sh 
+#   --script /mnt/ec2onrails/server/rakefile-wrapper 
 # Other than those three args (which will be ignored if given) this script should
 # be given the regular ec2ubuntu-build-ami args, for details see the comments at:
 # http://ec2ubuntu.googlecode.com/svn/trunk/bin/ec2ubuntu-build-ami
@@ -68,7 +68,7 @@ system <<-EOS
   /mnt/ec2ubuntu/bin/ec2ubuntu-build-ami \
     --distribution ubuntu \
     --codename intrepid \
-    --script /mnt/ec2onrails/server/build-ec2onrails.sh \
+    --script /mnt/ec2onrails/server/rakefile-wrapper \
     #{ec2ubuntu_args.join(' ')}
 EOS
 
