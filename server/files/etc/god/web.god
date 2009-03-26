@@ -1,23 +1,11 @@
-nginx_enabled = system("which nginx 2>&1 > /dev/null")
-
 God.watch do |w|
-  applog(w, :info, "web: using #{nginx_enabled ? 'nginx' : 'apache2'}")
   server_status_path = '/'
-  if nginx_enabled
-    w.name = "nginx"
-    w.start = "/etc/init.d/nginx start"
-    w.stop = "/etc/init.d/nginx stop"
-    w.restart = "/etc/init.d/nginx restart"
-    w.pid_file = "/var/run/nginx.pid"  
-    server_status_path = '/nginx_status'
-  else
-    w.name = "apache"
-    w.start = "/etc/init.d/apache2 start"
-    w.stop = "/etc/init.d/apache2 stop"
-    w.restart = "/etc/init.d/apache2 restart"
-    w.pid_file = "/var/run/apache2.pid"
-    server_status_path = '/server-status'
-  end
+  w.name = "nginx"
+  w.start = "/etc/init.d/nginx start"
+  w.stop = "/etc/init.d/nginx stop"
+  w.restart = "/etc/init.d/nginx restart"
+  w.pid_file = "/var/run/nginx.pid"  
+  server_status_path = '/nginx_status'
   w.grace = 30.seconds
   w.group = 'web'
   w.autostart = false

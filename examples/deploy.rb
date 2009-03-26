@@ -61,9 +61,6 @@ set :ec2onrails_config, {
   # which will install gems defined in your rails configuration
   :rubygems => ["rmagick", "rfacebook -v 0.9.7"],
   
-  # Defines the web proxy that will be used.  Choices are :apache or :nginx
-  :web_proxy_server => :apache,
-  
   # extra security measures are taken if this is true, BUT it makes initial
   # experimentation and setup a bit tricky.  For example, if you do not
   # have your ssh keys setup correctly, you will be locked out of your

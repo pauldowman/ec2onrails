@@ -43,9 +43,6 @@ Capistrano::Configuration.instance.load do
   
   cfg = ec2onrails_config
   
-  #:apache or :nginx
-  cfg[:web_proxy_server] ||= :apache
-
   set :ec2onrails_version, Ec2onrails::VERSION::STRING
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
@@ -122,7 +119,6 @@ Capistrano::Configuration.instance.load do
         server.install_packages
         server.install_gems
         server.deploy_files
-        server.setup_web_proxy
         server.set_roles
         server.enable_ssl if cfg[:enable_ssl]
         server.set_rails_env

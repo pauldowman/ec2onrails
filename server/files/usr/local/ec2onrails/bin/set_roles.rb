@@ -18,7 +18,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    To customze the apache or nginx config files, you can setup a template like:
+#    To customize the nginx config files, you can setup a template like:
 #    /etc/ec2onrails/balancer_members.erb
 #    /etc/ec2onrails/nginx_upstream_members.erb
 #
@@ -48,33 +48,16 @@ if in_role?(:web)
     File.open(file_name, 'w'){|f| f << file}
   end
   
-
-  if system("which apache2")
-    apache_config_file = "/etc/ec2onrails/balancer_members"
-    unless files_written.index(apache_config_file)
-      File.open(apache_config_file, "w") do |f|
-        roles[:app].each do |address|
-          web_port_range.each do |port|
-            f << "BalancerMember http://#{address}:#{port}\n"
-          end
-          f << "\n"
+  nginx_config_file = "/etc/ec2onrails/nginx_upstream_members"
+  unless files_written.index(nginx_config_file)
+    File.open(nginx_config_file, "w") do |f|
+      f << "upstream mongrel{\n"
+      roles[:app].each do |address|
+        web_port_range.each do |port|
+          f << "\tserver #{address}:#{port};\n"
         end
       end
-    end
-  end
-
-  if system("which nginx")
-    nginx_config_file = "/etc/ec2onrails/nginx_upstream_members"
-    unless files_written.index(nginx_config_file)
-      File.open(nginx_config_file, "w") do |f|
-        f << "upstream mongrel{\n"
-        roles[:app].each do |address|
-          web_port_range.each do |port|
-            f << "\tserver #{address}:#{port};\n"
-          end
-        end
-        f << "fair;\n}\n"
-      end
+      f << "fair;\n}\n"
     end
   end
 end

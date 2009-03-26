@@ -53,13 +53,10 @@ end
 
 # web role:
 if in_role?(:web)
-  #we symlink the web_proxy we are using....
-  start(:web, "web_proxy", 'nginx apache')
-  # sleep(5)
-  # run("/etc/init.d/web_proxy reload")
+  start(:web, "nginx", "nginx")
 else
   #not started...
-  stop(:web, "web_proxy", 'nginx apache')
+  stop(:web, "nginx", "nginx")
 end
 
 

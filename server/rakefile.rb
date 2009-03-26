@@ -45,7 +45,6 @@ end
   
 @packages = %w(
   adduser
-  apache2
   aptitude
   bison
   ca-certificates
@@ -57,6 +56,7 @@ end
   irb
   less
   libmysql-ruby
+  libpcre3-dev
   libssl-dev
   libyaml-ruby
   libzlib-ruby
@@ -154,11 +154,49 @@ task :install_gems => [:install_packages] do |t|
   end
 end
 
+desc "Install nginx from source"
+task :install_nginx => [:install_packages] do |t|
+  nginx_version = "nginx-0.6.35"
+  nginx_tar = "#{nginx_version}.tar.gz"
+
+  nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
+  fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
+  src_dir = "/tmp/src/nginx"
+  # Make sure the dir is created but empty...lets start afresh
+  run_chroot "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
+  run_chroot "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
+  run_chroot "cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}"
+  
+  run_chroot "cd #{src_dir}/modules && \
+       wget -q #{fair_bal_img} && \
+       tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
+       mv nginx-upstream-fair/*/* nginx-upstream-fair/."
+  
+  run_chroot "cd #{src_dir}/#{nginx_version} && \
+       ./configure \
+         --sbin-path=/usr/sbin \
+         --conf-path=/etc/nginx/nginx.conf \
+         --pid-path=/var/run/nginx.pid \
+         --with-http_ssl_module \
+         --with-http_stub_status_module \
+         --add-module=#{src_dir}/modules/nginx-upstream-fair && \
+       make && \
+       make install"
+
+   # run_chroot "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"
+   # run_chroot "ln -sf /usr/local/nginx/conf /etc/nginx"
+end
+
+desc "Install Ubuntu packages, download and compile other software, and install gems"
+task :install_software => [:install_gems, :install_packages, :install_nginx]
+
 desc "Configure the image"
-task :configure => [:install_gems] do |t|
+task :configure => [:install_software] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
+
+    run_chroot "/usr/sbin/adduser --group nginx --disabled-login --no-create-home nginx"
         
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
 

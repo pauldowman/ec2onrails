@@ -42,10 +42,6 @@ Capistrano::Configuration.instance(:must_exist).load do
         end
       end
       
-      task :setup_web_proxy, :roles => :web do
-        sudo "/usr/local/ec2onrails/bin/setup_web_proxy.rb --mode #{cfg[:web_proxy_server].to_s}"
-      end
-      
       task :setup_elastic_ip, :roles => :web do
         #TODO: for elastic IP
         #  * make  sure the hostname is reset on the web server
@@ -390,7 +386,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         sudo "a2enmod ssl"
         sudo "a2enmod headers" # the headers module is necessary to forward a header so that rails can detect it is handling an SSL connection.  NPG 7/11/08
         sudo "a2ensite default-ssl"
-        run_init_script("web_proxy", "restart")
+        run_init_script("nginx", "restart")
       end
       
       desc <<-DESC

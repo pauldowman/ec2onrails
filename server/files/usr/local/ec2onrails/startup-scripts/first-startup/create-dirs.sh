@@ -25,15 +25,15 @@ make_dir() {
   fi
 }
 
-make_dir /mnt/app app:app
+make_dir /mnt/app         app:app
 
 #make sure it is setup to be able to be read/written by app user
-make_dir /etc/ec2onrails app:app
+make_dir /etc/ec2onrails  app:app
 
 make_dir /mnt/log
-# make_dir /mnt/log/apache2    www-data:www-data
+make_dir /mnt/log/nginx   nginx:nginx
 make_dir /mnt/log/fsck
-make_dir /mnt/log/mysql      mysql:mysql
+qmake_dir /mnt/log/mysql   mysql:mysql
 
 make_dir /mnt/tmp
 chmod 777 /mnt/tmp
