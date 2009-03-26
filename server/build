@@ -31,15 +31,15 @@
 
 require "fileutils"
 
-EC2UBUNTU_VERSION = 125
+EC2UBUNTU_VERSION = 139
 
 unless File.exist? "/mnt/ec2ubuntu"
   puts "Installing yum..."
   system "yum install svn -y"
-
-  puts "Getting ec2ubuntu build script..."
-  system "svn checkout -r #{EC2UBUNTU_VERSION} http://ec2ubuntu.googlecode.com/svn/trunk/ /mnt/ec2ubuntu"
 end
+
+puts "Getting ec2ubuntu build script..."
+system "svn checkout -r #{EC2UBUNTU_VERSION} http://ec2ubuntu.googlecode.com/svn/trunk/ /mnt/ec2ubuntu"
 
 unless system "which rake"
   puts "Installing rake..."
