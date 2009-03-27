@@ -201,6 +201,11 @@ task :configure => [:install_software] do |t|
       rm_rf "#{@fs_dir}/var/log/#{f}"
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
+
+    # Create symlinks to run scripts on startup
+    run_chroot "update-rc.d ec2-first-startup start 91 S ."
+    run_chroot "update-rc.d ec2-every-startup start 92 S ."
+    run_chroot "update-rc.d set_roles start 99 S ."
   end
 end
 
