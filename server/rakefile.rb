@@ -146,35 +146,37 @@ end
 
 desc "Install nginx from source"
 task :install_nginx => [:install_packages] do |t|
-  nginx_version = "nginx-0.6.35"
-  nginx_tar = "#{nginx_version}.tar.gz"
+  unless_completed(t) do
+    nginx_version = "nginx-0.6.35"
+    nginx_tar = "#{nginx_version}.tar.gz"
 
-  nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
-  fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
-  src_dir = "/tmp/src/nginx"
-  # Make sure the dir is created but empty...lets start afresh
-  run_chroot "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
-  run_chroot "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
-  run_chroot "cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}"
+    nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
+    fair_bal_img = "http://github.com/gnosek/nginx-upstream-fair/tarball/master"
+    src_dir = "/tmp/src/nginx"
+    # Make sure the dir is created but empty...lets start afresh
+    run_chroot "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
+    run_chroot "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
+    run_chroot "sh -c 'cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}'"
   
-  run_chroot "cd #{src_dir}/modules && \
-       wget -q #{fair_bal_img} && \
-       tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
-       mv nginx-upstream-fair/*/* nginx-upstream-fair/."
+    run_chroot "sh -c 'cd #{src_dir}/modules && \
+         wget -q #{fair_bal_img} && \
+         tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
+         mv nginx-upstream-fair/*/* nginx-upstream-fair/.'"
   
-  run_chroot "cd #{src_dir}/#{nginx_version} && \
-       ./configure \
-         --sbin-path=/usr/sbin \
-         --conf-path=/etc/nginx/nginx.conf \
-         --pid-path=/var/run/nginx.pid \
-         --with-http_ssl_module \
-         --with-http_stub_status_module \
-         --add-module=#{src_dir}/modules/nginx-upstream-fair && \
-       make && \
-       make install"
+    run_chroot "sh -c 'cd #{src_dir}/#{nginx_version} && \
+         ./configure \
+           --sbin-path=/usr/sbin \
+           --conf-path=/etc/nginx/nginx.conf \
+           --pid-path=/var/run/nginx.pid \
+           --with-http_ssl_module \
+           --with-http_stub_status_module \
+           --add-module=#{src_dir}/modules/nginx-upstream-fair && \
+         make && \
+         make install'"
 
-   # run_chroot "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"
-   # run_chroot "ln -sf /usr/local/nginx/conf /etc/nginx"
+    # run_chroot "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"
+    # run_chroot "ln -sf /usr/local/nginx/conf /etc/nginx"
+  end
 end
 
 desc "Install Ubuntu packages, download and compile other software, and install gems"
@@ -186,7 +188,7 @@ task :configure => [:install_software] do |t|
     sh("cp -r files/* #{@fs_dir}")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
 
-    run_chroot "/usr/sbin/adduser --group nginx --disabled-login --no-create-home nginx"
+    run_chroot "/usr/sbin/adduser --system --group --disabled-login --no-create-home nginx"
         
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
 
@@ -199,14 +201,6 @@ task :configure => [:install_software] do |t|
       rm_rf "#{@fs_dir}/var/log/#{f}"
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
-    
-    # TODO find out the most correct solution here, there seems to be a bug in
-    # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir
-    # that it tries to write to is owned by root and not writable by others.
-    # *** Do we still need this? The problem was constant messages in the syslog
-    # after the first DHCP lease expired (after 12 hours or so).
-    # We can probably assume Eric's base image does the right thing.
-    run_chroot "chown -R dhcp /var/lib/dhcp3"
     
     #make sure that god is setup to reboot at startup
     run_chroot "update-rc.d god defaults 98"

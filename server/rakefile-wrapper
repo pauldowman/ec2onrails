@@ -23,4 +23,4 @@
 # Eric Hammond's Ubuntu build script: http://alestic.com/
 
 cd `dirname $0`
-rake
+rake --trace
