@@ -201,9 +201,6 @@ task :configure => [:install_software] do |t|
       rm_rf "#{@fs_dir}/var/log/#{f}"
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
-    
-    #make sure that god is setup to reboot at startup
-    run_chroot "update-rc.d god defaults 98"
   end
 end
 
