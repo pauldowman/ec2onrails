@@ -67,7 +67,7 @@ end
 system <<-EOS
   /mnt/ec2ubuntu/bin/ec2ubuntu-build-ami \
     --distribution ubuntu \
-    --codename intrepid \
+    --codename jaunty \
     --script /mnt/ec2onrails/server/rakefile-wrapper \
     #{ec2ubuntu_args.join(' ')}
 EOS
