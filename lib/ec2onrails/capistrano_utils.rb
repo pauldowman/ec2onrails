@@ -6,8 +6,12 @@ module Ec2onrails
     end
     
     def run_init_script(script, arg)
-      # since init scripts might have the execute bit unset by the set_roles script we need to check
-      sudo "sh -c 'if [ -x /etc/init.d/#{script} ] ; then /etc/init.d/#{script} #{arg}; fi'"
+      # TODO only restart a service if it's already started. 
+      # Aside from being smarter and more efficient, This will make sure we 
+      # aren't starting a service that shouldn't be started for the current
+      # roles (e.g. don't start nginx when we're not in the web role)
+      # How? Maybe need another param with the process name?
+      sudo "/etc/init.d/#{script} #{arg}"
     end
     
     # return hostnames for the role named role_sym that has the specified options

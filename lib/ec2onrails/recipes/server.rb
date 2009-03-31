@@ -395,15 +395,12 @@ Capistrano::Configuration.instance(:must_exist).load do
         (use the deploy_files task).
       DESC
       task :enable_ssl, :roles => :web do
-        #TODO: enable for nginx
-        sudo "a2enmod ssl"
-        sudo "a2enmod headers" # the headers module is necessary to forward a header so that rails can detect it is handling an SSL connection.  NPG 7/11/08
-        sudo "a2ensite default-ssl"
-        run_init_script("nginx", "restart")
+        # TODO: enable for nginx
+        # run_init_script("nginx", "restart")
       end
       
       desc <<-DESC
-        Restrict the main user's sudo access.
+        Restrict the app user's sudo access.
         Defaults the user to only be able to \
         sudo to god
       DESC

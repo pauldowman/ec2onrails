@@ -22,12 +22,6 @@ require "#{File.dirname(__FILE__)}/../lib/roles_helper"
 include Ec2onrails::RolesHelper
 
 
-#TODO:
-# if not in a role, we want to make sure that the service is stopped....
-# it gets a little tricky with the web_proxy, which is not enabled if it is
-# not already in a web role. Leave as is, as all it does is throw an error
-# until GOD is in the picture, at which case it should be easy to enable
-# and let it handle it instead of the init.d script....
 APP_ROOT = "/mnt/app/current"
 RAILS_ENV = `/usr/local/ec2onrails/bin/rails_env`.strip
 

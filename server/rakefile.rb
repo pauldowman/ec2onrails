@@ -205,7 +205,19 @@ task :configure => [:install_software] do |t|
     # Create symlinks to run scripts on startup
     run_chroot "update-rc.d ec2-first-startup start 91 S ."
     run_chroot "update-rc.d ec2-every-startup start 92 S ."
-    run_chroot "update-rc.d set_roles start 99 S ."
+    run_chroot "update-rc.d init_services start 99 S ."
+    
+    # Disable the services that will be managed by god, depending on the roles
+    %w(nginx mysql memcached).each do |service|
+      run_chroot "update-rc.d -f #{service} remove"
+      run_chroot "update-rc.d #{service} stop 20 2 3 4 5 ."
+    end
+    
+    # God is started by upstart so that it will be restarted automatically if it dies,
+    # see /etc/event.d/god
+    
+    # Create the mail aliases db
+    run_chroot "postalias /etc/aliases"
   end
 end
 
@@ -235,20 +247,6 @@ def run(command, ignore_error = false)
   result = system command
   raise("error: #{$?}") unless result || ignore_error
 end
-
-# def mount(type, mount_point)
-#   unless mounted?(mount_point)
-#     puts
-#     puts "********** Mounting #{type} on #{mount_point}..."
-#     puts
-#     run "mount -t #{type} none #{mount_point}"
-#   end
-# end
-# 
-# def mounted?(mount_point)
-#   mount_point_regex = mount_point.gsub(/\//, "\\/")
-#   `mount`.select {|line| line.match(/#{mount_point_regex}/) }.any?
-# end
 
 def replace_line(file, newline, linenum)
   contents = File.open(file, 'r').readlines
