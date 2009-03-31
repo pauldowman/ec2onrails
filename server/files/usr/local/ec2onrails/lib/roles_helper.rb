@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'erb'
+require 'fileutils'
 require 'net/http'
 require 'pp'
 require 'resolv'
@@ -101,20 +102,6 @@ module Ec2onrails
     #to provide deprecated usage
     alias :in_role :in_role?
     
-
-    def add_etc_hosts_entry(entry_name, entry_addr)
-      host_file  = "/etc/hosts"
-      run("cp #{host_file}.original #{host_file}") unless File.exists?("#{host_file}.original")
-      hosts = File.read(host_file)
-      if hosts =~ /\s*.+?\s+#{entry_name}\s*$/
-        hosts.sub!(/\s*.+?\s+#{entry_name}\s*$/, "\n#{entry_addr}\t#{entry_name}\n")
-      else
-        puts "adding '#{entry_addr}\t#{entry_name}' to /etc/hosts"
-        hosts << "\n#{entry_addr}\t#{entry_name}\n" 
-      end
-      File.open(host_file, 'w') {|f| f.write(hosts) }
-    end      
-
     def web_starting_port
       mongrel_config['port'].to_i rescue 8000
     end
@@ -147,6 +134,46 @@ module Ec2onrails
       "#{application_root}/#{mongrel_config['pid_file']}"
     end
 
+    # write a hostname alias for each host. The hostnames will be "rolename-n" where n
+    # is an integer
+    def set_hostnames
+      hosts_file  = "/etc/hosts"
+      FileUtils.cp "#{hosts_file}.original", hosts_file
+      File.open(hosts_file, 'a') do |f| 
+        roles.each do |rolename, addresses|
+          addresses.each_with_index do |address, i|
+            f << "#{rolename.to_s.gsub(/_/, "-")}-#{i+1} #{address}\n"
+          end
+        end
+      end
+      
+      # Eventually we'll remove this:
+      if roles[:db_primary]
+        db_primary_addr = roles[:db_primary][0]
+        File.open(hosts_file, 'a') do |f|
+          f << "# DEPRECATED: this is here for backwards compatibility, eventually it will be removed:\n"
+          f << "#{db_primary_addr} db_primary\n"
+        end
+      end
+    end
+   
+    # Process any ERB template under /etc
+    # The output from "filename.erb" will be saved as "filename"
+    def process_config_file_templates
+      # Set any variables that will be needed inside the templates
+      # We're processing ALL templates, even ones that won't be used in the current role, but I think that's OK.
+      web_port_range = self.web_port_range
+      web_starting_port = self.web_starting_port
+      roles = self.roles
+
+      Dir["/etc/**/*.erb"].each do |filename|
+        puts "Processing config file template: #{filename}..."
+        contents = ERB.new(IO.read(filename)).result(binding)
+        file_name = filename.sub(/\.erb$/, '')
+        File.open(file_name, 'w'){|f| f << contents}
+      end
+    end
+    
     private
 
     def mongrel_config
