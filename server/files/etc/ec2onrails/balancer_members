@@ -1,6 +1,0 @@
-BalancerMember http://127.0.0.1:8000
-BalancerMember http://127.0.0.1:8001
-BalancerMember http://127.0.0.1:8002
-BalancerMember http://127.0.0.1:8003
-BalancerMember http://127.0.0.1:8004
-BalancerMember http://127.0.0.1:8005
