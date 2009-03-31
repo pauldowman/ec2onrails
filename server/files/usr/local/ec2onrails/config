@@ -1,5 +1,5 @@
 ############################################################
-# This script is sourced by .bashrc and by /usr/local/ec2onrails/rebundle.sh
+# This script is sourced by .bashrc and by /usr/local/ec2onrails/rebundle
 # You shouldn't need to change anything in here
 
 if [ -r /mnt/aws-config/config ] ; then

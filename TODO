@@ -9,7 +9,7 @@ FUTURE CHANGES
 
 [ ] use mongrel_cluster from app directory (shared or directly in the app/config dir), and then default to the one at /etc/mongrel_cluster/app.yml
 
-[ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles.rb default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
+[ ] customize roles.  For example, lets say I want to have nginx publish to multiple proxy's instead of the set_roles default ones.  Have a hook where I, as an end user, can extend custom roles... but where do I put it?  is there a custom_roles_file location pref that is set in the cap deploy file?
 
 [ ] hook memcached into nginx...
 
@@ -84,7 +84,7 @@ COMPLETED
 http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1663&categoryID=100
 
 
-[X] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles.rb or init_services or something a bit higher`
+[X] /etc/monit/monitrc needs to be chmod 700.  see error at: http://pastie.org/251895, with custom task at http://pastie.org/251896..  Perhaps this should be solved in set_roles or init_services or something a bit higher`
 
 [X] remove the *_admin capistrano roles.  can we use admin for sudo access but continue to deploy and run under a user without sudo access?  It looks like we can if we add this to the recipes.rb file:
         set :use_sudo, true

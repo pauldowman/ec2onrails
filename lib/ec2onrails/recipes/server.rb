@@ -29,14 +29,14 @@ Capistrano::Configuration.instance(:must_exist).load do
           sudo "cp /tmp/roles.yml /etc/ec2onrails"
           #we want everyone to be able to read to it
           sudo "chmod a+r /etc/ec2onrails/roles.yml"
-          sudo "/usr/local/ec2onrails/bin/set_roles.rb"
+          sudo "/usr/local/ec2onrails/bin/set_roles"
         end
       end
       
       task :init_services do
         allow_sudo do
           #lets pick up the new configuration files
-          sudo "/usr/local/ec2onrails/bin/init_services.rb"
+          sudo "/usr/local/ec2onrails/bin/init_services"
         end
       end
       

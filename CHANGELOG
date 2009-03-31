@@ -176,7 +176,7 @@
 
 * ami-b79a7fde
 * Fixed S3 backup cron job.
-* Added script to restore data from S3 (/usr/local/aws/bin/restore_app_db.rb). This is useful when setting up a staging server to test your deployment, you can have it set up with a copy of your production data to test your migrations.
+* Added script to restore data from S3 (/usr/local/aws/bin/restore_app_db). This is useful when setting up a staging server to test your deployment, you can have it set up with a copy of your production data to test your migrations.
 * Rewrite rule now allows images/css on maintenance page
 * Added empty /etc/apache2/sites-available/app.custom for custom Apache configuration in a separate file (so it can be deployed by rsync more easily).
 * Added ImageMagick, RMagick and hpricot due to popular demand.
