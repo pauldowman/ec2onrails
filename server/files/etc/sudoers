@@ -1,1 +1,31 @@
-sudoers.full_access
+# /etc/sudoers
+#
+# This file MUST be edited with the 'visudo' command as root.
+#
+# See the man page for details on how to write a sudoers file.
+# Host alias specification
+
+Defaults        !lecture,tty_tickets,!fqdn
+
+root        ALL=(ALL) ALL
+
+# The 'app' user can only run /usr/bin/god using sudo, and will not be 
+# prompted for a password
+app         ALL = NOPASSWD: /usr/bin/god
+
+# Users in the rootequiv group can run any command using sudo, without being
+# prompted for a password.
+# By default there are nousers in this group, but some EC2 on Rails Capistrano
+# tasks (which log in as the 'app' user) require the ability to use sudo so 
+# they temporarily place the app user into this group for the duration of the
+# task.
+%rootequiv  ALL=(ALL) NOPASSWD: ALL
+
+# Users in the admin group can run any command via sudo, but will be
+# prompted for their password.
+# By default there are no users in this group, but if you add named 
+# administrator accounts, add them to this group. (You might do this if you
+# have multiple sysadmins and you want to use separate user accounts rather
+# than have multiple people sharing a root account.)
+%admin    ALL=(ALL) ALL
+

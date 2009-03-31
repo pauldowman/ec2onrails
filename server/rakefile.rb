@@ -189,8 +189,8 @@ task :configure => [:install_software] do |t|
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")
 
     run_chroot "/usr/sbin/adduser --system --group --disabled-login --no-create-home nginx"
-        
     run_chroot "/usr/sbin/adduser --gecos ',,,' --disabled-password app"
+    run_chroot "/usr/sbin/addgroup rootequiv"
 
     run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
         
