@@ -1,3 +1,6 @@
+# This rakefile is for building the EC2 on Rails gem.
+# To build a server AMI, see server/rakefile.rb
+
 begin
   require 'echoe'
 rescue LoadError
