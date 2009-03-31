@@ -1,12 +1,8 @@
 description     "god monitoring daemon"
 
-start on runlevel 2
-start on runlevel 3
-start on runlevel 4
-start on runlevel 5
+start on runlevel [2345]
 
-stop on runlevel 0
-stop on runlevel 6
+stop on runlevel [06]
 
-exec /etc/init.d/god start
+exec /usr/bin/god -D -c /etc/god/master.conf -l /mnt/log/god/god.log
 respawn
