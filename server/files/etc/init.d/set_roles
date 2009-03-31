@@ -1,3 +1,0 @@
-#!/bin/sh
-
-/usr/local/ec2onrails/bin/set_roles.rb
