@@ -20,4 +20,8 @@
 
 # Set the hostname to this instance's public hostname
 
-hostname `curl -s http://169.254.169.254/latest/meta-data/local-hostname`
+HOSTNAME=`curl -s http://169.254.169.254/latest/meta-data/local-hostname`
+hostname $HOSTNAME
+
+# Save it so it will be used after reboot
+echo $HOSTNAME > /etc/hostname
