@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# There seems to be a bug in the jaunty beta, mysqld dies because /var/run/mysqld is owned by root
+# TODO remove this when that's fixed
+chown mysql:mysql /var/run/mysqld
