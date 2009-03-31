@@ -75,6 +75,7 @@ Capistrano::Configuration.instance.load do
           begin
             run cmd
           rescue Exception => e
+              # TODO this is a bit confusing, the command can fail for other reasons, let's improve the message
               puts "  CONTINUING: this command was previously run, so continuing"
           end
         end

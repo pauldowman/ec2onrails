@@ -385,10 +385,9 @@ Capistrano::Configuration.instance(:must_exist).load do
         Set the email address that mail to the app user forwards to.
       DESC
       task :set_mail_forward_address do
-        run "echo '#{cfg[:mail_forward_address]}' >> /home/app/.forward" if cfg[:mail_forward_address]
-        # put cfg[:admin_mail_forward_address], "/home/admin/.forward" if cfg[:admin_mail_forward_address]
+        run "echo '#{cfg[:mail_forward_address]}' >> /root/.forward" if cfg[:mail_forward_address]
       end
-
+    
       desc <<-DESC
         Enable ssl for the web server. You'll need to deploy a valid
         SSL certificate file to /etc/ssl/certs/default.pem
