@@ -28,12 +28,14 @@ make_dir() {
 make_dir /mnt/app         app:app
 
 #make sure it is setup to be able to be read/written by app user
+# Why have it owned (or even writeable) by app? Can't it just be owned by root and world readable? - Paul
 make_dir /etc/ec2onrails  app:app
 
 make_dir /mnt/log
-make_dir /mnt/log/nginx   nginx:nginx
 make_dir /mnt/log/fsck
-qmake_dir /mnt/log/mysql   mysql:mysql
+make_dir /mnt/log/god
+make_dir /mnt/log/mysql   mysql:mysql
+make_dir /mnt/log/nginx   nginx:nginx
 
 make_dir /mnt/tmp
 chmod 777 /mnt/tmp
