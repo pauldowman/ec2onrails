@@ -21,10 +21,11 @@
 
 # This script runs the ec2 startup scripts
 
-FILE=/mnt/ec2onrails-first-boot
+FILE=/mnt/.ec2onrails-first-boot
 
 if [ ! -e $FILE ] ; then
 
+  # TODO improve this:
 	# this is an ugly hack to make sure DHCP initialization is finished:
 	sleep 15
 
