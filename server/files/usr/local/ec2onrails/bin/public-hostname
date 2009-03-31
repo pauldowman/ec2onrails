@@ -21,4 +21,4 @@
 
 # This script prints the instance's public hostname
 
-curl -s http://169.254.169.254/latest/meta-data/public-hostname
+echo `curl -s http://169.254.169.254/latest/meta-data/public-hostname`
