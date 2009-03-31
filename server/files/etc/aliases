@@ -1,5 +1,5 @@
 # See man 5 aliases for format
 
-# send all mail to app user.
-root:  app
-postmaster:  app
+# send all mail to root user.
+postmaster: root
+app:        root
