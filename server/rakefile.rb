@@ -205,7 +205,6 @@ task :configure => [:install_software] do |t|
     # Create symlinks to run scripts on startup
     run_chroot "update-rc.d ec2-first-startup start 91 S ."
     run_chroot "update-rc.d ec2-every-startup start 92 S ."
-    run_chroot "update-rc.d init_services start 99 S ."
     
     # Disable the services that will be managed by god, depending on the roles
     %w(nginx mysql memcached).each do |service|
