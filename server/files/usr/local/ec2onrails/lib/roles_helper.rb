@@ -134,6 +134,13 @@ module Ec2onrails
       "#{application_root}/#{mongrel_config['pid_file']}"
     end
 
+    # Re-write the roles file with the hostnames resolved
+    def resolve_hostnames_in_roles_file
+      File.open(ROLES_FILE, w) do |f|
+        YAML.dump(roles, f)
+      end
+    end
+    
     # write a hostname alias for each host. The hostnames will be "rolename-n" where n
     # is an integer
     def set_hostnames

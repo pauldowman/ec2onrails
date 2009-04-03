@@ -30,6 +30,7 @@ include Ec2onrails::RolesHelper
 puts "Roles: "
 pp roles
 
+resolve_hostnames_in_roles_file
 set_hostnames
 process_config_file_templates
 

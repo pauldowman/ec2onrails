@@ -40,17 +40,6 @@ Capistrano::Configuration.instance(:must_exist).load do
         end
       end
       
-      task :setup_elastic_ip, :roles => :web do
-        # TODO Remove this task and stop using external hostnames in roles.yml
-        #      We're not using the external dns name as the hostname any more so that doesn't 
-        #      need to be reset.
-        #      *** The instance shouldn't care if it's external ip address or hostname changed. ***
-        vol_id = ENV['ELASTIC_IP'] || servers.first.options[:elastic_ip]
-        allow_sudo do
-          server.set_roles
-        end
-      end
-    
       desc <<-DESC
         Change the default value of RAILS_ENV on the server. Technically
         this changes the server's mongrel config to use a different value
