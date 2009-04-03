@@ -339,14 +339,16 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
       
       desc <<-DESC
-        Deploy a set of config files to the server, the files will be owned by \
-        root. This doesn't delete any files from the server. This is intended
-        mainly for customized config files for new packages installed via the \
-        ec2onrails:server:install_packages task. Subdirectories and files \
-        inside here will be placed within the same directory structure \
-        relative to the root of the server's filesystem.
+        DEPRECATED. To install files into the system create the directory
+        RAILS_ROOT/config/ec2onrails/system_files, it can contain files
+        that will be installed into the server relative to "/", and it
+        can contain a manifest file with metadata, this allows the files
+        to be chowned to any user on the system, and it allows the files
+        to be cleanly uninstalled from the system.
+        TODO pointer to full documentation
       DESC
       task :deploy_files do
+        puts "DEPRECATION WARNING: you're using the deploy_files task which has been deprecated" # TODO pointer to documentation
         if cfg[:server_config_files_root]
           begin
             filename = "config_files.tar"

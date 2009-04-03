@@ -1,0 +1,55 @@
+#!/usr/bin/ruby
+
+#    This file is part of EC2 on Rails.
+#    http://rubyforge.org/projects/ec2onrails/
+#
+#    Copyright 2007 Paul Dowman, http://pauldowman.com/
+#
+#    EC2 on Rails is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    EC2 on Rails is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# This script installs system files that are included in the deployed Rails
+# app. The files are copied from RAILS_ROOT/config/ec2onrails/system_files 
+# (i.e. /mnt/app/current/config/ec2onrails/system_files) to the root
+# of the system, keeping their subdirectories.
+#
+# For example, to replace /etc/nginx/nginx.conf with your own customized
+# version, you would create config/ec2onrails/system_files/nginx/nginx.conf
+# in your rails app.
+#
+# If the files being installed are overwriting an existing system file,
+# that file will be renamed to <original_name>.ec2onrails_backup
+#
+# An optional "manifest" file can be created that lists all the files.
+# 
+# Before installing the files, or when given the --uninstall flag, it will
+# remove the previously installed files. This only works if the previously
+# installed files had a manifest.
+#
+# This replaces the ec2onrails:server:deploy_files Capistrano task that
+# uploaded a set of files from anywhere on the deployer's computer. The
+# advantage of doing it this way is that the system config files are deployed
+# with the app, and kept with the app in your revision control system where
+# they can be branched, etc., together with the app, then uninstalled cleanly
+# when redeploying a different version of the app.
+
+require "fileutils"
+require "#{File.dirname(__FILE__)}/../lib/system_files_helper"
+require "#{File.dirname(__FILE__)}/../lib/utils"
+
+
+SYSTEM_FILES_SRC_DIR = "/mnt/app/current/config/ec2onrails/system_files"
+
+Ec2onrails::SystemFilesHelper.new.install_system_files(SYSTEM_FILES_SRC_DIR)
+

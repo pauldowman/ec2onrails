@@ -19,17 +19,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#    To customize the nginx config files, you can setup a template like:
-#    /etc/ec2onrails/balancer_members.erb
-#    /etc/ec2onrails/nginx_upstream_members.erb
+# This script removes system files that were installed with the deployed Rails
+# app. This only works if the previously installed files had a manifest.
+#
+# See install_system_files for more info.
 
 
-require "#{File.dirname(__FILE__)}/../lib/roles_helper"
-include Ec2onrails::RolesHelper
+require "fileutils"
+require "#{File.dirname(__FILE__)}/../lib/system_files_helper"
+require "#{File.dirname(__FILE__)}/../lib/utils"
 
-puts "Roles: "
-pp roles
 
-set_hostnames
-process_config_file_templates
+Ec2onrails::SystemFilesHelper.new.uninstall_system_files
 
