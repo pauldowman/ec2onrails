@@ -436,10 +436,13 @@ Capistrano::Configuration.instance.load do
       end
 
       desc <<-DESC
-        Enable ssl for the web server. You'll need to deploy a valid
-        SSL certificate file to /etc/ssl/certs/default.pem
-        and a valid SSL key file to  /etc/ssl/private/default.key
+        Enable ssl for the web server. You'll want to replace the default SSL
+        certificate and key files, the certificate file is at
+        /etc/ec2onrails/ssl/cert/ec2onrails-default.crt
+        and a the key file is at
+        /etc/ec2onrails/ssl/private/ec2onrails-default.key
         (use the deploy_files task).
+        The key file should NOT have a passphrase.
       DESC
       task :enable_ssl, :roles => :web_admin do
         sudo "a2enmod ssl"
