@@ -136,9 +136,7 @@ module Ec2onrails
 
     # Re-write the roles file with the hostnames resolved
     def resolve_hostnames_in_roles_file
-      File.open(ROLES_FILE, w) do |f|
-        YAML.dump(roles, f)
-      end
+      File.open(ROLES_FILE, 'w') {|f| YAML.dump(roles, f)}
     end
     
     # write a hostname alias for each host. The hostnames will be "rolename-n" where n
@@ -173,11 +171,12 @@ module Ec2onrails
       web_starting_port = self.web_starting_port
       roles = self.roles
 
-      Dir["/etc/**/*.erb"].each do |filename|
-        puts "Processing config file template: #{filename}..."
-        contents = ERB.new(IO.read(filename)).result(binding)
-        file_name = filename.sub(/\.erb$/, '')
-        File.open(file_name, 'w'){|f| f << contents}
+      Dir["/etc/**/*.erb"].each do |template|
+        puts "Processing config file template: #{template}..."
+        STDOUT.flush
+        contents = ERB.new(IO.read(template), nil, "%>").result(binding)
+        output_file = template.sub(/\.erb$/, '')
+        File.open(output_file, 'w'){|f| f << contents}
       end
     end
     
