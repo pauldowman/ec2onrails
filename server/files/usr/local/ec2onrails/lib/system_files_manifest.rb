@@ -98,8 +98,9 @@ module Ec2onrails
       @entries.keys.sort
     end
     
-    def self.log_error(message)
+    def log_error(message)
       puts message
+      STDOUT.flush
     end
   end
 end

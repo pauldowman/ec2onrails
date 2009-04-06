@@ -49,7 +49,9 @@ require "#{File.dirname(__FILE__)}/../lib/system_files_helper"
 require "#{File.dirname(__FILE__)}/../lib/utils"
 
 
-SYSTEM_FILES_SRC_DIR = "/mnt/app/current/config/ec2onrails/system_files"
+SYSTEM_FILES_SRC = "config/ec2onrails/system_files"
 
-Ec2onrails::SystemFilesHelper.new.install_system_files(SYSTEM_FILES_SRC_DIR)
+app_dir = ARGV[0] || "/mnt/app/current"
+
+Ec2onrails::SystemFilesHelper.new.install_system_files(File.join(app_dir, SYSTEM_FILES_SRC))
 

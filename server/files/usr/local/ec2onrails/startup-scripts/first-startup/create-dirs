@@ -29,7 +29,8 @@ make_dir /mnt/app         app:app
 
 #make sure it is setup to be able to be read/written by app user
 # Why have it owned (or even writeable) by app? Can't it just be owned by root and world readable? - Paul
-make_dir /etc/ec2onrails  app:app
+make_dir /etc/ec2onrails               app:app
+make_dir /etc/ec2onrails/system_files  app:app
 
 make_dir /mnt/log
 make_dir /mnt/log/fsck

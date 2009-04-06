@@ -280,6 +280,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
         allow_sudo do
           output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version 2>&1 1>/dev/null || sudo rake RAILS_ENV=#{rails_env} gems:install"
+          # TODO do we need to do gems:build also?
           puts output
         end
       end
@@ -337,8 +338,8 @@ Capistrano::Configuration.instance(:must_exist).load do
         TODO pointer to full documentation
       DESC
       task :deploy_files do
-        puts "DEPRECATION WARNING: you're using the deploy_files task which has been deprecated" # TODO pointer to documentation
         if cfg[:server_config_files_root]
+          puts "*****  DEPRECATION WARNING: you're using the deploy_files task which has been deprecated" # TODO pointer to documentation
           begin
             filename = "config_files.tar"
             local_file = "#{Dir.tmpdir}/#{filename}"
@@ -354,6 +355,21 @@ Capistrano::Configuration.instance(:must_exist).load do
             rm_rf local_file
             run "rm -f #{remote_file}"
           end
+        end
+      end
+      
+      desc <<-DESC
+        DEPRECATED. To install files into the system create the directory
+        RAILS_ROOT/config/ec2onrails/system_files, it can contain files
+        that will be installed into the server relative to "/", and it
+        can contain a manifest file with metadata, this allows the files
+        to be chowned to any user on the system, and it allows the files
+        to be cleanly uninstalled from the system.
+        TODO pointer to full documentation
+      DESC
+      task :install_system_files do
+        allow_sudo do
+          sudo "/usr/local/ec2onrails/bin/install_system_files #{release_path}"
         end
       end
       
@@ -388,6 +404,34 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :enable_ssl, :roles => :web do
         # TODO: enable for nginx
         # run_init_script("nginx", "restart")
+      end
+      
+      desc <<-DESC
+        Upload the app user's SSH deploy keys from
+        config/ec2onrails/deploy_keys to /home/app/.ssh
+        The deploy_keys dir should contain the SSH config files that
+        are needed to deploy your app's source code from your SCM repository
+        (if you're deploying from an SCM repo). This means an SSH private key
+        (named id_dsa), the public key (named id_dsa.pub) and possibly a 
+        known_hosts file.
+        They can't deployed via install_system_files because the
+        app user's SSH credentials might be needed to deploy the
+        app itself if it's coming directly from an SCM repository.
+      DESC
+      task :upload_deploy_keys do
+        deploy_keys_dir = "config/ec2onrails/deploy_keys"
+        remote_dir = "/home/app/.ssh"
+        
+        if File.exist? deploy_keys_dir
+          run "mkdir -p #{remote_dir}"
+          Dir.chdir deploy_keys_dir do
+            Dir.glob("*").each do |f|
+              remote_file = "#{remote_dir}/#{f}"
+              put File.read(f), "#{remote_file}"
+            end
+          end
+          run "chmod -R go-rwx /home/app/.ssh"
+        end
       end
       
       desc <<-DESC

@@ -55,17 +55,17 @@ Capistrano::Configuration.instance.load do
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
   after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
 
-  #NOTE: some default setups (like engineyard's) do some symlinking of config files after
-  # deploy:update_code.  The ordering here matters as we need to have those symlinks in place
-  # but we need to have the gems in place before the rails env is loaded up, or else it will
-  # fail.  By adding it to the callback queue AFTER all the tasks have loaded up, we make sure
-  # it is done at the very end.  
-  #
-  # *IF* you had tasks also triggered after update_code that run rake tasks 
-  # (like compressing javascript and stylesheets), move those over to before "deploy:symlink"
-  # and you'll be set!
+  # There's an ordering problem here. For convenience, we want to run 'rake gems:install' automatically
+  # on every deploy, but in the ec2onrails:setup task I want to do update_code before any other 
+  # setup tasks, and at that point I don't want run_rails_rake_gems_install to run. So run_rails_rake_gems_install
+  # can't be triggered by an "after" hook on update_code.
+  # But users might want to have their own tasks triggered after update_code, and those tasks will
+  # need to have the gems installed already.
+  # 
+  # The best solution is to use an after hook on "deploy:symlink" or "deploy:update"
   on :load do
-    after "deploy:update_code", "ec2onrails:server:run_rails_rake_gems_install"
+    before "deploy:symlink", "ec2onrails:server:run_rails_rake_gems_install"
+    before "deploy:symlink", "ec2onrails:server:install_system_files"
   end  
 
   
@@ -113,17 +113,23 @@ Capistrano::Configuration.instance.load do
       Prepare a newly-started instance for a cold deploy.
     DESC
     task :setup do
+      # we now have some things being included inside the app so we deploy
+      # the app's code to the server before we do any other setup
+      server.upload_deploy_keys
+      deploy.setup
+      deploy.update_code
+      
       ec2onrails.server.allow_sudo do
-        server.set_mail_forward_address
         server.set_timezone
+        server.set_mail_forward_address
         server.install_packages
         server.install_gems
-        server.deploy_files
+        server.deploy_files # DEPRECATED, see install_system_files
+        server.install_system_files
         server.set_roles
         server.enable_ssl if cfg[:enable_ssl]
         server.set_rails_env
         server.restart_services
-        deploy.setup
         db.create
         server.harden_server
         db.enable_ebs
