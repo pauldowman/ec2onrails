@@ -5,20 +5,23 @@
 #      to run a script under a specific role
 #      see the file for details
 
-cd /mnt/app/current
+if test -e /mnt/app/current; then
+  cd /mnt/app/current
 
-if test -e /mnt/app/current/script/cron/monthly; then 
-   if test -f /mnt/app/current/script/cron/monthly; then 
-      sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/monthly;
-   else 
-      sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/monthly/*;
-   fi
-   exit 0;
-fi
+  if test -e /mnt/app/current/script/cron/monthly; then 
+     if test -f /mnt/app/current/script/cron/monthly; then 
+        sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/monthly;
+     else 
+        sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/monthly/*;
+     fi
+     exit 0;
+  fi
 
-#DEPRECATED: just for old usage....
-if test -e /mnt/app/current/script/monthly
-then 
-   sudo -u app /usr/local/ec2onrails/bin/rails_env script/monthly
-   exit 0;
+  #DEPRECATED: just for old usage....
+  if test -e /mnt/app/current/script/monthly
+  then 
+     sudo -u app /usr/local/ec2onrails/bin/rails_env script/monthly
+     exit 0;
+  fi
+
 fi
