@@ -59,7 +59,7 @@ describe Ec2onrails::SystemFilesManifest do
     it "can provide metadata about the mode and owner of the file" do
       m = Ec2onrails::SystemFilesManifest.new @dir
       m["test1"].should == {:mode => nil, :owner => nil}
-      m["test2"].should == {:mode => "777", :owner => "user1"}
+      m["test2"].should == {:mode => "777", :owner => "user1:user1"}
       m["testfolder"].should == {:mode => nil, :owner => nil}
       m["testfolder/test3"].should == {:mode => "700", :owner => "user2"}
     end

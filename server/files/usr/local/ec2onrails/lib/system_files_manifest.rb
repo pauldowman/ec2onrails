@@ -84,7 +84,9 @@ module Ec2onrails
       contents = File.readlines(file)
       contents.each do |line|
         unless comment_or_empty_line?(line)
-          filename, mode, owner = line.split
+          filename = line.match(/^([^\s]+)\s*.*$/)[1]
+          mode = $1 if line.match(/^.*\s+mode=([^\s]*).*$/)
+          owner = $1 if line.match(/^.*\s+owner=([^\s]*).*$/)
           entries[filename] = {:mode => mode, :owner => owner}
         end
       end

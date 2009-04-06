@@ -4,10 +4,10 @@
 test1
 
 # test2 should have mode 777 and be owned by user1 
-test2 777 user1
+test2 mode=777 owner=user1:user1
 
 # testfolder has no metadata
 testfolder
 
 # test3 should be mode 700 and owned by user2
-testfolder/test3 700 user2
+testfolder/test3 mode=700 owner=user2
