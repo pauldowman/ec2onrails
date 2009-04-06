@@ -147,7 +147,7 @@ module Ec2onrails
       File.open(hosts_file, 'a') do |f| 
         roles.each do |rolename, addresses|
           addresses.each_with_index do |address, i|
-            f << "#{rolename.to_s.gsub(/_/, "-")}-#{i+1} #{address}\n"
+            f << "#{address} #{rolename.to_s.gsub(/_/, "-")}-#{i+1}\n"
           end
         end
       end
