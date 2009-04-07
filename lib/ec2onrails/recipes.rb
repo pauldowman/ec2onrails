@@ -124,6 +124,7 @@ Capistrano::Configuration.instance.load do
         server.set_mail_forward_address
         server.install_packages
         server.install_gems
+        server.run_rails_rake_gems_install
         server.deploy_files # DEPRECATED, see install_system_files
         server.install_system_files
         server.set_roles
