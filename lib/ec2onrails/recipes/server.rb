@@ -139,7 +139,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         help you out with that 
         NOTE: set ec2onrails_config[:service_domain] = 'yourdomain.com' before running this task
       DESC
-      task :setup_email_signing, :roles => :app do
+      task :setup_email_signing do
         if cfg[:service_domain].nil? || cfg[:service_domain].empty?
           raise "ERROR: missing the :service_domain key.  Please set that in your deploy script if you would like to use this task."
         end
