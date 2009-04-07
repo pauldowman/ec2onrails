@@ -41,15 +41,13 @@ module Ec2onrails
       @roles ||= resolve_all_addresses(YAML::load_file(ROLES_FILE))
     end
 
-    def start(role, service, prog_name = service)
-      puts "STARTING #{role} role (service: #{service}, program_name: #{prog_name})"
+    def start(role)
+      puts "STARTING #{role} role"
       sudo "god start #{role}"
-      # sudo "god monitor #{role}"
     end
 
-    def stop(role, service, prog_name = service)
-      puts "STOPING #{role} role (service: #{service}, program_name: #{prog_name})"
-      # sudo "god monitor #{role}"
+    def stop(role)
+      puts "STOPING #{role} role"
       sudo "god stop #{role}"
     end
 

@@ -30,33 +30,11 @@ Dir.glob("/etc/god/*.god") + Dir.glob("/mnt/app/current/config/god/#{RAILS_ENV}/
   sudo "god load '#{f}'"
 end
 
-# memcache role:
-if in_role?(:memcache)
-  # increase memory size, etc if no other roles exist?
-  start(:memcache, "memcached")
-else
-  stop(:memcache, "memcached")
-end
 
-# db primary role:
-if in_role?(:db_primary)
-  start(:db, "mysql", "mysqld")
-else
-  stop(:db, "mysql", "mysqld")
-end
-
-# web role:
-if in_role?(:web)
-  start(:web, "nginx", "nginx")
-else
-  #not started...
-  stop(:web, "nginx", "nginx")
-end
-
-
-# app role:
-if in_role?(:app)
-  start(:app, "mongrel", "mongrel_rails")
-else
-  stop(:app, "mongrel", "mongrel_rails")
+roles.keys.each do |role|
+  if in_role? role
+    start role
+  else
+    stop role
+  end
 end

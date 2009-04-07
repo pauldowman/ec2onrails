@@ -9,21 +9,16 @@ Capistrano::Configuration.instance(:must_exist).load do
         relevant services.
       DESC
       task :set_roles do
-        # TODO generate this based on the roles that actually exist so arbitrary new ones can be added
-        # user_defined_roles = roles
-        # roles.each do |k,v|
-        #   puts "#{k}, #{v.servers.first.options.inspect}"
-        #   {:primary=>true}
-        # 
-        # end
-        # 
-        roles = {
-          :web        => hostnames_for_role(:web),
-          :app        => hostnames_for_role(:app),
-          :db_primary => hostnames_for_role(:db, :primary => true),
-          :memcache   => hostnames_for_role(:memcache)
-        }
-        roles_yml = YAML::dump(roles)
+        # Create a list of server roles based on the capistrano roles.
+        # We treat :db specially because it maps to a different rolename on the server
+        # if :primary => true
+        server_roles = {}
+        roles.keys.delete_if{|r|r == :db}.each do |rolename|
+          server_roles[rolename] = hostnames_for_role(rolename)
+        end
+        server_roles[:db_primary] = hostnames_for_role(:db, :primary => true)
+
+        roles_yml = YAML::dump(server_roles)
         put roles_yml, "/tmp/roles.yml"
         allow_sudo do
           sudo "cp /tmp/roles.yml /etc/ec2onrails"
