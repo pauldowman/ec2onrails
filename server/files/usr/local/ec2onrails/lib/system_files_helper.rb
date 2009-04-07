@@ -59,17 +59,17 @@ module Ec2onrails
     end
     
     def backup(f)
-      puts "backing up file #{f}..."
       if File.exist?(f)
+        puts "backing up file #{f}..."
         backup_file = f + BACKUP_FILE_EXT
         FileUtils.mv f, backup_file
       end
     end
     
     def restore_backup_of(f)
-      puts "restoring backup of file #{f}..."
       backup_file = f + BACKUP_FILE_EXT
       if File.exist?(backup_file)
+        puts "restoring backup of file #{f}..."
         FileUtils.mv backup_file, f
       end
     end
