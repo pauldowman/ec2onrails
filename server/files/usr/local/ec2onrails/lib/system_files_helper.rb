@@ -53,8 +53,10 @@ module Ec2onrails
       @manifest = Ec2onrails::SystemFilesManifest.new(INSTALLED_MANIFEST_FILE)
       @manifest.filenames.each do |f|
         file = File.join("/", f)
-        File.rm file
-        restore_backup_of file
+        unless File.directory?(file)
+          FileUtils.rm file
+          restore_backup_of file
+        end
       end
     end
     
