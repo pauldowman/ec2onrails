@@ -280,7 +280,6 @@ Capistrano::Configuration.instance(:must_exist).load do
         # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
         allow_sudo do
           output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version 2>&1 1>/dev/null || sudo rake RAILS_ENV=#{rails_env} gems:install"
-          # TODO do we need to do gems:build also?
           puts output
         end
       end
