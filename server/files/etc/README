@@ -1,0 +1,7 @@
+You can place ERB templates anywhere under /etc and the set_roles script will 
+process them. 
+
+An ERB file named /etc/something.erb will generate an output file named 
+/etc/something
+
+TODO document variables that are available inside the templates
