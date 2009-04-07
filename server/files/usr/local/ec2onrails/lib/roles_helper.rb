@@ -174,7 +174,10 @@ module Ec2onrails
       Dir["/etc/**/*.erb"].each do |template|
         puts "Processing config file template: #{template}..."
         STDOUT.flush
-        contents = ERB.new(IO.read(template), nil, "%>").result(binding)
+        # Use '<>' for ERB formatting options, it's safer than '%' but still allows lines that are ruby-only to be
+        # omitted from the output.
+        # For all options see: http://stdlib.rubyonrails.org/libdoc/erb/rdoc/classes/ERB.html#M000684
+        contents = ERB.new(IO.read(template), nil, "<>").result(binding)
         output_file = template.sub(/\.erb$/, '')
         File.open(output_file, 'w'){|f| f << contents}
       end
