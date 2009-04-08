@@ -1,6 +1,6 @@
 God.watch do |w|
   w.name = 'mysql'
-  w.group = 'db'
+  w.group = 'db_primary'
   w.autostart = false
   
   w.start    = "/etc/init.d/mysql start" 
