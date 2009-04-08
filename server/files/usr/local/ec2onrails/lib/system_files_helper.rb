@@ -49,14 +49,17 @@ module Ec2onrails
     end
     
     def uninstall_system_files
-      puts "uninstalling system files..."
-      @manifest = Ec2onrails::SystemFilesManifest.new(INSTALLED_MANIFEST_FILE)
-      @manifest.filenames.each do |f|
-        file = File.join("/", f)
-        unless File.directory?(file)
-          FileUtils.rm file
-          restore_backup_of file
+      if File.exist? INSTALLED_MANIFEST_FILE
+        puts "uninstalling system files..."
+        @manifest = Ec2onrails::SystemFilesManifest.new(INSTALLED_MANIFEST_FILE)
+        @manifest.filenames.each do |f|
+          file = File.join("/", f)
+          unless File.directory?(file)
+            FileUtils.rm file
+            restore_backup_of file
+          end
         end
+        FileUtils.rm INSTALLED_MANIFEST_FILE
       end
     end
     
