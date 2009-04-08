@@ -11,7 +11,6 @@ God.watch do |w|
   w.grace    = 60.seconds
 
   default_configurations(w)
-  create_pid_dir(w)
   restart_if_resource_hog(w, :memory_usage => false)
   monitor_lifecycle(w)
 end

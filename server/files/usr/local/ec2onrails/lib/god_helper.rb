@@ -71,18 +71,6 @@ module  GodHelper
     end
   end
   
-  def create_pid_dir(w)
-    pid_dir = File.dirname(w.pid_file)
-    return if File.exist?(pid_dir)
-  
-    #we need to make sure it is writable...but include all the directories we created...
-    starting_dir = pid_dir
-    starting_dir = File.dirname(starting_dir) until File.exist?(File.dirname(starting_dir))
-
-    FileUtils.mkdir_p(pid_dir)
-    FileUtils.chown_R(w.uid, w.gid, starting_dir)
-  end
-
   def monitor_lifecycle(w)
     # w.transition(:up, :unmonitored) do |on|
     w.lifecycle do |on|

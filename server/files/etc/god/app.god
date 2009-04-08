@@ -20,7 +20,6 @@ rolling_delay = (restart_time / @configs.web_num_instances.to_f).ceil
     w.grace     = 60.seconds
 
     default_configurations(w)
-    create_pid_dir(w)
     restart_if_resource_hog(w, :memory_usage => 170.megabytes) do |restart|
       #NOTE: this will hit every instance, meaning every minute you have a hit for every port you have a mongrel on.  
       #      adding the port number to the call just to help with making this obvious in the logs

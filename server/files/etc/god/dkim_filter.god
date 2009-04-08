@@ -12,7 +12,6 @@ if File.exists?('/etc/init.d/dkim-filter')
     w.pid_file = "/var/run/dkim-filter/dkim-filter.pid"
 
     default_configurations(w)
-    create_pid_dir(w)
     restart_if_resource_hog(w, :memory_usage => 20.megabytes, :cpu_usage => 10.percent)
     monitor_lifecycle(w)
   end
