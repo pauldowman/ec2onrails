@@ -26,6 +26,7 @@ APP_ROOT = "/mnt/app/current"
 RAILS_ENV = `/usr/local/ec2onrails/bin/rails_env`.strip
 
 #reload configs to pick up any new changes
+# Just a thought... do we really need to load god files from inside the app? They could just be installed via install_system_files, that would be simpler
 Dir.glob("/etc/god/*.god") + Dir.glob("/mnt/app/current/config/god/#{RAILS_ENV}/*.god").each do |f|
   sudo "god load '#{f}'"
 end
