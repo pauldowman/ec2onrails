@@ -40,3 +40,5 @@ make_dir /mnt/log/nginx   nginx:nginx
 
 make_dir /mnt/tmp
 chmod 777 /mnt/tmp
+
+make_dir /var/run/mysqld    mysql:mysql
