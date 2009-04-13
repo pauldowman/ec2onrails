@@ -283,11 +283,11 @@ FILE
         (But don't enable monitoring on it.)
       DESC
       task :start, :roles => :db do
-        sudo "god start db"
+        sudo "god start db_primary"
       end
 
       task :stop, :roles => :db do
-        sudo "god stop db"
+        sudo "god stop db_primary"
       end
       
       
