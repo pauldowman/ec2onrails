@@ -187,7 +187,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           end
 
           pub_key = File.read("config/mail/dkim/dkim_#{selector}.public.key")
-          pub_key = pub_key.split("\n")[1..-2].join(' ')
+          pub_key = pub_key.split("\n")[1..-2].join('')
 
           #lets get the private and public keys up to the server
           put File.read("config/mail/dkim/dkim_#{selector}.private.key"), "/tmp/dkim_#{selector}.private.key"
@@ -306,7 +306,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         # very quickly before the sudo is called
         # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
         ec2onrails.server.allow_sudo do
-          output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version 2>&1 1>/dev/null || sudo rake RAILS_ENV=#{rails_env} gems:install"
+          output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version > /dev/null 2>&1 || sudo rake RAILS_ENV=#{rails_env} gems:install"
           puts output
         end
       end
