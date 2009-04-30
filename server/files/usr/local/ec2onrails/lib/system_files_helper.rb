@@ -27,6 +27,8 @@ module Ec2onrails
     INSTALLED_MANIFEST_FILE = "/etc/ec2onrails/system_files/#{SystemFilesManifest::MANIFEST_FILE_NAME}"
 
     def install_system_files(from_dir)
+      uninstall_system_files
+      
       puts "installing system files from #{from_dir}..."
       src_manifest = File.join from_dir, SystemFilesManifest::MANIFEST_FILE_NAME
 
