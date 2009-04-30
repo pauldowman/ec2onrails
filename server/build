@@ -31,7 +31,7 @@
 
 require "fileutils"
 
-EC2UBUNTU_VERSION = 139
+EC2UBUNTU_VERSION = 148
 
 unless File.exist? "/mnt/ec2ubuntu"
   puts "Installing yum..."
