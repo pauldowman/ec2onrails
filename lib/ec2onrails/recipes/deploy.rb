@@ -1,7 +1,7 @@
 Capistrano::Configuration.instance(:must_exist).load do
   cfg = ec2onrails_config
 
-  # override default start/stop/restart tasks to use god
+  # Override default start/stop/restart tasks for Passenger
   namespace :deploy do
     desc <<-DESC
       Overrides the default Capistrano deploy:start.
@@ -14,7 +14,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       Overrides the default Capistrano deploy:stop.
     DESC
     task :stop, :roles => :web do
-      sudo "god stop app"
+      # Do nothing, 
     end
     
     desc <<-DESC
