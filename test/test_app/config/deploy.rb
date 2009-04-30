@@ -6,7 +6,6 @@ ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/public-ec2-key"]
 
 set :host, ENV['HOST'] || ""
 role :web, host
-role :app, host
 role :db,  host, :primary => true
 
 set :rails_env, "production"

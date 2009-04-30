@@ -6,7 +6,7 @@ module Ec2onrails
     end
   
     def self.rails_env
-      `/usr/local/ec2onrails/bin/rails_env`.strip
+      File.read("/etc/ec2onrails/rails_env").strip
     end
     
     def self.hostname

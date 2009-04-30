@@ -14,7 +14,6 @@ ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/your-ec2-key"]
 # any other name (in case you have your own DNS alias) or it won't
 # be able to resolve to the internal IP address.
 role :web,      "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
-role :app,      "ec2-34-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :memcache, "ec2-12-xx-xx-xx.z-1.compute-1.amazonaws.com"
 role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true
 # role :db,       "ec2-56-xx-xx-xx.z-1.compute-1.amazonaws.com", :primary => true, :ebs_vol_id => 'vol-12345abc'

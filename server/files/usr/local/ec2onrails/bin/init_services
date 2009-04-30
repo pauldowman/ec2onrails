@@ -19,11 +19,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require "#{File.dirname(__FILE__)}/../lib/roles_helper"
+require "#{File.dirname(__FILE__)}/../lib/utils"
+
 include Ec2onrails::RolesHelper
 
 
 APP_ROOT = "/mnt/app/current"
-RAILS_ENV = `/usr/local/ec2onrails/bin/rails_env`.strip
+RAILS_ENV = Ec2onrails::Utils.rails_env
 
 #reload configs to pick up any new changes
 # Just a thought... do we really need to load god files from inside the app? They could just be installed via install_system_files, that would be simpler

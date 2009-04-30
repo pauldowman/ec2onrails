@@ -23,11 +23,12 @@ require 'pp'
 require 'resolv'
 require 'socket'
 require 'yaml'
+require "#{File.dirname(__FILE__)}/utils"
 
 module Ec2onrails
   module RolesHelper
+    
     ROLES_FILE = "/etc/ec2onrails/roles.yml"
-    MONGREL_CONF_FILE = "/etc/mongrel_cluster/app.yml"
 
     def local_address
       @local_address ||= get_metadata "local-ipv4"
@@ -100,38 +101,6 @@ module Ec2onrails
     #to provide deprecated usage
     alias :in_role :in_role?
     
-    def web_starting_port
-      mongrel_config['port'].to_i rescue 8000
-    end
-
-    def web_num_instances
-      mongrel_config['servers'].to_i rescue 6
-    end
-
-    def web_port_range
-      (web_starting_port..(web_starting_port + web_num_instances-1))
-    end
-    
-    def server_environment
-      mongrel_config["environment"]
-    end
-    
-    def user
-      mongrel_config['user']
-    end
-
-    def group
-      mongrel_config['group']
-    end
-    
-    def application_root
-      mongrel_config['cwd']
-    end    
-    
-    def pid_file
-      "#{application_root}/#{mongrel_config['pid_file']}"
-    end
-
     # Re-write the roles file with the hostnames resolved
     def resolve_hostnames_in_roles_file
       File.open(ROLES_FILE, 'w') {|f| YAML.dump(roles, f)}
@@ -164,9 +133,8 @@ module Ec2onrails
     # The output from "filename.erb" will be saved as "filename"
     def process_config_file_templates
       # Set any variables that will be needed inside the templates
-      # We're processing ALL templates, even ones that won't be used in the current role, but I think that's OK.
-      web_port_range = self.web_port_range
-      web_starting_port = self.web_starting_port
+      # We're processing ALL templates, even ones that won't be used in the current role.
+      rails_env = Ec2onrails::Utils.rails_env
       roles = self.roles
 
       Dir["/etc/**/*.erb"].each do |template|
@@ -181,11 +149,5 @@ module Ec2onrails
       end
     end
     
-    private
-
-    def mongrel_config
-      @mongrel_config ||= YAML::load_file(MONGREL_CONF_FILE)
-    end
-
   end
 end

@@ -19,16 +19,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# This script runs a command with RAILS_ENV set to the value that's specified
-# in the the mongrel_cluster config file. If a command isn't given as an 
-# argument it simply prints the value of RAILS_ENV
+# This script runs a command with RAILS_ENV set to current value for
+# this instance. If a command isn't given as an argument it simply
+# prints the value of RAILS_ENV
 
 require "yaml"
-
-@rails_env = YAML::load_file("/etc/mongrel_cluster/app.yml")["environment"]
+require "#{File.dirname(__FILE__)}/../lib/utils"
 
 if ARGV.any?
-  exec "env RAILS_ENV=#{@rails_env} #{ARGV.join(' ')}"
+  exec "env RAILS_ENV=#{Ec2onrails::Utils.rails_env} #{ARGV.join(' ')}"
 else
-  puts @rails_env
+  puts Ec2onrails::Utils.rails_env
 end

@@ -26,10 +26,6 @@ require 'yaml'
 require 'erb'
 require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
 
-if `whoami`.strip != 'root'
-  raise "Sorry, this buildfile must be run as root."
-end
-
 # package notes:
 # * gcc:            libraries needed to compile c/c++ files from source
 # * libmysqlclient-dev : provide mysqlclient-dev libs, needed for DataObject gems
@@ -86,9 +82,8 @@ end
   "god",
   "RubyInline",
   "memcache-client",
-  "mongrel",
-  "mongrel_cluster",
   "optiflag",
+  "passenger",
   "rails",
   "rails -v '~> 2.3.2'",
   "rails -v '~> 2.2.2'",
@@ -106,7 +101,7 @@ end
 task :default => :configure
 
 desc "Removes all build files"
-task :clean_all do |t|
+task :clean_all => :require_root do |t|
   puts "Unmounting proc and dev from #{@build_root}..."
   run "umount #{@build_root}/ubuntu/proc", true
   run "umount #{@build_root}/ubuntu/dev", true
@@ -115,8 +110,14 @@ task :clean_all do |t|
   rm_rf @build_root
 end
 
+task :require_root do |t|
+  if `whoami`.strip != 'root'
+    raise "Sorry, this buildfile must be run as root."
+  end
+end
+
 desc "Use aptitude to install required packages inside the image's filesystem"
-task :install_packages do |t|
+task :install_packages => :require_root do |t|
   unless_completed(t) do
     ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
@@ -128,7 +129,7 @@ task :install_packages do |t|
 end
 
 desc "Install required ruby gems inside the image's filesystem"
-task :install_gems => [:install_packages] do |t|
+task :install_gems => [:require_root, :install_packages] do |t|
   unless_completed(t) do
     run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/55066/rubygems-1.3.2.tgz && tar zxf rubygems-1.3.2.tgz'"
     run_chroot "sh -c 'cd /tmp/rubygems-1.3.2 && ruby setup.rb'"
@@ -145,9 +146,9 @@ task :install_gems => [:install_packages] do |t|
 end
 
 desc "Install nginx from source"
-task :install_nginx => [:install_packages] do |t|
+task :install_nginx => [:require_root, :install_packages, :install_gems] do |t|
   unless_completed(t) do
-    nginx_version = "nginx-0.6.35"
+    nginx_version = "nginx-0.6.36"
     nginx_tar = "#{nginx_version}.tar.gz"
 
     nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
@@ -155,35 +156,26 @@ task :install_nginx => [:install_packages] do |t|
     src_dir = "/tmp/src/nginx"
     # Make sure the dir is created but empty...lets start afresh
     run_chroot "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
-    run_chroot "mkdir -p -m 755 #{src_dir}/modules/nginx-upstream-fair"
     run_chroot "sh -c 'cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}'"
-  
-    run_chroot "sh -c 'cd #{src_dir}/modules && \
-         wget -q #{fair_bal_img} && \
-         tar -xzf *nginx-upstream-fair*.tar.gz -o -C ./nginx-upstream-fair && \
-         mv nginx-upstream-fair/*/* nginx-upstream-fair/.'"
-  
-    run_chroot "sh -c 'cd #{src_dir}/#{nginx_version} && \
-         ./configure \
-           --sbin-path=/usr/sbin \
-           --conf-path=/etc/nginx/nginx.conf \
-           --pid-path=/var/run/nginx.pid \
-           --with-http_ssl_module \
-           --with-http_stub_status_module \
-           --add-module=#{src_dir}/modules/nginx-upstream-fair && \
-         make && \
-         make install'"
 
-    # run_chroot "ln -sf /usr/local/nginx/sbin/nginx /usr/sbin/nginx"
-    # run_chroot "ln -sf /usr/local/nginx/conf /etc/nginx"
+    run_chroot "sh -c 'cd #{src_dir}/#{nginx_version} && \
+       ./configure \
+         --sbin-path=/usr/sbin \
+         --conf-path=/etc/nginx/nginx.conf \
+         --pid-path=/var/run/nginx.pid \
+         --with-http_ssl_module \
+         --with-http_stub_status_module \
+         --add-module=`/usr/bin/passenger-config --root`/ext/nginx && \
+       make && \
+       make install'"
   end
 end
 
 desc "Install Ubuntu packages, download and compile other software, and install gems"
-task :install_software => [:install_gems, :install_packages, :install_nginx]
+task :install_software => [:require_root, :install_gems, :install_packages, :install_nginx]
 
 desc "Configure the image"
-task :configure => [:install_software] do |t|
+task :configure => [:require_root, :install_software] do |t|
   unless_completed(t) do
     sh("cp -r files/* #{@fs_dir}")
     replace("#{@fs_dir}/etc/motd.tail", /!!VERSION!!/, "Version #{@version}")

@@ -48,11 +48,12 @@ Capistrano::Configuration.instance.load do
   set :use_sudo, false
   set :user, "app"
 
-  #in case any changes were made to the configs, like changing the number of mongrels
+  #in case any changes were made to the configs
   before "deploy:cold", "ec2onrails:setup"
   
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
+  # TODO I don't think we can do gem source -a every time because I think it adds the same repo multiple times
   after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
 
   # There's an ordering problem here. For convenience, we want to run 'rake gems:install' automatically
@@ -60,9 +61,10 @@ Capistrano::Configuration.instance.load do
   # setup tasks, and at that point I don't want run_rails_rake_gems_install to run. So run_rails_rake_gems_install
   # can't be triggered by an "after" hook on update_code.
   # But users might want to have their own tasks triggered after update_code, and those tasks will
-  # need to have the gems installed already.
+  # fail if they require gems to be installed (or anything else to be set up).
   # 
-  # The best solution is to use an after hook on "deploy:symlink" or "deploy:update"
+  # The best solution is to use an after hook on "deploy:symlink" or "deploy:update" instead of on
+  # "deploy:update_code"
   on :load do
     before "deploy:symlink", "ec2onrails:server:run_rails_rake_gems_install"
     before "deploy:symlink", "ec2onrails:server:install_system_files"
