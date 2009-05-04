@@ -1,19 +1,12 @@
-# user and group to run as
 user  nginx nginx;
-
-# number of nginx workers
 worker_processes  6;
-
-# pid of nginx master process
 pid /var/run/nginx.pid;
 
-# Number of worker connections. 1024 is a good default
 events {
   worker_connections  1024;
   use epoll; # linux only!
 }
 
-# start the http module where we config http access.
 http {
   # global passenger settings
   passenger_root <%= `/usr/bin/passenger-config --root`.strip %>;
@@ -27,12 +20,10 @@ http {
   # instance type and what roles it's in.)
   # passenger_max_pool_size 6;
   
-  # pull in mime-types. You can break out your config 
-  # into as many include's as you want to make it cleaner
   include /etc/nginx/mime.types;
   
   # set a default type for the rare situation that
-  # nothing matches from the mimie-type include
+  # nothing matches from the mime-type include
   default_type  application/octet-stream;
 
   # configure log format
@@ -41,20 +32,16 @@ http {
                   '"$http_user_agent" "$http_x_forwarded_for" '
                   '($request_time)';
   
-  # main access log
   access_log  /mnt/log/nginx/access.log  main;
 
   # main error log - Do not comment out. If you do not want the log file set this to /dev/null
   # use debug instead of notice if you want additional information
   error_log  /mnt/log/nginx/error.log notice;
 
-  # no sendfile on OSX
   sendfile on;
 
-  # These are good default values.
   tcp_nopush        on;
   tcp_nodelay       on;
-  # output compression saves bandwidth 
   gzip              on;
   gzip_http_version 1.0;
   gzip_comp_level   5;
@@ -69,9 +56,7 @@ http {
                     application/xml+rss \
                     text/javascript;
   
-  # the server directive is nginx's virtual host directive.
   server {
-    # port to listen on. Can also be set to an IP:PORT
     listen 80;
     server_name _;
     
@@ -101,11 +86,8 @@ http {
     #    break;
     # }
     
-    # doc root
     root /mnt/app/current/public;
 
-    # vhost specific access log
-    access_log  /mnt/log/nginx/vhost.access.log  main;
     error_page   400 /400.html;
     error_page   500 502 503 504  /500.html;
     location = /500.html {
