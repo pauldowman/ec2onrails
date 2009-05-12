@@ -171,7 +171,7 @@ Note: make sure NOT to include a trailing slash on the ec2onrails directory name
 4. Using ssh, log in to the EC2 instance _HOSTNAME_ using your ssh _IDENTITY_ file:
 <pre>ssh -i _IDENTITY_ root@_HOSTNAME_</pre>
 
-5. On the server, run the build script with the appropriate arguments: (ARCH is either i386 or amd64)
+5. On the server, run the build script with the appropriate arguments: (_ARCH_ is either i386 or amd64)
 <pre>bash /mnt/ec2onrails/server/build \
      --bucket ec2onrails \
      --prefix ec2onrails-custom \
