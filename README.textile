@@ -147,34 +147,35 @@ To get a full list of the Capistrano tasks at any time type <code>cap -T</code> 
 
 h2. Building the image
 
-Building the image is not required, most people will simply use the prebuilt public image, but there is also a build script that builds the image. It's meant to be called by "Eric Hammond's EC2 Ubuntu script":http://alestic.com/.
+The EC2 on Rails server image is built using "Eric Hammond's EC2 Ubuntu build script":http://alestic.com/
 
-Here is how you go about setting it up:
+Note that building your own AMI is not necessary, other options are:
+* Use one of the public AMI's and configure it at run-time (recommended).
+* Re-bundle one of the public AMI's and save it as your own (not recommended because you won't be able to take advantage of any bug fixes or updates).
 
 
-h4. Notes
+h4. Instructions
 
-* amazon-keypair is your amazon keypair, which in this case has has had the public and private keys copied into the ~/.ssh folder
-* we need to copy the ec2onrails source folder onto the image instance
-* HOST_PUBLIC_INSTANCE is the hostname of the instance that you will soon be creating.  run <code>ec2-describe-instances</code> to find this value.  It will look something like <code>ec2-xxx-xxx-xxx-xxx.compute-x.amazonaws.com</code>
-
-h4. Getting started...
-
-* launch one of Eric's default images (see "Eric Hammond's":http://alestic.com/ page for the most recent ami-images): <code>ec2-run-instances ami-1cd73375 -k amazon-keypair</code> (for a 64-bit image, launch: <code>ec2-run-instances ami-17d7337e -k amazon-keypair --instance-type m1.large</code>)
-* lets get your amazon keypair up onto the instance: <code>scp -i ~/.ssh/id_rsa-amazon-keypair ~/.ec2/{cert,pk}-*.pem root@HOST_PUBLIC_ADDRESS:/mnt/</code>
-* ditto for getting the ec2onrails server code up onto your new instance: <code>scp -rp -i ~/.ssh/id_rsa-amazon-keypair ~/your/copy/of/ec2onrails/. root@HOST_PUBLIC_ADDRESS:/mnt/ec2onrails</code>
-* time to log into your instance: <code>ssh -i ~/.ssh/id_rsa-amazon-keypair root@HOST_PUBLIC_ADDRESS</code>
-* get the most recent ec2ubuntu script: <code>curl -Lo /mnt/ec2ubuntu-build-ami http://ec2ubuntu-build-ami.notlong.com</code>
-* time to get the instance ready for ec2onrails.  The script will end with a command you need to run to finish creating an amazon ami-image. <pre>bash /mnt/ec2ubuntu-build-ami \ 
---codename hardy \ 
---bucket YOURNAME_ec2onrails \ 
---prefix ec2onrails \ 
---user YOUR_AMAZON_USER_ID \ 
---access-key AMAZON_ACCESS_KEY \ 
---secret-key AMAZON_SECRET_KEY \ 
---private-key /mnt/pk-*.pem \ 
---cert /mnt/cert-*.pem \ 
---script /mnt/ec2onrails/server/build-ec2onrails.sh</pre>
+* Start an EC2 instance that will be used to run the build script. The recommended AMI's are Amazon's public developer images:
+<pre>32-bit: ami-f51aff9c
+64-bit: ami-f21aff9b</pre>
+* Copy your certificate file and private key file to the EC2 instance ephemeral storage, using your ssh IDENTITY (key) file:
+<pre>scp -i IDENTITY pk-XXXXXXXXXX.pem root@HOSTNAME:/mnt/
+scp -i IDENTITY cert-XXXXXXXXXX.pem root@HOSTNAME:/mnt/</pre>
+* Copy the entire ec2onrails source folder EC2ONRAILS to the EC2 instance ephemeral storage, using your ssh IDENTIY file:
+<pre>rsync -rlvzcC --delete --exclude='output*' --rsh='ssh -i IDENTITY' EC2ONRAILS root@HOSTNAME:/mnt/</pre>
+Note: make sure NOT to include a trailing slash on the ec2onrails directory name, rsync behaves differently when copying directories if there is no slash at the end of the folder name! After this step you should have a directory on the server named /mnt/ec2onrails
+* Using ssh, log in to the EC2 instance HOSTNAME using your ssh IDENTITY file:
+<pre>ssh -i IDENTITY root@HOSTNAME</pre>
+* On the server, run the build script with the appropriate arguments:
+<pre>bash /mnt/ec2onrails/server/build \
+     --bucket ec2onrails \
+     --prefix ec2onrails-custom \
+     --user XXXX-XXXX-XXXX \
+     --access-key XXXXXXXXXX \
+     --secret-key XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \
+     --private-key /mnt/pk-XXXXXXXXXX.pem \
+     --cert /mnt/cert-XXXXXXXXXX.pem</pre>
 
 h2. Mailing lists
 
