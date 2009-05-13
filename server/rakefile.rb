@@ -187,7 +187,8 @@ task :configure => [:require_root, :install_software] do |t|
     run_chroot "/usr/sbin/addgroup rootequiv"
 
     run_chroot "cp /root/.gemrc /home/app" # so the app user also has access to gems.github.com
-        
+    run_chroot "chown app:app /home/app/.gemrc"
+
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.bashrc"
     
