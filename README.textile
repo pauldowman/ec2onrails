@@ -199,12 +199,26 @@ See the "change log":http://github.com/pauldowman/ec2onrails/raw/master/gem/CHAN
 
 h2. How to submit patches
 
-Pleae read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/. The source code can be checked out anonymously using: 
+Please read the "8 steps for fixing other people's code":http://drnicwilliams.com/2007/06/01/8-steps-for-fixing-other-peoples-code/. The source code can be checked out anonymously using: 
 <pre>
 git clone git://github.com/pauldowman/ec2onrails.git
 </pre>
 
 Patches can be submitted to the "RubyForge Tracker":http://rubyforge.org/tracker/?atid=17560&group_id=4552&func=browse  or "emailed directly to me":http://pauldowman.com/contact/ .
+
+h2. Contributors
+
+"Paul Dowman":http://github.com/pauldowman
+"Adam Greene":http://github.com/skippy
+"Mark Lane":http://github.com/DrMark
+"Ben Woosley":http://github.com/Empact
+"Chris Nolan":http://github.com/ChrisNolan
+"Pivotal Labs":http://github.com/pivotal
+"Randy Harmon":http://github.com/rjharmon
+"Sebastian Johnsson":http://github.com/Agiley
+"Barry Paul":http://github.com/bpaul
+"Robert J. Berger":http://github.com/rberger
+(If you've contributed code and you're not listed here I apologize, _please_ send me an email!)
 
 h2. License
 
