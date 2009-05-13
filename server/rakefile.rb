@@ -135,7 +135,7 @@ task :install_gems => [:require_root, :install_packages] do |t|
     filename = "rubygems-1.3.3.tgz"
     
     run_chroot "sh -c 'cd /tmp && wget -q #{url} && tar zxf #{filename}'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.3.2 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.3.3 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     #NOTE: this will update to the most recent rubygems version even if we haven't updated the url here
     run_chroot "gem update --system --no-rdoc --no-ri"
