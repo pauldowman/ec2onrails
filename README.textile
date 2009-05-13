@@ -164,15 +164,15 @@ Instructions:
 <pre>scp -i _IDENTITY_ pk-XXXXXXXXXX.pem root@_HOSTNAME_:/mnt/
 scp -i _IDENTITY_ cert-XXXXXXXXXX.pem root@_HOSTNAME_:/mnt/</pre>
 
-3. Copy the entire ec2onrails source folder _EC2ONRAILS_ to the EC2 instance ephemeral storage, using your ssh IDENTIY file:
-<pre>rsync -rlvzcC --delete --exclude='output*' --rsh='ssh -i _IDENTITY_' _EC2ONRAILS_ root@_HOSTNAME_:/mnt/</pre>
-Note: make sure NOT to include a trailing slash on the ec2onrails directory name, rsync behaves differently when copying directories if there is no slash at the end of the folder name! After this step you should have a directory on the server named /mnt/ec2onrails
+3. Copy the entire ec2onrails source folder _EC2ONRAILS_ to the EC2 instance ephemeral storage, using your ssh IDENTITY file:
+<pre>rsync -rlvzcC --delete --exclude='output*' --exclude='.git' --rsh='ssh -i _IDENTITY_' _EC2ONRAILS_ root@_HOSTNAME_:/mnt/</pre>
+Note: make sure NOT to include a trailing slash on the ec2onrails directory name, rsync behaves differently when copying directories if there is no slash at the end of the folder name! After this step you should have a directory on the server named /mnt/ec2onrails (e.g. use /rails/ec2onrails not /rails/ec2onrails/ or /rails/ec2onrails/.)
 
 4. Using ssh, log in to the EC2 instance _HOSTNAME_ using your ssh _IDENTITY_ file:
 <pre>ssh -i _IDENTITY_ root@_HOSTNAME_</pre>
 
 5. On the server, run the build script with the appropriate arguments: (_ARCH_ is either i386 or amd64)
-<pre>bash /mnt/ec2onrails/server/build \
+<pre>ruby /mnt/ec2onrails/server/build \
      --bucket ec2onrails \
      --prefix ec2onrails-custom \
      --arch _ARCH_
