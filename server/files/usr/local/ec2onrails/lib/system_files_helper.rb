@@ -58,6 +58,7 @@ module Ec2onrails
     def uninstall_system_files
       unless File.exist? INSTALLED_MANIFEST_FILE
         puts "not uninstalling system files, #{INSTALLED_MANIFEST_FILE} doesn't exist."
+        return
       end
 
       puts "uninstalling system files..."
