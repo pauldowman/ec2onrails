@@ -6,11 +6,11 @@ God.watch do |w|
   w.restart = "/etc/init.d/nginx restart"
   w.pid_file = "/var/run/nginx.pid"  
   server_status_path = '/nginx_status'
-  w.grace = 30.seconds
   w.group = 'web'
   w.autostart = false
 
   default_configurations(w)
+
   restart_if_resource_hog(w, :memory_usage => 250.megabytes) do |restart|
     restart.condition(:http_response_code) do |c|
       c.host = '127.0.0.1'
