@@ -18,25 +18,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-make_dir() {
-  mkdir -p $1
-  if [ $2 ] ; then
-    chown -R $2 $1
-  fi
-}
 
-make_dir /mnt/app         app:app
+# /var/run/mysqld doesn't exist until MySQL starts, but God fails if it
+# doesn't exist, and we use God to start MySQL.
 
-#make sure it is setup to be able to be read/written by app user
-# Why have it owned (or even writeable) by app? Can't it just be owned by root and world readable? - Paul
-make_dir /etc/ec2onrails               app:app
-make_dir /etc/ec2onrails/system_files  app:app
-
-make_dir /mnt/log
-make_dir /mnt/log/fsck
-make_dir /mnt/log/god
-make_dir /mnt/log/mysql   mysql:mysql
-make_dir /mnt/log/nginx   nginx:nginx
-
-make_dir /mnt/tmp
-chmod 777 /mnt/tmp
+mkdir -p /var/run/mysqld
+chmod mysql:mysql /var/run/mysqld
