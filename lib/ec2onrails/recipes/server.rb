@@ -387,7 +387,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :set_mail_forward_address do
         if cfg[:mail_forward_address]
           allow_sudo do
-            run "echo '#{cfg[:mail_forward_address]}' >> /root/.forward"
+            sudo "sh -c 'echo #{cfg[:mail_forward_address]} > /root/.forward'"
           end
         end
       end
