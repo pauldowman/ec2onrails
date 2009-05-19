@@ -23,4 +23,4 @@
 # doesn't exist, and we use God to start MySQL.
 
 mkdir -p /var/run/mysqld
-chmod mysql:mysql /var/run/mysqld
+chown mysql:mysql /var/run/mysqld
