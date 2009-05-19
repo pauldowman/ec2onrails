@@ -11,8 +11,12 @@ if test -e /mnt/app/current; then
   if test -e /mnt/app/current/script/cron/hourly; then 
      if test -f /mnt/app/current/script/cron/hourly; then 
         sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/hourly;
-     else 
-        sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/hourly/*;
+     else
+        for f in script/cron/hourly/*; do
+           if test -f $f; then 
+              sudo -u app /usr/local/ec2onrails/bin/rails_env $f
+           fi
+        done
      fi
      exit 0;
   fi

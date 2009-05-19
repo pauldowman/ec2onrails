@@ -12,7 +12,11 @@ if test -e /mnt/app/current; then
      if test -f /mnt/app/current/script/cron/weekly; then 
         sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/weekly;
      else 
-        sudo -u app /usr/local/ec2onrails/bin/rails_env script/cron/weekly/*;
+        for f in script/cron/weekly/*; do
+           if test -f $f; then 
+              sudo -u app /usr/local/ec2onrails/bin/rails_env $f
+           fi
+        done
      fi
      exit 0;
   fi
