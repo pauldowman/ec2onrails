@@ -26,6 +26,7 @@ require "#{File.dirname(__FILE__)}/aws_helper"
 
 module Ec2onrails
   class S3Helper
+    SCRATCH_SPACE = '/mnt/tmp'
 
     # make attributes available for specs
     attr_accessor :bucket
@@ -63,6 +64,27 @@ module Ec2onrails
       create_bucket
       AWS::S3::S3Object.store(s3_key(file), open(file), @bucket)
     end
+    
+    def store_dir(dir, options={})
+      FileUtils.mkdir_p SCRATCH_SPACE
+      create_bucket
+      compress = options[:compress]
+      exclude  = options[:exclude]
+      
+      #should be of the format:
+      # mnt-app-shared_ec2-75-101-250-19__20090217-183411.tgz
+      archive_nm = "#{Ec2onrails::Utils.hostname}__#{Time.new.strftime('%Y%m%d-%H%M%S')}"
+      archive_nm += compress ? ".tgz" : 'tar'  
+      cmd = "cd #{SCRATCH_SPACE} && tar -cph"
+      cmd += 'z' if compress
+      cmd += "f #{archive_nm} -C / #{dir[1..-1]} "
+      cmd += " --exclude=#{exclude} "
+      system(cmd)
+      file = "#{SCRATCH_SPACE}/#{archive_nm}"
+      AWS::S3::S3Object.store(s3_key(archive_nm), open(file), @bucket)
+    ensure
+      system "nice -n 15 rm -f #{file}" 
+    end      
 
     def retrieve_file(file)
       key = s3_key(file)
