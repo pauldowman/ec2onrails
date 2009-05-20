@@ -44,12 +44,13 @@ module CommandLineArgs extend OptiFlagSet
   optional_flag "dir"
   optional_switch_flag "incremental"
   optional_switch_flag "reset"
+  optional_switch_flag "no_ebs"
   and_process!
 end
 @mysql = Ec2onrails::MysqlHelper.new
 
 
-if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")
+if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")  && !ARGV.flags.no_ebs
   # we have ebs enabled....
         
   @aws   = Ec2onrails::AwsHelper.new
