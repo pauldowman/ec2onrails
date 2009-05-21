@@ -361,10 +361,12 @@ FILE
       # Of course you can overload it or call the file directly
       task :optimize, :roles => :db do
         if !quiet_capture("test -e /tmp/optimize_db_flag && echo 'file exists'").empty?
-          begin
-            sudo "/usr/local/ec2onrails/bin/optimize_mysql"
-          ensure
-            sudo "rm -rf /tmp/optimize_db_flag" #remove so we cannot run again
+          ec2onrails.server.allow_sudo do
+            begin
+              sudo "/usr/local/ec2onrails/bin/optimize_mysql"
+            ensure
+              sudo "rm -rf /tmp/optimize_db_flag" #remove so we cannot run again
+            end
           end
         else
           puts "skipping as it looks like this task has already been run"
