@@ -441,12 +441,17 @@ Capistrano::Configuration.instance(:must_exist).load do
       DESC
       task :restrict_sudo_access do
         old_user = fetch(:user)
+        is_rootequiv? = capture("groups").split.include?("rootequiv") # check groups before changing user
         begin
           set :user, 'root'
           sessions.clear #clear out sessions cache..... this way the ssh connections are reinitialized
           
           # Remove the app user from the "rootequiv" group, this removes full sudo ability
-          run "deluser app rootequiv"
+          if is_rootequiv?
+            run "deluser app rootequiv"
+          else
+            puts "User 'app' is not a member of group 'rootequiv' (old_user = #{old_user})."
+          end
         ensure
           set :user, old_user
           sessions.clear
