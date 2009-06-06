@@ -211,6 +211,7 @@ h2. Contributors
 (In alphabetical order)
 
 "Adam Greene":http://github.com/skippy
+"Arpit Jain":http://github.com/arpitjain11
 "Barry Paul":http://github.com/bpaul
 "Ben Woosley":http://github.com/Empact
 "Chris Nolan":http://github.com/ChrisNolan

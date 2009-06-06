@@ -179,7 +179,7 @@ Capistrano::Configuration.instance.load do
               god_status = quiet_capture("sudo god status")
               god_status = god_status.empty? ? {} : YAML::load(god_status)
               start_stop_db = false
-              start_stop_db = god_status['db']['mysql'] == 'up'
+              start_stop_db = god_status['db_primary']['mysql'] == 'up'
               if start_stop_db
                 stop
                 puts "Waiting for mysql to stop"
