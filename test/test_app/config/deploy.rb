@@ -1,12 +1,15 @@
 set :application, "test_app"
 
-set :repository, "svn://rubyforge.org/var/svn/ec2onrails/trunk/test/#{application}"
-
 ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/ec2-key"]
 
-set :host, ENV['HOST'] || ""
+raise "please add HOST=ec2-xxx.xx... on the command line" unless ENV['HOST']
+set :host, ENV['HOST']
 role :web, host
 role :db,  host, :primary => true
+
+set :repository, "."
+set :scm, :none
+set :deploy_via, :copy
 
 set :rails_env, "production"
 
@@ -15,6 +18,5 @@ set :ec2onrails_config, {
   :packages => [],
   :rubygems => [],
   :timezone => "Canada/Eastern",
-  :server_config_files_root => "../server_configs",
   :services_to_restart => %w(sysklogd)
 }
