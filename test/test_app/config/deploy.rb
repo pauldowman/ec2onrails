@@ -2,7 +2,7 @@ set :application, "test_app"
 
 set :repository, "svn://rubyforge.org/var/svn/ec2onrails/trunk/test/#{application}"
 
-ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/public-ec2-key"]
+ssh_options[:keys] = ["#{ENV['HOME']}/.ssh/ec2-key"]
 
 set :host, ENV['HOST'] || ""
 role :web, host
