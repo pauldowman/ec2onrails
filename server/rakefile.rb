@@ -150,7 +150,7 @@ end
 desc "Install nginx from source"
 task :install_nginx => [:require_root, :install_packages, :install_gems] do |t|
   unless_completed(t) do
-    nginx_version = "nginx-0.6.36"
+    nginx_version = "nginx-0.7.60"
     nginx_tar = "#{nginx_version}.tar.gz"
 
     nginx_img = "http://sysoev.ru/nginx/#{nginx_tar}"
