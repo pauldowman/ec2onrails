@@ -47,15 +47,7 @@ http {
   gzip_vary on;
   gzip_comp_level   6;
   gzip_proxied      any;
-  gzip_types        text/plain \
-                    text/html \
-                    text/css \
-                    application/x-javascript \
-                    application/json \
-                    text/xml \
-                    application/xml \
-                    application/xml+rss \
-                    text/javascript;
+  gzip_types        application/json application/x-javascript application/xhtml+xml application/xml application/xml+rss text/css text/javascript text/plain text/xml ;
   # make sure gzip does not lose large gzipped js or css files
   # see http://blog.leetsoft.com/2007/7/25/nginx-gzip-ssl
   gzip_buffers 16 8k;
