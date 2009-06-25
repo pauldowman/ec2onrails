@@ -54,32 +54,17 @@ Capistrano::Configuration.instance.load do
         start
         sleep(15) # make sure the db has some time to start up!
         
-        #NOTE: if these commands fail, it is most likely because the command has already been run....
-
-        cmds = []
-        #sometimes there is a test database that comes with the default installation of MySQL...get rid of it!
-        
-        cmds << %{mysql -u root -e "drop database if exists test; flush privileges;"}
+        run %{mysql -u root -e "drop database if exists test; flush privileges;"}
         # removing anonymous mysql accounts
-        cmds << %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
-        cmds << %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
+        run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
+        run %{mysql -u root -D mysql -e "delete from user where User = ''; flush privileges;"}
 
         # qoting of database names allows special characters eg (the-database-name)
         # the quotes need to be double escaped. Once for capistrano and once for the host shell
-        cmds << %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`;"}
-        cmds << %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        cmds << %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        cmds << %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        
-        cmds.each do |cmd|
-          begin
-            run cmd
-          rescue Exception => e
-              # TODO this is a bit confusing, the command can fail for other reasons, let's improve the message
-              puts "  CONTINUING: this command was previously run, so continuing"
-          end
-        end
-        
+        run %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`;"}
+        run %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
+        run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}        
       end
       
       desc <<-DESC
