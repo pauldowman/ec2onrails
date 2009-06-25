@@ -78,7 +78,6 @@ require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
 #       support included
 @rubygems = [
   "grempe-amazon-ec2",
-  "aws-s3",
   "god",
   "RubyInline",
   "memcache-client",
@@ -90,7 +89,8 @@ require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
   "rails -v '~> 2.1.2'",
   "rails -v '~> 2.0.5'",
   "rails -v '~> 1.2.6'",
-  "rake"
+  "rake",
+  "right_aws"
 ]
 
 @build_root = "/mnt/build"

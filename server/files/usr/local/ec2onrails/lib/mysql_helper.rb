@@ -17,7 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'rubygems'
-require 'aws/s3'
 require 'yaml'
 require 'erb'
 require 'fileutils'

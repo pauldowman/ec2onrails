@@ -32,21 +32,22 @@ describe Ec2onrails::S3Helper do
   
   describe "with a mock connection" do
     before(:each) do
-      AWS::S3::Base.stub!(:establish_connection!)
+      bucket = mock("bucket")
+      s3 = mock("s3")
+      s3.stub!(:bucket).and_return bucket
+      RightAws::S3.stub!(:new).and_return(s3)
       @s3_helper = Ec2onrails::S3Helper.new("bucket", nil, MOCK_S3_CONFIG, "production")
     end
   
     it "can load S3 config details from a config file with multiple environment sections" do
       @s3_helper.aws_access_key.should == "DEF456"
       @s3_helper.aws_secret_access_key.should == "def456def456def456def456"
-      @s3_helper.bucket.should == "yourbucket-bucket"
     end
   
     it "can load S3 config details from a config file with no environment sections" do
       s3 = Ec2onrails::S3Helper.new("bucket", nil, "#{File.dirname(__FILE__)}/s3_old.yml", "production")
       s3.aws_access_key.should == "ABC123"
       s3.aws_secret_access_key.should == "abc123abc123abc123abc123"
-      s3.bucket.should == "yourbucket-bucket"
     end
   
     it "can create an s3 key using a given filename" do
@@ -61,6 +62,7 @@ describe Ec2onrails::S3Helper do
 
   describe "with a real connection" do
     # Integration tests to make sure we can use the real API
+    # TODO these are currently broken, fix them and come up with a better way of specifying the real S3 credentials, maybe specify in ENV?
     before(:each) do
       @s3_helper = Ec2onrails::S3Helper.new("ec2onrails-test", nil, REAL_S3_CONFIG, "production")
       begin
