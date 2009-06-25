@@ -52,7 +52,7 @@ Capistrano::Configuration.instance.load do
         on_rollback { drop }
         load_config
         start
-        sleep(5) #make sure the db has some time to start up!
+        sleep(15) # make sure the db has some time to start up!
         
         #NOTE: if these commands fail, it is most likely because the command has already been run....
 
