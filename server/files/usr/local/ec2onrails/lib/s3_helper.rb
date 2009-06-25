@@ -24,6 +24,19 @@ require 'fileutils'
 require "#{File.dirname(__FILE__)}/utils"
 require "#{File.dirname(__FILE__)}/aws_helper"
 
+
+# Hack to get rid of the "warning: peer certificate won't be verified in this SSL session" message
+# See http://www.5dollarwhitebox.org/drupal/node/64
+class Net::HTTP
+  alias_method :old_initialize, :initialize
+  def initialize(*args)
+    old_initialize(*args)
+    @ssl_context = OpenSSL::SSL::SSLContext.new
+    @ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  end
+end
+
+
 module Ec2onrails
   class S3Helper
     SCRATCH_SPACE = '/mnt/tmp'
@@ -45,8 +58,9 @@ module Ec2onrails
       @aws_secret_access_key = @awsHelper.aws_secret_access_key
       @bucket_base_name      = @awsHelper.bucket_base_name
       @bucket_name = bucket_name || "#{@bucket_base_name}-#{Ec2onrails::Utils.hostname}"
-      puts @bucket_name
-      s3 = RightAws::S3.new(@aws_access_key, @aws_secret_access_key)
+      logger = Logger.new(STDOUT)
+      logger.level = Logger::ERROR
+      s3 = RightAws::S3.new(@aws_access_key, @aws_secret_access_key, :logger => logger)
       @bucket = s3.bucket(@bucket_name, true)
     end
 
