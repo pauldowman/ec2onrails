@@ -1,6 +1,8 @@
 .DS_Store
-pkg/*
-tmp/*
 .loadpath
 .project
-
+pkg/*
+test/test_app/db/*.sqlite3
+test/test_app/log/*
+test/test_app/tmp/*
+tmp/*
