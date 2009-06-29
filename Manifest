@@ -125,7 +125,6 @@ test/test_app/config/initializers/new_rails_defaults.rb
 test/test_app/config/initializers/session_store.rb
 test/test_app/config/locales/en.yml
 test/test_app/config/routes.rb
-test/test_app/db/development.sqlite3
 test/test_app/doc/README_FOR_APP
 test/test_app/public/404.html
 test/test_app/public/422.html
