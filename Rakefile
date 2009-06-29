@@ -10,7 +10,12 @@ end
 require "./echoe_config"
 
 desc "Run all gem-related tasks"
-task :ec2onrails_gem => [:manifest, :package, :update_github_gemspec]
+task :ec2onrails_gem => [:delete_ignored_files, :manifest, :package, :update_github_gemspec]
+
+desc "Delete files that are in .gitignore so they don't get added to the manifest"
+task :delete_ignored_files do
+  File.read(".gitignore").each { |line| FileUtils.rm_f Dir.glob(line.strip) }
+end
 
 desc "Update the GitHub gemspec file (/ec2onrails.gemspec)"
 task :update_github_gemspec => [:manifest, :package] do
