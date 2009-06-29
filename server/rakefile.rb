@@ -96,7 +96,7 @@ require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
 @build_root = "/mnt/build"
 @fs_dir = "#{@build_root}/ubuntu"
 
-@version = [Ec2onrails::VERSION::STRING]
+@version = Ec2onrails::VERSION::STRING
 
 task :default => :configure
 

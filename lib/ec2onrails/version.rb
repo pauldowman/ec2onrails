@@ -18,12 +18,7 @@
 
 module Ec2onrails #:nodoc:
   module VERSION #:nodoc:
-    MAJOR = 0
-    MINOR = 9
-    TINY  = 10
-    # GEM_UPDATE  = 0
-    # STRING = [MAJOR, MINOR, TINY, GEM_UPDATE].join('.')
-    STRING = [MAJOR, MINOR, TINY].join('.')
+    STRING = "0.9.10.0"
     
     AMI_ID_32_BIT_US = 'ami-xx'
     AMI_ID_64_BIT_US = 'ami-xx'
