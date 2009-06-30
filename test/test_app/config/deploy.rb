@@ -1,6 +1,6 @@
 set :application, "test_app"
 
-ssh_options[:keys] = [ENV['KEY'], "#{ENV['HOME']}/.ssh/ec2-key"]
+ssh_options[:keys] = [ENV['KEY']]
 
 raise "please add HOST=ec2-xxx.xx... on the command line" unless ENV['HOST']
 set :host, ENV['HOST']
