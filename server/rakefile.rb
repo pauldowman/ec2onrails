@@ -69,6 +69,7 @@ require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
   subversion
   sysstat
   unzip
+  varnish
   vim
   wget
   xfsprogs
