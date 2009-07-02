@@ -12,5 +12,15 @@ module Ec2onrails
     def self.hostname
       `hostname -s`.strip
     end
+    
+    def self.load_config
+      config = {}
+      begin
+        config = eval(File.read("/etc/ec2onrails/config.rb"))
+      rescue Exception => e
+        puts "ERROR:\n#{e.inspect}\n#{e.backtrace.join("\n")}"
+      end
+      return config
+    end
   end
 end
