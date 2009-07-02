@@ -2,3 +2,4 @@
 :memcache: 
 :db_primary: 
 :web: 
+:proxy:

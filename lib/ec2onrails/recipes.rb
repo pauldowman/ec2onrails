@@ -88,8 +88,8 @@ Capistrano::Configuration.instance.load do
       command because Net::SSH, which is used by Capistrano, needs it.
       This will only work if you have an ssh command in the path.
       If Capistrano can successfully connect to your EC2 instance you
-      don't need to do this. It will copy from the first server in the
-      :app role, this can be overridden by specifying the HOST 
+      don't need to do this. It will copy from one of the servers
+      at random, this can be overridden by specifying the HOST 
       environment variable
     DESC
     task :get_public_key_from_server do

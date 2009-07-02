@@ -1,0 +1,140 @@
+#This is the VCL configuration file for varnish.  See the vcl(7)
+#man page for details on VCL syntax and semantics.
+
+# One backend for each instance in the "web" role. If that instance is also in
+# the "proxy" role then it's listening on port 81, otherwise it's on port 80
+<% roles[:web].each_with_index do |address, i| %>
+backend web_<%= i %> {
+.host = "<%= address %>";
+.port = "<%= roles[:proxy] && roles[:proxy].include?(address) ? 81 : 80  %>";
+}
+<% end %>
+
+<% unless config[:proxy] && config[:proxy][:caching_enabled] %>
+# redefine the vcl_recv function to disable caching if 
+# config[:proxy][:caching_enabled] is not true for this instance.
+sub vcl_recv {
+   if (req.request != "GET" &&
+     req.request != "HEAD" &&
+     req.request != "PUT" &&
+     req.request != "POST" &&
+     req.request != "TRACE" &&
+     req.request != "OPTIONS" &&
+     req.request != "DELETE") {
+       /* Non-RFC2616 or CONNECT which is weird. */
+       return (pipe);
+   }
+  return (pass);
+}
+<% end %>
+
+
+#
+#Below is a commented-out copy of the default VCL logic.  If you
+#redefine any of these subroutines, the built-in logic will be
+#appended to your code.
+#
+#sub vcl_recv {
+#    if (req.request != "GET" &&
+#      req.request != "HEAD" &&
+#      req.request != "PUT" &&
+#      req.request != "POST" &&
+#      req.request != "TRACE" &&
+#      req.request != "OPTIONS" &&
+#      req.request != "DELETE") {
+#        /* Non-RFC2616 or CONNECT which is weird. */
+#        return (pipe);
+#    }
+#    if (req.request != "GET" && req.request != "HEAD") {
+#        /* We only deal with GET and HEAD by default */
+#        return (pass);
+#    }
+#    if (req.http.Authorization || req.http.Cookie) {
+#        /* Not cacheable by default */
+#        return (pass);
+#    }
+#    return (lookup);
+#}
+#
+#sub vcl_pipe {
+#    return (pipe);
+#}
+#
+#sub vcl_pass {
+#    return (pass);
+#}
+#
+#sub vcl_hash {
+#    set req.hash += req.url;
+#    if (req.http.host) {
+#        set req.hash += req.http.host;
+#    } else {
+#        set req.hash += server.ip;
+#    }
+#    return (hash);
+#}
+#
+#sub vcl_hit {
+#    if (!obj.cacheable) {
+#        return (pass);
+#    }
+#    return (deliver);
+#}
+#
+#sub vcl_miss {
+#    return (fetch);
+#}
+#
+#sub vcl_fetch {
+#    if (!obj.cacheable) {
+#        return (pass);
+#    }
+#    if (obj.http.Set-Cookie) {
+#        return (pass);
+#    }
+#    set obj.prefetch =  -30s;
+#    return (deliver);
+#}
+#
+#sub vcl_deliver {
+#    return (deliver);
+#}
+#
+#sub vcl_discard {
+#    /* XXX: Do not redefine vcl_discard{}, it is not yet supported */
+#    return (discard);
+#}
+#
+#sub vcl_prefetch {
+#    /* XXX: Do not redefine vcl_prefetch{}, it is not yet supported */
+#    return (fetch);
+#}
+#
+#sub vcl_timeout {
+#    /* XXX: Do not redefine vcl_timeout{}, it is not yet supported */
+#    return (discard);
+#}
+#
+#sub vcl_error {
+#    set obj.http.Content-Type = "text/html; charset=utf-8";
+#    synthetic {"
+#<?xml version="1.0" encoding="utf-8"?>
+#<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+# "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+#<html>
+#  <head>
+#    <title>"} obj.status " " obj.response {"</title>
+#  </head>
+#  <body>
+#    <h1>Error "} obj.status " " obj.response {"</h1>
+#    <p>"} obj.response {"</p>
+#    <h3>Guru Meditation:</h3>
+#    <p>XID: "} req.xid {"</p>
+#    <address>
+#       <a href="http://www.varnish-cache.org/">Varnish</a>
+#    </address>
+#  </body>
+#</html>
+#"};
+#    return (deliver);
+#}

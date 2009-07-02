@@ -1,5 +1,5 @@
 God::Contacts::Email.message_settings = {
-  :from => 'app@localhost'
+  :from => 'root@localhost'
 }
 
 God::Contacts::Email.server_settings = {
@@ -9,6 +9,6 @@ God::Contacts::Email.server_settings = {
 
 God.contact(:email) do |c|
   c.name = 'app'
-  c.email = 'app@localhost'
+  c.email = 'root@localhost'
   c.group = 'default'
 end

@@ -49,6 +49,8 @@ require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
   libmysql-ruby
   libpcre3-dev
   libssl-dev
+  libxml2-dev
+  libxslt1-dev
   libyaml-ruby
   libzlib-ruby
   logrotate
@@ -159,7 +161,6 @@ task :install_nginx => [:require_root, :install_packages, :install_gems] do |t|
     # Make sure the dir is created but empty...lets start afresh
     run_chroot "mkdir -p -m 755 #{src_dir}/ &&  rm -rf #{src_dir}/*" 
     run_chroot "sh -c 'cd #{src_dir} && wget -q #{nginx_img} && tar -xzf #{nginx_tar}'"
-
     run_chroot "sh -c 'cd #{src_dir}/#{nginx_version} && \
        ./configure \
          --sbin-path=/usr/sbin \
@@ -202,7 +203,7 @@ task :configure => [:require_root, :install_software] do |t|
     run_chroot "update-rc.d ec2-every-startup start 92 S ."
     
     # Disable the services that will be managed by god, depending on the roles
-    %w(nginx mysql memcached).each do |service|
+    %w(nginx mysql memcached varnish).each do |service|
       run_chroot "update-rc.d -f #{service} remove"
       run_chroot "update-rc.d #{service} stop 20 2 3 4 5 ."
     end
@@ -212,6 +213,8 @@ task :configure => [:require_root, :install_software] do |t|
     
     # Create the mail aliases db
     run_chroot "postalias /etc/aliases"
+    
+    run_chroot "chmod 0440 /etc/sudoers"
   end
 end
 

@@ -54,4 +54,3 @@ SYSTEM_FILES_SRC = "config/ec2onrails/system_files"
 app_dir = ARGV[0] || "/mnt/app/current"
 
 Ec2onrails::SystemFilesHelper.new.install_system_files(File.join(app_dir, SYSTEM_FILES_SRC))
-

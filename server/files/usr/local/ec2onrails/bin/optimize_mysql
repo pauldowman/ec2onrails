@@ -49,16 +49,14 @@ FileUtils.copy(DEFAULT_CONFIG_LOC, "#{DEFAULT_CONFIG_LOC}.pre_optimized") unless
 num_cores = `cat /proc/cpuinfo`.find_all{|o| o =~ /^\s*processor\s+/}.size rescue 1
 #if also running app, just search for ruby because that will 
 #include mongrel but also daemons and other scripts
-num_ruby_instances = local_roles.include?(:app) ? `ps ax | grep ruby | grep -v 'grep ruby'`.split("\n").size : 0
+num_ruby_instances = local_roles.include?(:web) ? `ps ax | grep ruby | grep -v 'grep ruby'`.split("\n").size : 0
 avail_cores = num_cores - num_ruby_instances/4
 avail_cores = 0 if avail_cores.nil? || avail_cores < 0
 
 
 mem_opt = nil
-mem_opt ||= 0.15 if local_roles.include?(:app) && local_roles.include?(:web) && local_roles.include?(:memcache)
-mem_opt ||= 0.25 if local_roles.include?(:app) && local_roles.include?(:memcache)
-mem_opt ||= 0.35 if local_roles.include?(:app) || local_roles.include?(:memcache)
-mem_opt ||= 0.50 if local_roles.include?(:web)
+mem_opt ||= 0.15 if local_roles.include?(:web) && local_roles.include?(:memcache)
+mem_opt ||= 0.35 if local_roles.include?(:web) || local_roles.include?(:memcache)
 mem_opt ||= 0.70  #if only db, lets use a 70% ratio
 
 orig_free_mem  = (`free -m` =~ /buffers\/cache:\s+\d+\s+(\d+)/; $1).to_i rescue 1024 

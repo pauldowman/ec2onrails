@@ -23,7 +23,7 @@
 #    ex.
 #      * exec_runner -role :db -exec 'echo "hello world"'
 #        # will only run if the server is in the db role
-#      * exec_runner -role :app -exec /some/app/specific/script/to/call
+#      * exec_runner -role :web -exec /some/app/specific/script/to/call
 #
 
 require "rubygems"
@@ -55,7 +55,7 @@ module CommandLineArgs extend OptiFlagSet
   and_process!
 end
 
-#strip out the ':', in case the user enters ':db', or ':app'
+#strip out the ':', in case the user enters ':db', or ':web'
 if ARGV.flags.role && !in_role?(ARGV.flags.role.sub(/^:/, '').to_sym)
   puts "This script is not being run because the server is not running under the #{role} role" if ARGV.flags.v
   exit

@@ -23,6 +23,8 @@ server/files/etc/cron.daily/logrotate_post
 server/files/etc/cron.hourly/app
 server/files/etc/cron.monthly/app
 server/files/etc/cron.weekly/app
+server/files/etc/default/varnish
+server/files/etc/default/varnishncsa
 server/files/etc/denyhosts.conf
 server/files/etc/dpkg/dpkg.cfg
 server/files/etc/ec2onrails/rails_env
@@ -35,6 +37,7 @@ server/files/etc/god/examples/have_god_daemonize.god
 server/files/etc/god/master.conf
 server/files/etc/god/memcache.god
 server/files/etc/god/notifications.god
+server/files/etc/god/proxy.god
 server/files/etc/god/system.god
 server/files/etc/god/web.god
 server/files/etc/init.d/ec2-every-startup
@@ -52,11 +55,13 @@ server/files/etc/README
 server/files/etc/ssh/sshd_config
 server/files/etc/sudoers
 server/files/etc/syslog.conf
+server/files/etc/varnish/default.vcl.erb
 server/files/usr/local/ec2onrails/bin/archive_file
 server/files/usr/local/ec2onrails/bin/backup_app_db
 server/files/usr/local/ec2onrails/bin/backup_dir
 server/files/usr/local/ec2onrails/bin/ec2_meta_data
 server/files/usr/local/ec2onrails/bin/exec_runner
+server/files/usr/local/ec2onrails/bin/in_role
 server/files/usr/local/ec2onrails/bin/init_services
 server/files/usr/local/ec2onrails/bin/install_system_files
 server/files/usr/local/ec2onrails/bin/optimize_mysql

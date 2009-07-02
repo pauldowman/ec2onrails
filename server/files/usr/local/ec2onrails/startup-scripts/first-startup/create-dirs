@@ -35,8 +35,11 @@ make_dir /etc/ec2onrails/system_files  app:app
 make_dir /mnt/log
 make_dir /mnt/log/fsck
 make_dir /mnt/log/god
-make_dir /mnt/log/mysql   mysql:mysql
-make_dir /mnt/log/nginx   nginx:nginx
+make_dir /mnt/log/mysql     mysql:mysql
+make_dir /mnt/log/nginx     nginx:nginx
+make_dir /mnt/log/varnish
+
+make_dir /mnt/varnish/
 
 make_dir /mnt/tmp
 chmod 777 /mnt/tmp

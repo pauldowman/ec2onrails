@@ -1,5 +1,4 @@
 Capistrano::Configuration.instance(:must_exist).load do
-  cfg = ec2onrails_config
 
   # Override default start/stop/restart tasks for Passenger
   namespace :deploy do

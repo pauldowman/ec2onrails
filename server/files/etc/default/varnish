@@ -1,0 +1,33 @@
+# Configuration file for varnish
+#
+# /etc/init.d/varnish expects the variables $DAEMON_OPTS, $NFILES and $MEMLOCK
+# to be set from this shell script fragment.
+#
+
+# Maximum number of open files (for ulimit -n)
+NFILES=131072
+
+# Maximum locked memory size (for ulimit -l)
+# Used for locking the shared memory log in memory.  If you increase log size,
+# you need to increase this number as well
+MEMLOCK=82000
+
+# Default varnish instance name is the local nodename.  Can be overridden with
+# the -n switch, to have more instances on a single server.
+INSTANCE=$(uname -n)
+
+
+# Listen on port 80, administration on localhost:6082, and forward to
+# one content server selected by the vcl file, based on the request.  
+
+# Use a 256 MB fixed-size cache file. 
+# TODO figure out how to configure this so that the varnishd process 
+# doesn't grow so large because we have little or no swap (or add
+# more swap space)
+#
+# TODO pre-allocate the storage space using dd
+#
+DAEMON_OPTS="-a :80 \
+             -T localhost:6082 \
+             -f /etc/varnish/default.vcl \
+             -s file,/mnt/varnish/varnish_storage.bin,256M"

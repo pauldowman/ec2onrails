@@ -56,7 +56,7 @@ http {
   gzip_disable “MSIE [1-6].(?!.*SV1)”;
   
   server {
-    listen 80;
+    listen <%= roles[:proxy] && roles[:proxy].include?("127.0.0.1")  ? 81 : 80 %>;
     server_name _;
     
     # server-specific passenger settings
