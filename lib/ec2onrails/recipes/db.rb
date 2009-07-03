@@ -52,7 +52,8 @@ Capistrano::Configuration.instance.load do
         on_rollback { drop }
         load_config
         start
-        sleep(15) # make sure the db has some time to start up!
+        puts "  * Pausing to give MySQL some time to start up..."
+        sleep 20
         
         run %{mysql -u root -e "drop database if exists test; flush privileges;"}
         # removing anonymous mysql accounts
