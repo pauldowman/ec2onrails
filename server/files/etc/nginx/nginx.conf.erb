@@ -110,8 +110,7 @@ http {
     # page if it exists in the doc root. This is for capistrano's
     # disable web task
     if (-f $document_root/system/maintenance.html) {
-      rewrite  ^(.*)$  /system/maintenance.html last;
-      break;
+      rewrite  ^(.*)$  /system/maintenance.html break;
     }
     
     # see http://wiki.codemongers.com/NginxHttpStubStatusModule
