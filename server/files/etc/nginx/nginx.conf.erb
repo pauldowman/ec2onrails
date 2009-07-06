@@ -124,7 +124,7 @@ http {
         deny all;
     }
     
-    include /etc/nginx/custom.conf;
+    include /etc/nginx/conf.d/*.conf;
   }
   
   # This server is setup for ssl. Uncomment if 
