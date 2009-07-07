@@ -112,6 +112,8 @@ module Ec2onrails
       hosts_file  = "/etc/hosts"
       FileUtils.cp "#{hosts_file}.original", hosts_file
       File.open(hosts_file, 'a') do |f| 
+        f << "\n"
+        f << "# The following is automatically added by the EC2 on Rail set_roles script:\n"
         roles.each do |rolename, addresses|
           addresses.each_with_index do |address, i|
             f << "#{address} #{rolename.to_s.gsub(/_/, "-")}-#{i+1}\n"
