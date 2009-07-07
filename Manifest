@@ -48,7 +48,7 @@ server/files/etc/logrotate.d/nginx
 server/files/etc/memcached.conf
 server/files/etc/motd.tail
 server/files/etc/mysql/my.cnf
-server/files/etc/nginx/custom.conf
+server/files/etc/nginx/conf.d/custom.conf
 server/files/etc/nginx/nginx.conf.erb
 server/files/etc/postfix/main.cf
 server/files/etc/README
