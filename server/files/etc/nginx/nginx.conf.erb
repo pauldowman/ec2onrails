@@ -12,13 +12,17 @@ http {
   passenger_root <%= `/usr/bin/passenger-config --root`.strip %>;
   passenger_default_user app;
   passenger_pool_idle_time 0;
-  rails_spawn_method conservative;
   rails_framework_spawner_idle_time 0;
   rails_app_spawner_idle_time 0;
+
   # We leave passenger_max_pool_size at the default for now. (It might
   # eventually be an ERB variable that can be set automatically based on the
   # instance type and what roles it's in.)
   # passenger_max_pool_size 6;
+
+  # We leave the rails_spawn_method at the default, but we might want a config setting
+  # to allow it to be changed.
+  # rails_spawn_method smart-lv2;
   
   include /etc/nginx/mime.types;
   
