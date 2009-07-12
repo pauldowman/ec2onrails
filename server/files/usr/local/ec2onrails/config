@@ -12,7 +12,7 @@ fi
 export EC2_HOME=/usr/local/ec2-api-tools
 export PATH="$PATH:$EC2_HOME/bin"
 
-export JAVA_HOME="/usr/lib/jvm/java-6-sun"
+if [ -e "/usr/lib/jvm/java-6-sun" ]; then export JAVA_HOME="/usr/lib/jvm/java-6-sun"; fi
 
 # Set the bash prompt to include the rails environment name
 case "$TERM" in
