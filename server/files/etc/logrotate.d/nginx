@@ -2,10 +2,8 @@
   daily
   missingok
   dateext
-  compress
-  create 640 root app
-  notifempty
   sharedscripts
-  extension gz
-  copytruncate
+  postrotate
+    test -f /var/run/nginx.pid && kill -USR1 `cat /var/run/nginx.pid`
+  endscript
 }
