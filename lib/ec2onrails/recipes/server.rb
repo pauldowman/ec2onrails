@@ -435,6 +435,14 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
       
       desc <<-DESC
+        Clear the varnish proxy cache (if caching is enabled, which it isn't
+        by default). Purges all documents from the cache.
+      DESC
+      task :purge_proxy_cache, :roles => :proxy do
+        run "varnishadm -T localhost:6082 'url.purge .*'"
+      end
+      
+      desc <<-DESC
         Restrict the app user's sudo access.
         Defaults the user to only be able to \
         sudo to god
