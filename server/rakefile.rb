@@ -204,7 +204,7 @@ task :configure => [:require_root, :install_software] do |t|
     run_chroot "update-rc.d ec2-every-startup start 92 S ."
     
     # Disable the services that will be managed by god, depending on the roles
-    %w(nginx mysql memcached varnish).each do |service|
+    %w(nginx mysql memcached varnish varnishncsa).each do |service|
       run_chroot "update-rc.d -f #{service} remove"
       run_chroot "update-rc.d #{service} stop 20 2 3 4 5 ."
     end

@@ -1,0 +1,14 @@
+/mnt/log/varnish/varnish.log /mnt/log/varnish/varnishncsa.log {
+  daily
+  rotate 7
+  missingok
+  dateext
+  sharedscripts
+  postrotate
+    for service in varnishlog varnishncsa; do
+      if /usr/bin/pgrep -P 1 $service >/dev/null; then
+        /usr/sbin/invoke-rc.d $service reload > /dev/null
+      fi
+    done
+  endscript
+}

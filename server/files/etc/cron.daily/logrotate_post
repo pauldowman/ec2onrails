@@ -17,3 +17,9 @@ for f in `ls /mnt/log/nginx/*.log` ; do
     /usr/local/ec2onrails/bin/archive_file --file $logfile.gz --dir logs/nginx && rm $logfile.gz
   fi
 done
+
+logfile=/mnt/log/varnish/varnishncsa.log-`date +%Y%m%d`
+if [ -e $logfile ] ; then
+  gzip $logfile
+  /usr/local/ec2onrails/bin/archive_file --file $logfile.gz --dir logs/varnish && rm $logfile.gz
+fi

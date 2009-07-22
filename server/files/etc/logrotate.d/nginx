@@ -1,5 +1,6 @@
 /mnt/log/nginx/*.log {
   daily
+  rotate 7
   missingok
   dateext
   sharedscripts

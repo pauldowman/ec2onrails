@@ -24,3 +24,21 @@ God.watch do |w|
   
   monitor_lifecycle(w)
 end
+
+God.watch do |w|
+  w.name  = "varnishncsa"
+  w.group = "proxy"
+  w.autostart = false
+
+  w.start     = "/etc/init.d/varnishncsa start"
+  w.stop      = "/etc/init.d/varnishncsa stop"
+  w.restart   = "/etc/init.d/varnishncsa restart"
+  w.pid_file  = "/var/run/varnishncsa.pid"
+  w.grace     = 10.seconds
+ 
+  default_configurations(w)
+
+  restart_if_resource_hog(w, :memory_usage => 100.megabytes, :cpu_usage => 50.percent)
+  
+  monitor_lifecycle(w)
+end
