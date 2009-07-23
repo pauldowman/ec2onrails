@@ -92,7 +92,7 @@ http {
     root /mnt/app/current/public;
 
     error_page   400 /400.html;
-    error_page   500 502 503 504  /500.html;
+    error_page   500 502 504  /500.html;
     location = /500.html {
       root /mnt/app/current/public;
     }
@@ -114,8 +114,13 @@ http {
     # page if it exists in the doc root. This is for capistrano's
     # disable web task
     if (-f $document_root/system/maintenance.html) {
+      return 503;
+    }
+    error_page 503 @503;
+    location @503 {
       rewrite  ^(.*)$  /system/maintenance.html break;
     }
+    
     
     # see http://wiki.codemongers.com/NginxHttpStubStatusModule
     # for more information
