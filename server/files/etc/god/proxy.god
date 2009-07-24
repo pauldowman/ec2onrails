@@ -21,8 +21,6 @@ God.watch do |w|
   # the moment we don't have much swap configured (just using the defaults
   # from Eric Hammond's base image).
   restart_if_resource_hog(w, :memory_usage => 100.megabytes, :cpu_usage => 50.percent)
-  
-  monitor_lifecycle(w)
 end
 
 God.watch do |w|
@@ -39,6 +37,4 @@ God.watch do |w|
   default_configurations(w)
 
   restart_if_resource_hog(w, :memory_usage => 100.megabytes, :cpu_usage => 50.percent)
-  
-  monitor_lifecycle(w)
 end

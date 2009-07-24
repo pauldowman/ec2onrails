@@ -20,6 +20,4 @@ God.watch do |w|
       c.times = [3, 5] # 3 out of 5 intervals
     end
   end
-  
-  monitor_lifecycle(w)
 end

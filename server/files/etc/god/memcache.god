@@ -12,5 +12,4 @@ God.watch do |w|
   w.grace     = 10.seconds
  
   restart_if_resource_hog(w, :memory_usage => false)
-  monitor_lifecycle(w)
 end

@@ -13,7 +13,6 @@ if File.exists?('/etc/init.d/dkim-filter')
 
     default_configurations(w)
     restart_if_resource_hog(w, :memory_usage => 20.megabytes, :cpu_usage => 10.percent)
-    monitor_lifecycle(w)
   end
 end
 
