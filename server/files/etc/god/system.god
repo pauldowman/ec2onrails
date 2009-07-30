@@ -12,25 +12,25 @@ God.watch do |w|
     on.condition(:disk_usage) do |c| 
       c.mount_point = "/" 
       c.above = 75
-      c.notify = "default"
+      c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
     end 
 
     on.condition(:disk_usage) do |c| 
       c.mount_point = "/mnt"
       c.above = 75
-      c.notify = "default"
+      c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
     end 
     
     on.condition(:memory_usage) do |c|
       c.above = 80.percent
       c.times = [3, 5] # 3 out of 5 intervals
-      c.notify = "default"
+      c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
     end
   
     on.condition(:cpu_usage) do |c|
       c.above = 90.percent
       c.times = [5, 8]
-      c.notify = "default"
+      c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
     end        
   end
  

@@ -1,5 +1,6 @@
 module  GodHelper
   require '/usr/local/ec2onrails/lib/roles_helper'
+  require '/usr/local/ec2onrails/lib/utils'
   require 'fileutils'
 
   def default_configurations(w)
@@ -33,13 +34,13 @@ module  GodHelper
     # start if process is not running
     w.transition(:up, :start) do |on|
       on.condition(:process_exits) do |c|
-        c.notify = {:contacts => ['default'], :category => 'process exited...restarting'}
+        c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
       end
     end
     
     w.lifecycle do |on|
       on.condition(:flapping) do |c|
-        c.notify = {:contacts => ['default'], :category => 'process flapping...restarting'}
+        c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
         c.to_state = [:start, :restart]
         c.times = 5
         c.within = 5.minutes
@@ -57,7 +58,7 @@ module  GodHelper
     w.restart_if do |restart|
       if options[:memory_usage]
         restart.condition(:memory_usage) do |c|
-          c.notify = {:contacts => ['default'], :category => "process over #{options[:memory_usage]/1.megabyte}MB.  restarting"}
+          c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
           c.above = options[:memory_usage]
           c.times = [3,5]
         end
@@ -65,7 +66,7 @@ module  GodHelper
 
       if options[:cpu_usage]
         restart.condition(:cpu_usage) do |c|
-          c.notify = {:contacts => ['default'], :category => "process over #{options[:cpu_usage]*100}%.  restarting"}
+          c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
           c.above = options[:cpu_usage]
           c.times = 5
         end

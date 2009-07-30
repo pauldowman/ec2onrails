@@ -15,4 +15,3 @@ if File.exists?('/etc/init.d/dkim-filter')
     restart_if_resource_hog(w, :memory_usage => 20.megabytes, :cpu_usage => 10.percent)
   end
 end
-
