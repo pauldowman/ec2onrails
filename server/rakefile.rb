@@ -134,11 +134,13 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:require_root, :install_packages] do |t|
   unless_completed(t) do
-    url = "http://rubyforge.org/frs/download.php/56227/rubygems-1.3.3.tgz"
-    filename = "rubygems-1.3.3.tgz"
+    version = "1.3.5"
+    dir = "60718"
     
+    filename = "rubygems-#{version}.tgz"
+    url = "http://rubyforge.org/frs/download.php/#{dir}/#{filename}"
     run_chroot "sh -c 'cd /tmp && wget -q #{url} && tar zxf #{filename}'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.3.3 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp/rubygems-#{version} && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     #NOTE: this will update to the most recent rubygems version even if we haven't updated the url here
     run_chroot "gem update --system --no-rdoc --no-ri"
