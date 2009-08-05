@@ -322,13 +322,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
       
       desc <<-DESC
-        DEPRECATED. To install files into the system create the directory
-        RAILS_ROOT/config/ec2onrails/system_files, it can contain files
-        that will be installed into the server relative to "/", and it
-        can contain a manifest file with metadata, this allows the files
-        to be chowned to any user on the system, and it allows the files
-        to be cleanly uninstalled from the system.
-        TODO pointer to full documentation
+        DEPRECATED. See install_system_files.
       DESC
       task :deploy_files do
         if cfg[:server_config_files_root]
@@ -352,12 +346,12 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
       
       desc <<-DESC
-        DEPRECATED. To install files into the system create the directory
-        RAILS_ROOT/config/ec2onrails/system_files, it can contain files
-        that will be installed into the server relative to "/", and it
-        can contain a manifest file with metadata, this allows the files
-        to be chowned to any user on the system, and it allows the files
-        to be cleanly uninstalled from the system.
+        Installs files into the system anywhere outside of the Rails app.
+        The directory RAILS_ROOT/config/ec2onrails/system_files can contain
+        files that will be installed into the server relative to "/", and it
+        can contain a manifest file with metadata to change the file owner
+        and permissions, and it allows the files to be cleanly uninstalled 
+        from the system.
         TODO pointer to full documentation
       DESC
       task :install_system_files do
