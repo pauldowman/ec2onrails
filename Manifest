@@ -33,7 +33,6 @@ server/files/etc/environment
 server/files/etc/event.d/god
 server/files/etc/god/db_primary.god
 server/files/etc/god/dkim_filter.god
-server/files/etc/god/examples/have_god_daemonize.god
 server/files/etc/god/master.conf
 server/files/etc/god/memcache.god
 server/files/etc/god/notifications.god
@@ -43,8 +42,9 @@ server/files/etc/god/web.god
 server/files/etc/init.d/ec2-every-startup
 server/files/etc/init.d/ec2-first-startup
 server/files/etc/init.d/nginx
-server/files/etc/logrotate.d/mongrel
 server/files/etc/logrotate.d/nginx
+server/files/etc/logrotate.d/rails
+server/files/etc/logrotate.d/varnish
 server/files/etc/memcached.conf
 server/files/etc/motd.tail
 server/files/etc/mysql/my.cnf

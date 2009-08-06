@@ -18,7 +18,7 @@
 
 module Ec2onrails #:nodoc:
   module VERSION #:nodoc:
-    STRING = "0.9.10.1"
+    STRING = "0.9.10.2"
     
     AMI_ID_32_BIT_US = 'ami-xx'
     AMI_ID_64_BIT_US = 'ami-xx'
