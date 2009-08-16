@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ec2onrails}
-  s.version = "0.9.10.2"
+  s.version = "0.9.10.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Paul Dowman, Adam Greene"]
-  s.date = %q{2009-08-06}
+  s.date = %q{2009-08-16}
   s.description = %q{Client-side libraries (Capistrano tasks) for managing and  deploying to EC2 on Rails servers.}
   s.email = %q{paul@pauldowman.com}
   s.extra_rdoc_files = ["CHANGELOG", "lib/ec2onrails/capistrano_utils.rb", "lib/ec2onrails/recipes/db.rb", "lib/ec2onrails/recipes/deploy.rb", "lib/ec2onrails/recipes/server.rb", "lib/ec2onrails/recipes.rb", "lib/ec2onrails/version.rb", "lib/ec2onrails.rb", "README.textile"]
