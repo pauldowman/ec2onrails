@@ -109,6 +109,13 @@ http {
     if ($request_filename ~* \.(css|jpg|gif|png)$) {
 	    break;
     }
+
+    # this allows a url /warmup that can be used to cause Passenger to
+    # restart after restart.txt has been touched, even if the maintenance
+    # page is up.
+    if ($request_filename ~* \\/warmup.*$) {
+	    break;
+    }
 		
     # this rewrites all the requests to the maintenance.html
     # page if it exists in the doc root. This is for capistrano's
