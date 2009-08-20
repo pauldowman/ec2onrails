@@ -24,7 +24,7 @@ exit unless File.exists?("/mnt/app/current")
 require "rubygems"
 require "optiflag"
 require "fileutils"
-require 'EC2'
+require "AWS"
 require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
 require "#{File.dirname(__FILE__)}/../lib/s3_helper"
 require "#{File.dirname(__FILE__)}/../lib/aws_helper"
@@ -32,7 +32,7 @@ require "#{File.dirname(__FILE__)}/../lib/roles_helper"
 
 require "#{File.dirname(__FILE__)}/../lib/utils"
 
-# Only run if this instance is the db_pimrary
+# Only run if this instance is the db_primary
 # The original code would run on any instance that had /etc/init.d/mysql
 # Which was pretty much all instances no matter what role
 include Ec2onrails::RolesHelper
@@ -55,7 +55,7 @@ if File.exists?("/etc/mysql/conf.d/mysql-ec2-ebs.cnf")  && !ARGV.flags.no_ebs
         
   @aws   = Ec2onrails::AwsHelper.new
   vols = YAML::load(File.read("/etc/ec2onrails/ebs_info.yml"))
-  ec2 = EC2::Base.new( :access_key_id => @aws.aws_access_key, :secret_access_key => @aws.aws_secret_access_key )
+  ec2 = AWS::EC2::Base.new( :access_key_id => @aws.aws_access_key, :secret_access_key => @aws.aws_secret_access_key )
   
   #lets make sure we have space: AMAZON puts a 500 limit on the number of snapshots
   snaps = ec2.describe_snapshots['snapshotSet']['item'] rescue nil
