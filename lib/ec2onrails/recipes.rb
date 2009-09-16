@@ -66,8 +66,8 @@ Capistrano::Configuration.instance.load do
   # The best solution is to use an after hook on "deploy:symlink" or "deploy:update" instead of on
   # "deploy:update_code"
   on :load do
-    before "deploy:symlink", "ec2onrails:server:run_rails_rake_gems_install"
     before "deploy:symlink", "ec2onrails:server:install_system_files"
+    after "deploy:finalize_update", "ec2onrails:server:run_rails_rake_gems_install"
   end  
 
   
