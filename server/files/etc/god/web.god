@@ -13,7 +13,7 @@ God.watch do |w|
   restart_if_resource_hog(w, :memory_usage => 250.megabytes) do |restart|
     restart.condition(:http_response_code) do |c|
       c.host = '127.0.0.1'
-      c.port = in_role?(:proxy) ? 81 : 80
+      c.port = lambda { in_role?(:proxy) ? 81 : 80 }
       c.path = '/nginx_status'
       c.code_is_not = 200
       c.timeout = 5.seconds
