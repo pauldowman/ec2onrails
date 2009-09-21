@@ -110,10 +110,16 @@ http {
 	    break;
     }
 
+    # this allows the /nginx_status page to work, even if the maintenance
+    # page is up.
+    if ($uri ~* "^/nginx_status") {
+	    break;
+    }
+
     # this allows a url /warmup that can be used to cause Passenger to
     # restart after restart.txt has been touched, even if the maintenance
     # page is up.
-    if ($request_filename ~* \\/warmup.*$) {
+    if ($uri ~* "^/warmup") {
 	    break;
     }
 		
