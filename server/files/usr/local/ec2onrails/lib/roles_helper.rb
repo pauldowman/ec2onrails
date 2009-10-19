@@ -137,7 +137,7 @@ module Ec2onrails
       # Set any variables that will be needed inside the templates
       # We're processing ALL templates, even ones that won't be used in the current role.
       rails_env = Ec2onrails::Utils.rails_env
-      config = Ec2onrails::Utils.load_config
+      config = Ec2onrails::Utils.load_ec2onrails_config
       roles = self.roles
 
       Dir["/etc/**/*.erb"].each do |template|

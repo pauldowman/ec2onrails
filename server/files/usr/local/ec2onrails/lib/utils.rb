@@ -13,12 +13,13 @@ module Ec2onrails
       `hostname -s`.strip
     end
     
-    def self.load_config
-      config = {}
-      begin
-        config = eval(File.read("/etc/ec2onrails/config.rb"))
-      rescue Exception => e
-        puts "ERROR:\n#{e.inspect}\n#{e.backtrace.join("\n")}"
+    def self.load_ec2onrails_config
+      config_file = "/mnt/app/current/config/ec2onrails/config.rb"
+      if File.exists?(config_file)
+        config = eval(File.read(config_file))
+      else
+        puts "#{config_file} doesn't exist"
+        config = {}
       end
       return config
     end
