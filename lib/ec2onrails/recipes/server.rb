@@ -273,7 +273,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         # very quickly before the sudo is called
         # run "cd #{release_path} && rake RAILS_ENV=#{rails_env} -T 1>/dev/null && sudo rake RAILS_ENV=#{rails_env} gems:install"
         allow_sudo do
-          output = quiet_capture "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version > /dev/null 2>&1 || sudo rake RAILS_ENV=#{rails_env} gems:install"
+          output = run "cd #{release_path} && rake RAILS_ENV=#{rails_env} db:version > /dev/null 2>&1 || sudo rake RAILS_ENV=#{rails_env} gems:install"
           puts output
         end
       end
@@ -480,9 +480,11 @@ Capistrano::Configuration.instance(:must_exist).load do
           if @within_sudo > 1
             yield if block_given?
             true
-          elsif capture("groups").split.include?("rootequiv")
-            yield if block_given?
-            false
+          # The following can break if using multiple instances and a deploy was killed partway.
+          # Disabled for now.
+          # elsif capture("groups").split.include?("rootequiv")
+          #   yield if block_given?
+          #   false
           else
             begin
               # need to cheat and temporarily set the user to ROOT so we

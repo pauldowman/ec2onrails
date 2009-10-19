@@ -31,6 +31,9 @@ module Ec2onrails
     
     # Like the capture method, but does not print out error stream and swallows 
     # an exception if the process's exit code != 0
+    # NOTE: this only executes on the first server in the list. Don't use this
+    # to execute a task that has a side-effect (i.e. something that needs to be
+    # run on all servers).
     def quiet_capture(command, options={})
       output = ""
       invoke_command(command, options.merge(:once => true)) do |ch, stream, data|
