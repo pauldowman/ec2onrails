@@ -1,0 +1,8 @@
+# Rotate God log
+/mnt/log/god/god.log {
+  daily
+  rotate 7
+  missingok
+  dateext
+  copytruncate
+}

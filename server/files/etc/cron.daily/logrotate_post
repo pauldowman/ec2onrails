@@ -23,3 +23,9 @@ if [ -e $logfile ] ; then
   gzip -c $logfile > $logfile.gz
   /usr/local/ec2onrails/bin/archive_file --file $logfile.gz --dir logs/varnish && rm $logfile.gz
 fi
+
+logfile=/mnt/log/god/god.log-`date +%Y%m%d`
+if [ -e $logfile ] ; then
+  gzip -c $logfile > $logfile.gz
+  /usr/local/ec2onrails/bin/archive_file --file $logfile.gz --dir logs/god && rm $logfile.gz
+fi

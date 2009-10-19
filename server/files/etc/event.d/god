@@ -1,8 +1,8 @@
 description     "god monitoring daemon"
 
 start on runlevel [2345]
-
 stop on runlevel [06]
 
-exec /usr/bin/god -D -c /etc/god/master.conf -l /mnt/log/god/god.log
+exec /usr/bin/god -D -c /etc/god/master.conf -l /mnt/log/god/god.log --log-level error --no-syslog
+
 respawn
