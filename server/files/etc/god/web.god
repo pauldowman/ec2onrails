@@ -18,6 +18,7 @@ God.watch do |w|
       c.code_is_not = 200
       c.timeout = 5.seconds
       c.times = [3, 5] # 3 out of 5 intervals
+      c.notify = {:contacts => ['default'], :category => "RAILS_ENV=#{Ec2onrails::Utils.rails_env}"}
     end
   end
 end
