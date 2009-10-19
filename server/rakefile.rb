@@ -146,6 +146,8 @@ task :install_gems => [:require_root, :install_packages] do |t|
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
     run_chroot "gem sources -a http://gems.github.com"
+    run_chroot "gem install gemcutter --no-rdoc --no-ri"
+    run_chroot "gem tumble" # set gemcutter as default gem server
     @rubygems.each do |g|
       run_chroot "gem install #{g} --no-rdoc --no-ri"
     end
