@@ -1,14 +1,24 @@
 #This is the VCL configuration file for varnish.  See the vcl(7)
 #man page for details on VCL syntax and semantics.
 
-# One backend for each instance in the "web" role. If that instance is also in
-# the "proxy" role then it's listening on port 81, otherwise it's on port 80
-<% roles[:web].each_with_index do |address, i| %>
-backend web_<%= i %> {
-.host = "<%= address %>";
-.port = "<%= roles[:proxy] && roles[:proxy].include?(address) ? 81 : 80  %>";
+director director_1 random {
+  .retries = <%= roles[:web].size * 3 %>;
+  # One backend for each instance in the "web" role. If that instance is also in
+  # the "proxy" role then it's listening on port 81, otherwise it's on port 80
+  <% roles[:web].each_with_index do |address, i| %>
+    {
+      .backend = {
+        .host = "<%= address %>";
+        .port = "<%= roles[:proxy] && roles[:proxy].include?(address) ? 81 : 80  %>";
+        .max_connections = 100;
+        .connect_timeout = 5s;
+        .first_byte_timeout = 5s;
+        .between_bytes_timeout = 2s;
+      }
+      .weight = 1;
+    }
+  <% end %>
 }
-<% end %>
 
 <% unless config[:proxy] && config[:proxy][:caching_enabled] %>
 # redefine the vcl_recv function to disable caching if 
