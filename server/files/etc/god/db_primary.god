@@ -4,7 +4,7 @@ God.watch do |w|
   w.autostart = false
   
   w.start    = "/etc/init.d/mysql start" 
-  w.stop     = "/etc/init.d/mysql stop;" 
+  w.stop     = "/etc/init.d/mysql stop"
   w.restart  = "/etc/init.d/mysql restart" 
   
   w.pid_file = "/var/run/mysqld/mysqld.pid"
