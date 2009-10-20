@@ -24,7 +24,7 @@ require 'zlib'
 require 'archive/tar/minitar'
 include Archive::Tar
 
-require 'ec2onrails/version'
+require 'ec2onrails/version_helper'
 require 'ec2onrails/capistrano_utils'
 include Ec2onrails::CapistranoUtils
 
@@ -43,7 +43,7 @@ Capistrano::Configuration.instance.load do
   
   cfg = ec2onrails_config
   
-  set :ec2onrails_version, Ec2onrails::VERSION::STRING
+  set :ec2onrails_version, Ec2onrails::VersionHelper.string
   set :deploy_to, "/mnt/app"
   set :use_sudo, false
   set :user, "app"
@@ -59,19 +59,19 @@ Capistrano::Configuration.instance.load do
   on :load do
     before "deploy:symlink", "ec2onrails:server:run_rails_rake_gems_install"
     before "deploy:symlink", "ec2onrails:server:install_system_files"
-  end  
+  end
 
-  
+
   namespace :ec2onrails do
     desc <<-DESC
       Show the AMI id's of the current images for this version of \
       EC2 on Rails.
     DESC
     task :ami_ids do
-      puts "32-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_32_BIT_US}"
-      puts "64-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_64_BIT_US}"
-      puts "32-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_32_BIT_EU}"
-      puts "64-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VERSION::AMI_ID_64_BIT_EU}"
+      puts "32-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VersionHelper.ami_ids["us"]["32bit"]}"
+      puts "64-bit server image (US location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VersionHelper.ami_ids["us"]["64bit"]}"
+      puts "32-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VersionHelper.ami_ids["eu"]["32bit"]}"
+      puts "64-bit server image (EU location) for EC2 on Rails #{ec2onrails_version}: #{Ec2onrails::VersionHelper.ami_ids["eu"]["64bit"]}"
     end
     
     desc <<-DESC

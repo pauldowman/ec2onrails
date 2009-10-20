@@ -2,30 +2,30 @@
 # To build a server AMI, see server/rakefile.rb
 
 begin
-  require 'echoe'
-rescue LoadError
-  abort "You'll need to have `echoe' installed to use ec2onrails' Rakefile"
-end
+  require 'jeweler'
+  Jeweler::Tasks.new do |gemspec|
+    gemspec.name = "ec2onrails"
+    gemspec.summary = "Client-side libraries (Capistrano tasks) for managing and deploying to EC2 on Rails servers."
+    gemspec.description = <<-DESC.strip.gsub(/\n\s+/, " ")
+      Deploy a Ruby on Rails app on EC2 in five minutes. 
+      EC2 on Rails is an Ubuntu Linux server image for Amazon EC2 that’s ready to run a standard
+      Ruby on Rails application with little or no customization. 
+      It’s a Ruby on Rails virtual appliance.
+      This gem contains Capistrano tasks to manage and deploy to an EC2 on Rails server instance.
+    DESC
+    gemspec.homepage = "http://ec2onrails.rubyforge.org"
 
-require "./echoe_config"
+    gemspec.authors = ['Paul Dowman', 'Adam Greene']
+    gemspec.email = "paul@pauldowman.com"
 
-desc "Run all gem-related tasks"
-task :ec2onrails_gem => [:delete_ignored_files, :manifest, :package, :update_github_gemspec]
+    gemspec.files.exclude 'server/**/*'
+    gemspec.files.exclude 'test/**/*'
 
-desc "Delete files that are in .gitignore so they don't get added to the manifest"
-task :delete_ignored_files do
-  File.read(".gitignore").each { |line| FileUtils.rm_f Dir.glob(line.strip) }
-end
-
-desc "Update the GitHub gemspec file (/ec2onrails.gemspec)"
-task :update_github_gemspec => [:manifest, :package] do
-  root_dir = File.dirname __FILE__
-  contents = File.open("#{root_dir}/pkg/ec2onrails-#{Ec2onrails::VERSION::STRING}/ec2onrails.gemspec", 'r').readlines
-  File.open("#{root_dir}/ec2onrails.gemspec", 'w') do |f|
-    f << "# This file is auto-generated, do not edit.\n"
-    f << "# Edit echoe_config.rb and then run 'rake ec2onrails_gem'\n"
-    f << "# \n"
-    contents.each {|line| f << line}
+    gemspec.add_dependency('capistrano', '>= 2.5.3')
+    gemspec.add_dependency('archive-tar-minitar', '>= 0.5.2')
+    gemspec.add_dependency('optiflag', '>= 0.6.5')
+    
   end
-end  
-
+rescue LoadError
+  puts "Jeweler not available. Install it with: sudo gem install jeweler"
+end

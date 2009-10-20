@@ -16,14 +16,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module Ec2onrails #:nodoc:
-  module VERSION #:nodoc:
-    STRING = "0.9.10.4"
+require "yaml"
+
+module Ec2onrails
+  module VersionHelper
+    ROOT_DIR = File.dirname(__FILE__) + "/../.."
     
-    AMI_ID_32_BIT_US = 'ami-xx'
-    AMI_ID_64_BIT_US = 'ami-xx'
+    def self.string
+      File.read(ROOT_DIR + "/VERSION").strip
+    end
     
-    AMI_ID_32_BIT_EU = 'ami-xx'
-    AMI_ID_64_BIT_EU = 'ami-xx'
+    def self.ami_ids
+      YAML::load_file(ROOT_DIR + "/ami_ids.yml")
+    end
   end
 end
