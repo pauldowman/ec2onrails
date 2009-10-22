@@ -23,7 +23,6 @@
 
 require "yaml"
 require "erb"
-require "#{File.dirname(__FILE__)}/../lib/utils"
 
 
 if ARGV.length != 1
@@ -40,4 +39,10 @@ end
 # Tell god to quit, which will cause it to be restarted immediately by init.
 # When it restarts it keeps it's monitoring state. This causes it to reload
 # it's idea of RAILS_ENV because it's used in notifications.
-Utils.run "god quit"
+system("god quit > /dev/null")
+
+# Wait for it to restart
+command = "god status > /dev/null"
+while !system(command)
+  sleep 1
+end
