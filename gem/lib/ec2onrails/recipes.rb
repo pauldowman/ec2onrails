@@ -53,7 +53,6 @@ Capistrano::Configuration.instance.load do
   
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
   after "deploy:symlink", "ec2onrails:server:purge_proxy_cache"
-  after "ec2onrails:db:create", "ec2onrails:db:init_backup"
 
   on :load do
     before "deploy:symlink", "ec2onrails:server:run_rails_rake_gems_install"

@@ -55,6 +55,9 @@ Capistrano::Configuration.instance.load do
         puts "  * Pausing to give MySQL some time to start up..."
         sleep 20
         
+        # TODO run init_backup after creating the db. This might be slow, so we need to
+        # check if the db exists, and exit without doing any of this if it exists.
+        
         run %{mysql -u root -e "drop database if exists test; flush privileges;"}
         # removing anonymous mysql accounts
         run %{mysql -u root -D mysql -e "delete from db where User = ''; flush privileges;"}
@@ -65,7 +68,7 @@ Capistrano::Configuration.instance.load do
         run %{mysql -u root -e "create database if not exists \\`#{cfg[:db_name]}\\`;"}
         run %{mysql -u root -e "grant all on \\`#{cfg[:db_name]}\\`.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
         run %{mysql -u root -e "grant reload on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
-        run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}        
+        run %{mysql -u root -e "grant super on *.* to '#{cfg[:db_user]}'@'%' identified by '#{cfg[:db_password]}';"}
       end
       
       desc <<-DESC
