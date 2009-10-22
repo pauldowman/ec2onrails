@@ -1,8 +1,8 @@
 .DS_Store
 .loadpath
 .project
-pkg/*
-test/test_app/db/*.sqlite3
-test/test_app/log/*
-test/test_app/tmp/*
-tmp/*
+gem/pkg/*
+gem/tmp/*
+server/test/test_app/db/*.sqlite3
+server/test/test_app/log/*
+server/test/test_app/tmp/*

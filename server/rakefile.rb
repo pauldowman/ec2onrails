@@ -24,7 +24,7 @@
 require "rake/clean"
 require 'yaml'
 require 'erb'
-require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version_helper"
+require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version_helper"
 
 # package notes:
 # * gcc:            libraries needed to compile c/c++ files from source
