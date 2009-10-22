@@ -13,6 +13,11 @@ begin
       It’s a Ruby on Rails virtual appliance.
       This gem contains Capistrano tasks to manage and deploy to an EC2 on Rails server instance.
     DESC
+    if gemspec.name == "ec2onrails-experimental"
+      experimental_warning = " *** This is the experimental, pre-release version.*** For the regular version install the gem 'ec2onrails'"
+      gemspec.summary += experimental_warning
+      gemspec.description += experimental_warning
+    end
     gemspec.homepage = "http://ec2onrails.rubyforge.org"
 
     gemspec.authors = ['Paul Dowman', 'Adam Greene']
