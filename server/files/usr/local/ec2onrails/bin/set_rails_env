@@ -23,6 +23,8 @@
 
 require "yaml"
 require "erb"
+require "#{File.dirname(__FILE__)}/../lib/utils"
+
 
 if ARGV.length != 1
   puts "usage: set_rails_env <value>"
@@ -34,3 +36,8 @@ end
 File.open("/etc/ec2onrails/rails_env", 'w') do |f|
   f << @rails_env
 end
+
+# Tell god to quit, which will cause it to be restarted immediately by init.
+# When it restarts it keeps it's monitoring state. This causes it to reload
+# it's idea of RAILS_ENV because it's used in notifications.
+Utils.run "god quit"
