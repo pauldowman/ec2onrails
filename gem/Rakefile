@@ -4,7 +4,7 @@
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "ec2onrails"
+    gemspec.name = "ec2onrails-experimental"
     gemspec.summary = "Client-side libraries (Capistrano tasks) for managing and deploying to EC2 on Rails servers."
     gemspec.description = <<-DESC.strip.gsub(/\n\s+/, " ")
       Deploy a Ruby on Rails app on EC2 in five minutes. 
