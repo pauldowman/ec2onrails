@@ -48,13 +48,12 @@ Capistrano::Configuration.instance.load do
   set :use_sudo, false
   set :user, "app"
 
-  #in case any changes were made to the configs
+  # in case anyone is still using deploy:cold
   before "deploy:cold", "ec2onrails:setup"
   
   after "deploy:symlink", "ec2onrails:server:set_roles", "ec2onrails:server:init_services"
-  after "deploy:cold", "ec2onrails:db:init_backup", "ec2onrails:db:optimize", "ec2onrails:server:restrict_sudo_access"
-  # TODO I don't think we can do gem source -a every time because I think it adds the same repo multiple times
-  after "ec2onrails:server:install_gems", "ec2onrails:server:add_gem_sources"
+  after "deploy:symlink", "ec2onrails:server:purge_proxy_cache"
+  after "ec2onrails:db:create", "ec2onrails:db:init_backup"
 
   on :load do
     before "deploy:symlink", "ec2onrails:server:run_rails_rake_gems_install"

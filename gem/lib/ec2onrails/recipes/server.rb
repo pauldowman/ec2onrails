@@ -280,20 +280,6 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
       
       desc <<-DESC
-        Add extra gem sources to rubygems (to able to fetch gems from for example gems.github.com).
-        Set ec2onrails_config[:rubygems_sources], it should be with an array of strings.
-      DESC
-      task :add_gem_sources do
-        if cfg[:rubygems_sources]
-          allow_sudo do
-            cfg[:rubygems_sources].each do |gem_source|
-              sudo "gem sources -a #{gem_source}"
-            end
-          end
-        end
-      end
-      
-      desc <<-DESC
         A convenience task to upgrade existing packages and gems and install \
         specified new ones.
       DESC

@@ -106,7 +106,8 @@ h4. 5. Deploy the app with Capistrano
 Now that the gem is installed, your deploy.rb is configured and you can start and stop EC2 instances, this is the only thing you'll need to do from now on.
 
 <pre>
-cap deploy:cold
+cap ec2onrails:setup
+cap deploy:migrations
 </pre>
 
 Yes, it's that easy! The setup task will set the server's timezone, install any gems and Ubuntu packages that you specified in the config file, and create your database.
