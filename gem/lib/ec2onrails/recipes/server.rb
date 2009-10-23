@@ -255,7 +255,6 @@ Capistrano::Configuration.instance(:must_exist).load do
         be with an array of strings.
       DESC
       task :install_gems do
-        sudo "gem install rails --no-ri --no-rdoc" # Make sure the latest Rails is installed.
         if cfg[:rubygems]
           allow_sudo do
             cfg[:rubygems].each do |g|
