@@ -48,7 +48,7 @@ module Ec2onrails
     end
 
     def stop(role)
-      puts "STOPING #{role} role"
+      puts "STOPPING #{role} role"
       sudo "god stop #{role}"
     end
 
