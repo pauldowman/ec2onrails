@@ -157,6 +157,14 @@ end
 desc "Install nginx from source"
 task :install_nginx => [:require_root, :install_packages, :install_gems] do |t|
   unless_completed(t) do
+    
+    # To work around a Passenger bug, we need to edit the Rakefile.
+    # Unfortunately this is a bit brittle and will break when Passenger is updated
+    # The bug: http://code.google.com/p/phusion-passenger/issues/detail?id=316
+    # The solution is to add -mno-tls-direct-seg-refs to the compiler options: 
+    #   http://blog.pacharest.com/2009/08/a-bit-technical-nginx-passenger-4gb-seg-fixup/
+    replace_line("#{@fs_dir}/usr/lib/ruby/gems/1.8/gems/passenger-2.2.5/Rakefile", %q(EXTRA_CXXFLAGS = "-Wall -mno-tls-direct-seg-refs #{OPTIMIZATION_FLAGS}"), 50)
+    
     nginx_version = "nginx-0.7.60"
     nginx_tar = "#{nginx_version}.tar.gz"
 
@@ -171,6 +179,7 @@ task :install_nginx => [:require_root, :install_packages, :install_gems] do |t|
          --sbin-path=/usr/sbin \
          --conf-path=/etc/nginx/nginx.conf \
          --pid-path=/var/run/nginx.pid \
+         --error-log-path=/mnt/log/nginx/default_error.log \
          --with-http_ssl_module \
          --with-http_stub_status_module \
          --add-module=`/usr/bin/passenger-config --root`/ext/nginx && \
