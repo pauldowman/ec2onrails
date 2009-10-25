@@ -53,7 +53,7 @@ Capistrano::Configuration.instance.load do
         load_config
         start
         puts "  * Pausing to give MySQL some time to start up..."
-        sleep 20
+        sleep 30
         
         # TODO run init_backup after creating the db. This might be slow, so we need to
         # check if the db exists, and exit without doing any of this if it exists.
