@@ -30,7 +30,12 @@ begin
     gemspec.add_dependency('archive-tar-minitar', '>= 0.5.2')
     gemspec.add_dependency('optiflag', '>= 0.6.5')
     
+    gemspec.rubyforge_project = gemspec.name
+    Jeweler::RubyforgeTasks.new do |rubyforge|
+      rubyforge.doc_task = "rdoc"
+    end
   end
+  Jeweler::GemcutterTasks.new
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install jeweler"
 end
