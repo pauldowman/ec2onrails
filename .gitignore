@@ -1,6 +1,7 @@
 .DS_Store
 .loadpath
 .project
+gem/*.gemspec
 gem/pkg/*
 gem/tmp/*
 server/test/test_app/db/*.sqlite3
