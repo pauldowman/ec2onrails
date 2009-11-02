@@ -1,7 +1,7 @@
 us:
-  32bit: ami-xx
-  64bit: ami-xx
+  32bit: ami-1501e27c
+  64bit: n/a
 eu:
-  32bit: ami-xx
-  64bit: ami-xx
+  32bit: n/a
+  64bit: n/a
     
