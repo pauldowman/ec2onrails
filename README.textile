@@ -22,19 +22,18 @@ Features of the EC2 image:
 * Optional Amazon Elastic Block Store (EBS) setup and support for MySQL database persistence.
 * Automatic backup of MySQL database to S3 (EBS enabled: snapshots taken every 2 hrs; Non-EBS enabled: full backup nightly + incremental backup using binary logs every 5 minutes if not using )
 * Capistrano tasks to customize the server image, archive and restore the database to/from S3, and more (available as a rubygem)
-* Mongrel_cluster behind Apache 2.2, configured according to 
-  "Coda Hale's excellent guide":http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
-* Ruby on Rails 2.1.0, 2.0.2 and 1.2.6
+* Nginx + Passenger
+* "Varnish":http://varnish.projects.linpro.no/ proxy for load balancing across multiple instances, and optionally HTTP caching.
+* Ruby on Rails 2.3.4, 2.2.3, 2.1.2, 2.0.5 and 1.2.6
 * Ruby 1.8.6
 * MySQL 5
 * "memcached":http://www.danga.com/memcached/
 * "god":http://god.rubyforge.org/ configured to monitor apache or nginx, mongrel, mysql, memcached, drive space and system load
-* Ubuntu 8.04 LTS "Hardy" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
-* SSL support
+* Ubuntu 9.04 "Jaunty" base image built using "Eric Hammond's EC2 Ubuntu script":http://alestic.com/
+* SSL support (currently needs fixing since the switch to Nginx)
 * Amazon AMI tools installed
-* Apache or Nginx web proxies
-* MySQL, Apache/Nginx, and syslog configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
-* Automatically archives Rails and Apache logs to S3 nightly.
+* MySQL, Nginx, varnish, syslog, etc. configured to use /mnt for data and logging so you don't fill up EC2's small root filesystem
+* Automatically archives logs to S3 nightly.
 * 32-bit and 64-bit images available (supports all instance types, small to extra large).
 * Created using a build file, full source is "available":http://rubyforge.org/scm/?group_id=4552 (the EC2 on Rails script is run from "Eric Hammond's EC2 Ubuntu script":http://alestic.com/)
 * Can be used as a clustered Rails app running on multiple instances
