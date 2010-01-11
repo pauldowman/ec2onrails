@@ -2,6 +2,8 @@ h1. EC2 on Rails
 
 h2. Deploy a Ruby on Rails app on EC2 in five minutes
 
+_Unfortunately I am "no longer maintaining this project":http://pauldowman.com/2010/01/10/movin-on-status-of-ec2-on-rails/. Please feel free to fork it and give it new life!_
+
 Main Page: "http://ec2onrails.rubyforge.org":http://ec2onrails.rubyforge.org
 
 Code on Github: "http://github.com/pauldowman/ec2onrails":http://github.com/pauldowman/ec2onrails
